@@ -33,7 +33,74 @@
   display: none;
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@media (prefers-reduced-motion: reduce) {
+  .htls-phone-sweep-bar {
+    animation: none !important;
+  }
+
+  .htls-hero-square-grid {
+    animation: none !important;
+  }
+}
+
+/* Guest phone “Get number” — gold highlight sweeps left → right → back */
+@keyframes htls-phone-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.2;
+  }
+  48% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(200%);
+    opacity: 1;
+  }
+  52% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.2;
+  }
+}
+
+.htls-phone-sweep-bar {
+  animation: htls-phone-sweep 3.2s ease-in-out infinite;
+}
+
+/* Home navy hero / CTA — white square grid + slow drift (no gold / no blur) */
+@keyframes htls-hero-grid-slide {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 38px 38px;
+  }
+}
+
+@keyframes htls-hero-grid-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.htls-hero-square-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 38px 38px;
+  background-position: 0 0;
+  opacity: 0.75;
+  will-change: background-position, opacity;
+  animation:
+    htls-hero-grid-slide 26s linear infinite,
+    htls-hero-grid-pulse 8s ease-in-out infinite;
 }

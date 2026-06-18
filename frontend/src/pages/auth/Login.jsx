@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getSafeInternalReturnPath } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
 const LOGIN_EMAIL_DRAFT_KEY = 'harshToLet_login_email_v1';
@@ -12,7 +13,18 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const emailDraftLoaded = useRef(false);
+  const contactHintShown = useRef(false);
+
+  useEffect(() => {
+    if (searchParams.get('from') !== 'contact' || contactHintShown.current) return;
+    contactHintShown.current = true;
+    toast(
+      'Please log in to view full office numbers and to use WhatsApp chat with a pre-filled message.',
+      { duration: 6000, id: 'login-contact-hint' }
+    );
+  }, [searchParams]);
 
   useEffect(() => {
     try {
@@ -56,6 +68,12 @@ const Login = () => {
         /* ignore */
       }
       toast.success('Login successful!');
+      const next = getSafeInternalReturnPath(searchParams.get('next'));
+      if (next) {
+        navigate(next, { replace: true });
+        setLoading(false);
+        return;
+      }
       const role = result.user.role;
       if (role === 'owner') navigate('/dashboard/owner');
       else if (role === 'agent') navigate('/dashboard/agent');
@@ -78,6 +96,12 @@ const Login = () => {
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-2">Welcome Back</h2>
             <p className="text-gray">Login to access your account</p>
+            {searchParams.get('from') === 'contact' ? (
+              <p className="mt-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2.5 text-left text-sm leading-snug text-navy">
+                You need to be logged in to see full office numbers and to open WhatsApp with a pre-filled message about
+                the listing.
+              </p>
+            ) : null}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

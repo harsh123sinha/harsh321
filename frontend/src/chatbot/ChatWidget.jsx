@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import './chatbot.css';
 import ChatButton from './ChatButton';
@@ -19,17 +19,89 @@ Hello 👋 Welcome to Harsh To Let Services!
 Aap kya dekh rahe hain?
 What are you looking for?`;
 
+const CHAT_SESSION_STORAGE_KEY = 'hts-chatbot-session-v1';
+
+function readPersistedChat() {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(CHAT_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || data.v !== 1) return null;
+    const messages = data.messages;
+    if (!Array.isArray(messages) || messages.length === 0) return null;
+    let phase = data.phase;
+    if (phase === 'confirm') phase = 'form';
+    if (!['welcome', 'category', 'form', 'results'].includes(phase)) phase = 'category';
+    return {
+      state: {
+        ...initialChatState,
+        messages,
+        phase,
+        category: data.category ?? null,
+        formStep: Number.isFinite(Number(data.formStep)) ? Number(data.formStep) : 0,
+        answers: data.answers && typeof data.answers === 'object' ? data.answers : {},
+        searchResults: Array.isArray(data.searchResults) ? data.searchResults : [],
+        searchError: data.searchError ?? null,
+        typing: false,
+        loading: false,
+      },
+      lastQs: typeof data.lastQs === 'string' ? data.lastQs : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedChat(state, lastQs) {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(
+      CHAT_SESSION_STORAGE_KEY,
+      JSON.stringify({
+        v: 1,
+        messages: state.messages,
+        phase: state.phase,
+        category: state.category,
+        formStep: state.formStep,
+        answers: state.answers,
+        searchResults: state.searchResults,
+        searchError: state.searchError,
+        lastQs,
+      })
+    );
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+/** Swap this file in `public/` for your own art (PNG/WebP/SVG). */
+const CHAT_TEASER_IMAGE_SRC = '/chatbot-teaser.svg';
+const CHAT_TEASER_VISIBLE_MS = 5000;
+const CHAT_TEASER_EXIT_AT_MS = 4500;
+
 const ChatWidget = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [state, dispatch] = useReducer(chatReducer, initialChatState);
-  const [lastQs, setLastQs] = useState('');
+  const [fabTeaserMounted, setFabTeaserMounted] = useState(false);
+  const [fabTeaserExiting, setFabTeaserExiting] = useState(false);
+  const [state, dispatch] = useReducer(
+    chatReducer,
+    undefined,
+    () => readPersistedChat()?.state ?? chatReducer(initialChatState, { type: 'INIT_SESSION', payload: WELCOME })
+  );
+  const [lastQs, setLastQs] = useState(() => readPersistedChat()?.lastQs ?? '');
   const stateRef = useRef(state);
-  const prevOpen = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  /** Keep assistant progress across navigation / close panel until "New requirement" clears storage. */
+  useEffect(() => {
+    writePersistedChat(state, lastQs);
+  }, [state, lastQs]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)');
@@ -40,15 +112,30 @@ const ChatWidget = () => {
   }, []);
 
   useEffect(() => {
-    if (!open) {
-      prevOpen.current = false;
-      return;
+    const onOpen = () => setOpen(true);
+    window.addEventListener('hts:open-chat', onOpen);
+    return () => window.removeEventListener('hts:open-chat', onOpen);
+  }, []);
+
+  /** Home landing: animated card above the FAB, then hide after 5s. */
+  useEffect(() => {
+    if (open || location.pathname !== '/') {
+      setFabTeaserMounted(false);
+      setFabTeaserExiting(false);
+      return undefined;
     }
-    if (prevOpen.current) return;
-    prevOpen.current = true;
-    dispatch({ type: 'INIT_SESSION', payload: WELCOME });
-    setLastQs('');
-  }, [open]);
+    setFabTeaserMounted(true);
+    setFabTeaserExiting(false);
+    const exitTimer = window.setTimeout(() => setFabTeaserExiting(true), CHAT_TEASER_EXIT_AT_MS);
+    const hideTimer = window.setTimeout(() => {
+      setFabTeaserMounted(false);
+      setFabTeaserExiting(false);
+    }, CHAT_TEASER_VISIBLE_MS);
+    return () => {
+      window.clearTimeout(exitTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [location.pathname, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -84,7 +171,7 @@ const ChatWidget = () => {
       const res = await api.get(`/properties/search${qs ? `?${qs}` : ''}`);
       const raw = res.data?.properties ?? [];
       const refined = refineResults(category, mergedAnswers, raw);
-      const slice = refined.slice(0, 15);
+      const slice = refined.slice(0, 40);
 
       dispatch({
         type: 'ADD_MESSAGE',
@@ -169,8 +256,13 @@ const ChatWidget = () => {
   );
 
   const startOver = () => {
-    dispatch({ type: 'INIT_SESSION', payload: WELCOME });
+    try {
+      sessionStorage.removeItem(CHAT_SESSION_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
     setLastQs('');
+    dispatch({ type: 'INIT_SESSION', payload: WELCOME });
   };
 
   const steps = state.category ? getStepsForCategory(state.category) : [];
@@ -201,7 +293,8 @@ const ChatWidget = () => {
           {lastQs ? (
             <Link
               to={`/search?${lastQs}`}
-              className="block rounded-xl bg-gold/15 py-3 text-center text-sm font-semibold text-navy ring-1 ring-gold/30"
+              onClick={() => setOpen(false)}
+              className="block rounded-xl bg-gold/15 py-3 text-center text-sm font-semibold text-navy ring-1 ring-gold/30 touch-manipulation"
             >
               Open full search results
             </Link>
@@ -222,10 +315,33 @@ const ChatWidget = () => {
   return (
     <>
       {(!open || !isMobile) && (
-        <ChatButton open={open} onClick={() => setOpen((v) => !v)} />
+        <div className="pointer-events-none fixed bottom-5 right-5 z-[70] flex flex-col-reverse items-end gap-3 sm:bottom-6 sm:right-6 md:bottom-10 md:right-14 lg:bottom-12 lg:right-24 xl:bottom-14 xl:right-32">
+          <ChatButton embedded open={open} onClick={() => setOpen((v) => !v)} />
+          {fabTeaserMounted && location.pathname === '/' && !open ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className={`pointer-events-auto max-w-[min(280px,calc(100vw-2rem))] rounded-2xl border border-red-500/45 bg-white/95 p-2.5 shadow-[0_16px_44px_-12px_rgba(220,38,38,0.4)] ring-1 ring-red-200/40 ${
+                fabTeaserExiting ? 'htls-chat-teaser--exit' : 'htls-chat-teaser'
+              }`}
+            >
+              <img
+                src={CHAT_TEASER_IMAGE_SRC}
+                alt=""
+                width={160}
+                height={120}
+                decoding="async"
+                className="mx-auto h-[4.25rem] w-auto max-w-full object-contain sm:h-[4.5rem]"
+              />
+              <p className="mt-1.5 px-0.5 text-center text-[11px] font-bold leading-snug text-navy sm:text-xs">
+                Find your home with <span className="text-red-600">Chatbot</span>
+              </p>
+            </div>
+          ) : null}
+        </div>
       )}
       <ChatWindow open={open} isMobile={isMobile} onClose={() => setOpen(false)} footer={footer}>
-        <MessageList messages={state.messages} typing={state.typing} />
+        <MessageList messages={state.messages} typing={state.typing} onCloseChat={() => setOpen(false)} />
       </ChatWindow>
     </>
   );

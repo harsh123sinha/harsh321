@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Home, Phone, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { MapPin, Home, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import api, { getImageUrl } from '../utils/api';
 import {
   formatIndianPrice,
   parseImageUrls,
   getPropertyTypeBadge,
   getListingParty,
-  toTelHref,
   DEFAULT_SITE_INQUIRY_PHONE,
   getShopSqftRangeLabel,
   getFurnishingLabel,
 } from '../utils/helpers';
-import PropertyCard from '../components/properties/PropertyCard';
+import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
+import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -359,20 +359,8 @@ const PropertyDetail = () => {
               <div className="space-y-3 lg:space-y-4">
                 <div className="space-y-1.5 lg:space-y-2">
                   <p className="text-xs font-semibold text-navy lg:text-sm">Reach Harsh To Let Services</p>
-                  <a
-                    href={toTelHref(CONTACT_OFFICE_PHONE_1)}
-                    className="flex items-center space-x-2 p-3 bg-navy hover:bg-navy-light rounded-lg transition-colors touch-target lg:space-x-3 lg:p-4"
-                  >
-                    <Phone className="h-5 w-5 text-gold flex-shrink-0 lg:h-6 lg:w-6" />
-                    <span className="text-sm font-semibold text-white lg:text-base">+91 {CONTACT_OFFICE_PHONE_1}</span>
-                  </a>
-                  <a
-                    href={toTelHref(CONTACT_OFFICE_PHONE_2)}
-                    className="flex items-center space-x-2 p-3 bg-navy hover:bg-navy-light rounded-lg transition-colors touch-target lg:space-x-3 lg:p-4"
-                  >
-                    <Phone className="h-5 w-5 text-gold flex-shrink-0 lg:h-6 lg:w-6" />
-                    <span className="text-sm font-semibold text-white lg:text-base">+91 {CONTACT_OFFICE_PHONE_2}</span>
-                  </a>
+                  <MaskedPhoneActionButton phoneRaw={CONTACT_OFFICE_PHONE_1} />
+                  <MaskedPhoneActionButton phoneRaw={CONTACT_OFFICE_PHONE_2} />
                 </div>
 
                 <div className="pt-2 border-t border-gray-light">
@@ -390,11 +378,7 @@ const PropertyDetail = () => {
         {relatedProperties.length > 0 && (
           <div className="mt-12 sm:mt-16">
             <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-6 sm:mb-8">Similar Properties</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedProperties.map((prop) => (
-                <PropertyCard key={prop.id} property={prop} />
-              ))}
-            </div>
+            <PropertyListRow properties={relatedProperties} />
           </div>
         )}
       </div>

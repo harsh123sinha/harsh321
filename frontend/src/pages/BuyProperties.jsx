@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
-import PropertyCard from '../components/properties/PropertyCard';
+import PropertyListRow from '../components/properties/PropertyListRow';
 import SearchBar from '../components/search/SearchBar';
 import { Building2 } from 'lucide-react';
 
@@ -46,11 +46,7 @@ const BuyProperties = () => {
                 Showing <span className="font-semibold text-navy">{data.properties.length}</span> properties
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
+            <PropertyListRow properties={data.properties} />
           </>
         ) : (
           <div className="text-center py-12 sm:py-20">

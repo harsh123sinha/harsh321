@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { MapPin, Home, Star } from 'lucide-react';
 import {
   formatIndianPrice,
@@ -15,6 +16,12 @@ import WhatsAppInquiryButton from './WhatsAppInquiryButton';
 const PropertyCard = ({ property }) => {
   const images = parseImageUrls(property.image_url);
   const mainImage = images[0] || null;
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [property.id, mainImage]);
+
   const badge = getPropertyTypeBadge(property.type);
   const listingParty = getListingParty(property.owner_role);
 
@@ -27,11 +34,12 @@ const PropertyCard = ({ property }) => {
       <Link to={`/property/${property.id}`} className="block">
         {/* Image */}
         <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-light">
-          {mainImage ? (
+          {mainImage && !imageFailed ? (
             <img
               src={getImageUrl(mainImage)}
               alt={property.title}
               className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+              onError={() => setImageFailed(true)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-navy-light">

@@ -78,11 +78,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     onSubmit(`${bhk} BHK`, { bhk });
   };
 
-  const handleHomeArea = () => {
-    const t = homeArea.trim();
-    onSubmit(t ? `Area preference: ${t}` : 'Area: flexible', { homeArea: t });
-  };
-
   const handleFloor = () => {
     if (!floorPref) return;
     const l = floorOpts.find((x) => x.v === floorPref)?.l || floorPref;
@@ -288,29 +283,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     );
   }
 
-  if (stepKey === STEP_KEYS.HOME_AREA) {
-    return (
-      <div className="space-y-3">
-        <label className="text-xs font-medium text-slate-600">Preferred carpet / built-up area (optional)</label>
-        <input
-          type="text"
-          value={homeArea}
-          onChange={(e) => setHomeArea(e.target.value)}
-          className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
-          placeholder="e.g. 1200 sq ft"
-        />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleHomeArea}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Continue
-        </button>
-      </div>
-    );
-  }
-
   if (stepKey === STEP_KEYS.FLOOR_PREF) {
     return (
       <div className="space-y-3">
@@ -337,19 +309,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
   if (stepKey === STEP_KEYS.FURNISHING) {
     return (
       <div className="space-y-3">
-        <label className="text-xs font-medium text-slate-600">Furnishing</label>
-        <select
-          value={furnishing}
-          onChange={(e) => setFurnishing(e.target.value)}
-          className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 text-sm"
-        >
-          <option value="">Any</option>
+        <p className="text-xs font-medium text-slate-600">Furnishing</p>
+        <div className="flex flex-wrap gap-2">
+          <Btn active={furnishing === ''} onClick={() => setFurnishing('')}>
+            Any
+          </Btn>
           {FURNISHING_OPTIONS.filter((o) => o.value).map((o) => (
-            <option key={o.value} value={o.value}>
+            <Btn key={o.value} active={furnishing === o.value} onClick={() => setFurnishing(o.value)}>
               {o.label}
-            </option>
+            </Btn>
           ))}
-        </select>
+        </div>
         <button
           type="button"
           disabled={disabled}

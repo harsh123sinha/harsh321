@@ -32,3 +32,56 @@
     animation: none;
   }
 }
+
+/* One-shot teaser above the chat FAB (home landing) */
+@keyframes htls-chat-teaser-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes htls-chat-teaser-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
+@keyframes htls-chat-teaser-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+.htls-chat-teaser {
+  animation: htls-chat-teaser-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
+    htls-chat-teaser-pulse 2s ease-in-out 0.65s 2;
+}
+
+.htls-chat-teaser--exit {
+  animation: htls-chat-teaser-out 0.45s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .htls-chat-teaser,
+  .htls-chat-teaser--exit {
+    animation: none;
+  }
+}

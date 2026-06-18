@@ -1,4 +1,5 @@
 import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../constants/propertyForm';
+import { getImageUrl, getAbsoluteImageUrl } from './api.js';
 
 // Indian price formatting
 export const formatIndianPrice = (price) => {
@@ -32,20 +33,51 @@ export const isValidIndianMobile = (phone) => {
   return indianMobileRegex.test(phone);
 };
 
-// Parse image URLs from JSON string or array
+/**
+ * Parse `image_url` from API/DB: JSON array string, double-encoded JSON, comma-separated,
+ * or a single filename string (legacy). Returns plain filenames / URLs for `getImageUrl`.
+ */
 export const parseImageUrls = (imageUrl) => {
-  if (!imageUrl) return [];
-  
-  if (typeof imageUrl === 'string') {
-    try {
-      const parsed = JSON.parse(imageUrl);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      return [];
-    }
+  if (imageUrl == null || imageUrl === '') return [];
+
+  if (Array.isArray(imageUrl)) {
+    return imageUrl.map(String).map((s) => s.trim()).filter(Boolean);
   }
-  
-  return Array.isArray(imageUrl) ? imageUrl : [];
+
+  if (typeof imageUrl === 'string') {
+    const s = imageUrl.trim();
+    if (!s) return [];
+
+    try {
+      let parsed = JSON.parse(s);
+      if (typeof parsed === 'string') {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch {
+          /* keep string */
+        }
+      }
+      if (Array.isArray(parsed)) {
+        return parsed.map(String).map((x) => x.trim()).filter(Boolean);
+      }
+      if (typeof parsed === 'string' && parsed.trim()) {
+        return [parsed.trim()];
+      }
+    } catch {
+      /* fall through: treat as raw list or single file */
+    }
+
+    if (s.includes(',')) {
+      return s
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean);
+    }
+
+    return [s];
+  }
+
+  return [];
 };
 
 // Truncate text
@@ -167,6 +199,39 @@ export const toTelHref = (raw) => {
   return `tel:+91${d}`;
 };
 
+/**
+ * Normalize to 10-digit Indian mobile for display helpers.
+ */
+export const toTenDigitIndianMobile = (raw) => {
+  const d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 10 && /^[6-9]/.test(d)) return d;
+  if (d.length === 12 && d.startsWith('91')) return d.slice(2);
+  if (d.length === 11 && d.startsWith('91')) return d.slice(2);
+  return d.length === 10 ? d : '';
+};
+
+/**
+ * Guest-safe display: "+91 93 ×× 07 ×× 76" — show pairs 0,2,4; mask pairs 1,3 as ××.
+ */
+export const formatPhoneMaskedDisplay = (raw) => {
+  const ten = toTenDigitIndianMobile(raw);
+  if (!ten || ten.length !== 10) return '+91 ·· ×× ·· ×× ··';
+  const chunks = [];
+  for (let i = 0; i < 5; i++) {
+    const pair = ten.slice(i * 2, i * 2 + 2);
+    chunks.push(i % 2 === 0 ? pair : '××');
+  }
+  return `+91 ${chunks.join(' ')}`;
+};
+
+/** Only same-origin relative paths (prevents open redirects). */
+export const getSafeInternalReturnPath = (candidate) => {
+  if (!candidate || typeof candidate !== 'string') return '';
+  const t = candidate.trim();
+  if (!t.startsWith('/') || t.startsWith('//')) return '';
+  return t;
+};
+
 /** Public inquiries always go to the business line(s), never the owner's phone. */
 export const getWhatsAppRecipientForProperty = (_property) => {
   const page = import.meta.env.VITE_CONTACT_PAGE_WHATSAPP;
@@ -181,17 +246,8 @@ export const getWhatsAppRecipientForProperty = (_property) => {
 const WHATSAPP_DESC_MAX = 900;
 const WHATSAPP_MAX_IMAGE_LINKS = 8;
 
-/** Base URL for `/images/:file` (same logic as `api.js` getImageUrl) */
-const getBackendBaseForStaticFiles = () => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-  const trimmed = apiBase.replace(/\/api\/?$/, '');
-  return trimmed || 'http://localhost:5000';
-};
-
-export const getPublicImageUrl = (filename) => {
-  if (!filename) return '';
-  return `${getBackendBaseForStaticFiles()}/images/${encodeURIComponent(filename)}`;
-};
+/** Absolute URL for sharing (WhatsApp); listing `<img>` uses `getImageUrl` instead. */
+export const getPublicImageUrl = (filename) => getAbsoluteImageUrl(filename);
 
 /**
  * Pre-filled inquiry text (user still taps Send in WhatsApp).

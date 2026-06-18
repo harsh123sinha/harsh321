@@ -3,15 +3,18 @@ import { createPortal } from 'react-dom';
 import { PATNA_LOCATION_OPTIONS } from '../constants/patnaLocations';
 
 /**
- * Searchable location list; menu is portaled to `document.body` with fixed
- * positioning so it is not clipped or mis-stacked inside the chat footer.
+ * Location step: single search field + suggestions panel portaled **above** the field
+ * (opens upward) so it stays visible above the chat footer — no native-style dropdown.
  */
 const LocationSearchDropdown = ({ value, onChange, id }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
-  const btnRef = useRef(null);
+  const inputRef = useRef(null);
   const menuRef = useRef(null);
-  const [menuRect, setMenuRect] = useState(null);
+  const [menuStyle, setMenuStyle] = useState(null);
+
+  const selectedLabel =
+    PATNA_LOCATION_OPTIONS.find((o) => o.value === value)?.label || 'Any area';
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -23,54 +26,50 @@ const LocationSearchDropdown = ({ value, onChange, id }) => {
     );
   }, [q]);
 
-  const updateMenuRect = () => {
-    if (!open || !btnRef.current) return;
-    const r = btnRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - r.bottom - 12;
-    const maxH = Math.min(280, Math.max(140, spaceBelow));
-    setMenuRect({
-      top: r.bottom + 8,
+  const updateMenuStyle = () => {
+    if (!open || !inputRef.current) return;
+    const r = inputRef.current.getBoundingClientRect();
+    const gap = 8;
+    const spaceAbove = r.top - gap;
+    const maxH = Math.min(260, Math.max(96, spaceAbove));
+    setMenuStyle({
       left: r.left,
-      width: Math.max(r.width, 200),
-      maxH,
+      width: Math.max(r.width, 220),
+      maxHeight: maxH,
+      bottom: window.innerHeight - r.top + gap,
     });
   };
 
   useLayoutEffect(() => {
     if (!open) {
-      setMenuRect(null);
+      setMenuStyle(null);
       return;
     }
-    updateMenuRect();
-    const onScroll = () => updateMenuRect();
-    const onResize = () => updateMenuRect();
+    updateMenuStyle();
+    const onScroll = () => updateMenuStyle();
+    const onResize = () => updateMenuStyle();
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onResize);
     };
-  }, [open]);
+  }, [open, q]);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e) => {
-      if (btnRef.current?.contains(e.target)) return;
+      if (inputRef.current?.contains(e.target)) return;
       if (menuRef.current?.contains(e.target)) return;
       setOpen(false);
-      setQ('');
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
-  const selectedLabel =
-    PATNA_LOCATION_OPTIONS.find((o) => o.value === value)?.label ||
-    (value ? value : 'Select area');
-
   const dropdown =
     open &&
-    menuRect &&
+    menuStyle &&
     typeof document !== 'undefined' &&
     createPortal(
       <div
@@ -78,23 +77,13 @@ const LocationSearchDropdown = ({ value, onChange, id }) => {
         className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/5"
         style={{
           position: 'fixed',
-          top: menuRect.top,
-          left: menuRect.left,
-          width: menuRect.width,
-          maxHeight: menuRect.maxH,
+          left: menuStyle.left,
+          width: menuStyle.width,
+          bottom: menuStyle.bottom,
+          maxHeight: menuStyle.maxHeight,
           zIndex: 10000,
         }}
       >
-        <div className="shrink-0 border-b border-slate-100 bg-slate-50/80 p-2">
-          <input
-            type="search"
-            autoComplete="off"
-            placeholder="Search locality…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/25"
-          />
-        </div>
         <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
           {filtered.map((o) => (
             <li key={o.value || '__any'}>
@@ -103,8 +92,9 @@ const LocationSearchDropdown = ({ value, onChange, id }) => {
                 className="w-full px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
                 onClick={() => {
                   onChange(o.value);
-                  setOpen(false);
                   setQ('');
+                  setOpen(false);
+                  inputRef.current?.blur();
                 }}
               >
                 {o.label}
@@ -120,19 +110,31 @@ const LocationSearchDropdown = ({ value, onChange, id }) => {
     );
 
   return (
-    <div className="relative w-full">
-      <button
-        ref={btnRef}
-        type="button"
+    <div className="relative w-full space-y-2">
+      <p className="text-xs text-slate-600">
+        {value === '' ? (
+          <span>Whole Patna / any locality</span>
+        ) : (
+          <span>
+            Selected: <span className="font-semibold text-navy">{selectedLabel}</span>
+          </span>
+        )}
+      </p>
+      <input
+        ref={inputRef}
         id={id}
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full min-h-[44px] items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-left text-sm text-slate-800 shadow-sm touch-manipulation"
-      >
-        <span className="truncate">{selectedLabel}</span>
-        <span className="shrink-0 text-slate-400" aria-hidden>
-          ▾
-        </span>
-      </button>
+        type="search"
+        autoComplete="off"
+        enterKeyHint="search"
+        placeholder="Search locality…"
+        value={q}
+        onChange={(e) => {
+          setQ(e.target.value);
+          if (!open) setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/25 touch-manipulation"
+      />
       {dropdown}
     </div>
   );

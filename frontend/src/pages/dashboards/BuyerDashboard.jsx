@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Building2 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
-import PropertyCard from '../../components/properties/PropertyCard';
+import PropertyListRow from '../../components/properties/PropertyListRow';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
@@ -44,11 +44,7 @@ const BuyerDashboard = () => {
 
         <h2 className="text-2xl font-bold text-navy mb-6">Featured Properties</h2>
         {homeData?.featuredProperties?.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {homeData.featuredProperties.slice(0, 6).map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
+          <PropertyListRow properties={homeData.featuredProperties.slice(0, 6)} />
         ) : (
           <div className="text-center py-12">
             <Building2 className="h-16 w-16 text-gray mx-auto mb-4" />

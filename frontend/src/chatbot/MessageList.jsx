@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 import PropertyCarousel from './PropertyCarousel';
 
-const MessageList = ({ messages, typing }) => {
+const MessageList = ({ messages, typing, onCloseChat }) => {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -10,12 +10,12 @@ const MessageList = ({ messages, typing }) => {
   }, [messages, typing]);
 
   return (
-    <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-3 min-h-0">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain space-y-3 px-3 py-3">
       {messages.map((m) =>
         m.variant === 'carousel' && m.properties?.length ? (
-          <div key={m.id} className="flex w-full justify-start">
-            <div className="w-full max-w-[100%] rounded-2xl border border-slate-100 bg-white/95 px-2 py-2 shadow-sm">
-              <PropertyCarousel properties={m.properties} />
+          <div key={m.id} className="flex w-full min-w-0 justify-start">
+            <div className="w-full min-w-0 max-w-full rounded-2xl border border-slate-100 bg-white/95 px-2 py-2 shadow-sm">
+              <PropertyCarousel properties={m.properties} onAfterPropertyNavigate={onCloseChat} />
             </div>
           </div>
         ) : (

@@ -151,7 +151,7 @@ export const getProfile = async (req, res) => {
 // Forgot password - Send OTP
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || '').trim().toLowerCase();
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -174,14 +174,24 @@ export const forgotPassword = async (req, res) => {
 
     // Send OTP email
     const emailResult = await sendOTPEmail(email, otp, user.name);
-    
+
     if (!emailResult.success) {
-      return res.status(500).json({ error: 'Failed to send OTP email. Please try again.' });
+      const isConfig =
+        emailResult.error === 'SMTP_NOT_CONFIGURED' ||
+        String(emailResult.error || '').includes('SMTP_NOT_CONFIGURED');
+      const message = isConfig
+        ? 'Password reset email is not set up on the server (SMTP). Add SMTP settings in Backend/.env or contact support.'
+        : 'Failed to send OTP email. Check SMTP credentials and try again.';
+      console.error('Forgot password email failed:', emailResult.error || '(unknown)');
+      return res.status(500).json({ error: message });
     }
 
     res.json({
       success: true,
-      message: 'OTP sent to your email. Valid for 10 minutes.'
+      message: emailResult.devConsoleFallback
+        ? 'This network blocked email to Gmail. OTP is printed in the backend terminal (DEV_OTP_TO_CONSOLE). Use it within 10 minutes.'
+        : 'OTP sent to your email. Valid for 10 minutes.',
+      devConsoleFallback: Boolean(emailResult.devConsoleFallback),
     });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -192,7 +202,8 @@ export const forgotPassword = async (req, res) => {
 // Verify OTP
 export const verifyOTP = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const otp = String(req.body?.otp || '').trim();
 
     if (!email || !otp) {
       return res.status(400).json({ error: 'Email and OTP are required' });

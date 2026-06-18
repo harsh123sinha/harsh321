@@ -1,25 +1,55 @@
 import nodemailer from 'nodemailer';
 
-// Create reusable transporter
-const createTransporter = () => {
-  return nodemailer.createTransporter({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
+/**
+ * Nodemailer API is `createTransport` (not createTransporter).
+ * Returns null if SMTP env is incomplete so callers can surface a clear error.
+ */
+const createMailTransport = () => {
+  const host = (process.env.SMTP_HOST || '').trim() || 'smtp.gmail.com';
+  const user = (process.env.SMTP_USER || '').trim();
+  /** Gmail app passwords are 16 chars; strip all whitespace (spaces in .env often cause 535). */
+  const pass = String(process.env.SMTP_PASSWORD ?? '')
+    .replace(/\s+/g, '')
+    .trim();
+  if (!user || !pass) {
+    return null;
+  }
+
+  const isGmailUser = /@gmail\.com$/i.test(user);
+  const isGmailHost = /^smtp\.gmail\.com$/i.test(host);
+
+  // Uses port 465 + SSL internally — helps when corporate networks block 587 (STARTTLS).
+  if (isGmailUser && isGmailHost) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass },
+    });
+  }
+
+  const port = Number.parseInt(String(process.env.SMTP_PORT || '587'), 10) || 587;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    requireTLS: port === 587,
+    auth: { user, pass },
   });
 };
 
 // Send OTP email
 export const sendOTPEmail = async (email, otp, userName = 'User') => {
-  try {
-    const transporter = createTransporter();
+  const transporter = createMailTransport();
+  if (!transporter) {
+    console.error('[email] OTP skipped: set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD in Backend/.env');
+    return { success: false, error: 'SMTP_NOT_CONFIGURED' };
+  }
 
+  try {
+
+    const fromAddr = (process.env.SMTP_FROM || process.env.SMTP_USER || '').trim();
     const mailOptions = {
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      // Gmail SMTP usually requires From to match the authenticated mailbox (or a verified alias).
+      from: fromAddr || process.env.SMTP_USER,
       to: email,
       subject: 'Password Reset OTP - Real Estate Portal',
       html: `
@@ -61,6 +91,28 @@ export const sendOTPEmail = async (email, otp, userName = 'User') => {
     return { success: true };
   } catch (error) {
     console.error('Email sending error:', error);
+    const isUnreachable =
+      error?.code === 'ETIMEDOUT' ||
+      error?.code === 'ESOCKET' ||
+      error?.code === 'ECONNRESET' ||
+      /ETIMEDOUT|ECONNREFUSED|ENOTFOUND|getaddrinfo/i.test(String(error?.message || ''));
+
+    const devFallback =
+      process.env.NODE_ENV !== 'production' &&
+      process.env.DEV_OTP_TO_CONSOLE === 'true' &&
+      isUnreachable;
+
+    if (devFallback) {
+      console.warn(
+        `\n========== DEV_OTP_TO_CONSOLE (SMTP blocked; do not use in production) ==========\n` +
+          `  Email: ${email}\n` +
+          `  OTP:   ${otp}\n` +
+          `  Error: ${error?.message || error?.code}\n` +
+          `================================================================================\n`
+      );
+      return { success: true, devConsoleFallback: true };
+    }
+
     return { success: false, error: error.message };
   }
 };

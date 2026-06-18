@@ -48,6 +48,9 @@ const Home = () => {
     <div className={`min-h-screen ${canvas}`}>
       {/* Hero — brand navy (only dark band above the fold) */}
       <section className="relative flex min-h-[52vh] items-center overflow-hidden bg-navy sm:min-h-[58vh] md:min-h-[64vh]">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          <div className="htls-hero-square-grid" />
+        </div>
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_65%_at_50%_-10%,rgba(212,175,55,0.14),transparent_52%)]"
           aria-hidden
@@ -151,6 +154,9 @@ const Home = () => {
 
       {/* CTA — navy with depth; gold ties to hero */}
       <section className="relative isolate overflow-hidden bg-navy py-14 sm:py-20">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          <div className="htls-hero-square-grid" />
+        </div>
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_0%,rgba(212,175,55,0.1),transparent_55%)]"
           aria-hidden

@@ -17,8 +17,12 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
-      toast.success('OTP sent to your email');
+      const { data } = await api.post('/auth/forgot-password', { email });
+      const msg =
+        typeof data?.message === 'string' && data.message
+          ? data.message
+          : 'OTP sent to your email';
+      toast.success(msg);
       setStep(2);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to send OTP');

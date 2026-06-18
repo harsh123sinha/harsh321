@@ -59,7 +59,7 @@ const ChatWindow = ({
           </header>
         )}
 
-        <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <div
             className="pointer-events-none absolute inset-0 flex items-center justify-center text-4xl font-bold text-navy/[0.04] sm:text-5xl"
             aria-hidden

@@ -215,6 +215,13 @@ FormData:
 
 Images are stored in `uploads/` folder and returned as JSON array of filenames in database.
 
+### Listing images show as broken / 404
+
+The API stores **filenames only**; the browser loads files from **`GET /images/<filename>`**, which maps to **`Backend/uploads/`** on disk.
+
+- If **`uploads/` is empty** (new clone, `.gitignore`, or another machine): the DB can still list old filenames, but **every image returns 404** until you **re-upload** photos (edit listing / add property) or **copy** the real `uploads` folder from your old environment.
+- In the browser **Network** tab, a failed image with status **404** means the file is missing on the server (or the DB filename does not match a file in `uploads/`).
+
 ## Migration from Legacy App
 
 1. **Stop old server** if using same PORT (default 5000)

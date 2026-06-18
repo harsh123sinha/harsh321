@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import {
   formatIndianPrice,
   parseImageUrls,
@@ -10,10 +11,17 @@ import { MapPin } from 'lucide-react';
 
 /**
  * Compact property card for in-chat horizontal carousel.
+ * @param {() => void} [onAfterNavigate] — e.g. close chat panel when user opens a listing.
  */
-const PropertyCard = ({ property }) => {
+const PropertyCard = ({ property, onAfterNavigate }) => {
   const images = parseImageUrls(property.image_url);
   const main = images[0];
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [property.id, main]);
+
   const badge = getPropertyTypeBadge(property.type);
   const highlights = [];
   if (property.bhk) highlights.push(`${property.bhk} BHK`);
@@ -22,14 +30,19 @@ const PropertyCard = ({ property }) => {
 
   return (
     <article className="w-[220px] flex-shrink-0 snap-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <Link to={`/property/${property.id}`} className="block touch-manipulation">
+      <Link
+        to={`/property/${property.id}`}
+        className="block touch-manipulation"
+        onClick={() => onAfterNavigate?.()}
+      >
         <div className="relative h-28 bg-slate-100">
-          {main ? (
+          {main && !imageFailed ? (
             <img
               src={getImageUrl(main)}
               alt=""
               className="h-full w-full object-cover"
               loading="lazy"
+              onError={() => setImageFailed(true)}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-slate-400">

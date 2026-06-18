@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import api from '../../utils/api';
+import PropertyListRow from '../../components/properties/PropertyListRow';
 import PropertyCard from '../../components/properties/PropertyCard';
 import toast from 'react-hot-toast';
 
@@ -41,21 +42,29 @@ const MyProperties = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
           </div>
         ) : data?.properties?.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.properties.map((property) => (
-              <div key={property.id} className="relative">
+          <PropertyListRow
+            properties={data.properties}
+            renderCard={(property) => (
+              <>
                 <PropertyCard property={property} />
-                <div className="absolute top-2 right-2 flex space-x-2">
-                  <Link to={`/edit-property/${property.id}`} className="bg-white p-2 rounded-full shadow-md hover:bg-gray-50">
+                <div className="absolute top-2 right-2 z-10 flex space-x-2">
+                  <Link
+                    to={`/edit-property/${property.id}`}
+                    className="rounded-full bg-white p-2 shadow-md hover:bg-gray-50"
+                  >
                     <Edit className="h-5 w-5 text-navy" />
                   </Link>
-                  <button onClick={() => handleDelete(property.id)} className="bg-white p-2 rounded-full shadow-md hover:bg-red-50">
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(property.id)}
+                    className="rounded-full bg-white p-2 shadow-md hover:bg-red-50"
+                  >
                     <Trash2 className="h-5 w-5 text-red-600" />
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              </>
+            )}
+          />
         ) : (
           <div className="text-center py-12">
             <p className="text-gray mb-4">You haven't listed any properties yet.</p>
