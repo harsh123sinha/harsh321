@@ -1,0 +1,27 @@
+/**
+ * Apply DB changes without phpMyAdmin (uses Backend/.env — DB_HOST, DB_USER, DB_PASSWORD, DB_NAME).
+ *
+ *   cd Backend
+ *   npm run db:migrate
+ *
+ * Same logic as server startup `ensurePropertySchema()` (ENUM + amenity columns + district/state).
+ */
+import '../config/loadEnv.js';
+import db from '../config/database.js';
+import { ensurePropertySchema } from '../utils/ensurePropertySchema.js';
+
+async function main() {
+  const name = process.env.DB_NAME || 'realestate';
+  const host = process.env.DB_HOST || '127.0.0.1';
+  console.log(`Connecting to MySQL: ${host} / database "${name}" …\n`);
+
+  await ensurePropertySchema();
+
+  console.log('\nDone. You can start the API with: npm run dev');
+  await db.end();
+}
+
+main().catch((err) => {
+  console.error('\nMigration failed:', err.message);
+  process.exit(1);
+});

@@ -1,0 +1,37 @@
+import express from 'express';
+import { subAdminLogin, getDashboardStats } from '../controllers/subAdminController.js';
+import {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  adminGetAllProperties,
+  adminCreateProperty,
+  toggleFeatured,
+  adminUpdateProperty,
+  adminDeleteProperty
+} from '../controllers/adminController.js';
+import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
+import { uploadMultipleImages } from '../middleware/upload.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
+
+const router = express.Router();
+
+router.post('/login', authLimiter, subAdminLogin);
+
+router.use(isAuthenticated, isSubAdmin);
+
+router.get('/dashboard', getDashboardStats);
+
+router.get('/users', getAllUsers);
+router.post('/users', createUser);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
+
+router.get('/properties', adminGetAllProperties);
+router.post('/properties', uploadMultipleImages, adminCreateProperty);
+router.post('/properties/:id/toggle-featured', toggleFeatured);
+router.put('/properties/:id', uploadMultipleImages, adminUpdateProperty);
+router.delete('/properties/:id', adminDeleteProperty);
+
+export default router;

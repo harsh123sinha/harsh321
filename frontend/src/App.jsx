@@ -1,0 +1,174 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './contexts/AuthContext';
+
+// Layout
+import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+// Public pages
+import Home from './pages/Home';
+import RentProperties from './pages/RentProperties';
+import BuyProperties from './pages/BuyProperties';
+import OtherProperties from './pages/OtherProperties';
+import PlotProperties from './pages/PlotProperties';
+import PropertyDetail from './pages/PropertyDetail';
+import SearchResults from './pages/SearchResults';
+
+// Auth pages
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import ForgotPassword from './pages/auth/ForgotPassword';
+
+// Dashboard pages
+import OwnerDashboard from './pages/dashboards/OwnerDashboard';
+import AgentDashboard from './pages/dashboards/AgentDashboard';
+import BuyerDashboard from './pages/dashboards/BuyerDashboard';
+
+// Property management
+import AddProperty from './pages/properties/AddProperty';
+import MyProperties from './pages/properties/MyProperties';
+import EditProperty from './pages/properties/EditProperty';
+
+// Admin pages
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminProperties from './pages/admin/AdminProperties';
+import AdminSubAdmins from './pages/admin/AdminSubAdmins';
+
+// Sub-admin pages
+import SubAdminLogin from './pages/subadmin/SubAdminLogin';
+import SubAdminDashboard from './pages/subadmin/SubAdminDashboard';
+import SubAdminUsers from './pages/subadmin/SubAdminUsers';
+import SubAdminProperties from './pages/subadmin/SubAdminProperties';
+
+// Static pages
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import ChatWidget from './chatbot/ChatWidget';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public routes with layout */}
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/rent" element={<RentProperties />} />
+              <Route path="/buy" element={<BuyProperties />} />
+              <Route path="/other" element={<OtherProperties />} />
+              <Route path="/plots" element={<PlotProperties />} />
+              <Route path="/property/:id" element={<PropertyDetail />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+            </Route>
+
+            {/* Auth routes (no layout) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* Protected dashboard routes with layout */}
+            <Route element={<Layout />}>
+              <Route
+                path="/dashboard/owner"
+                element={
+                  <ProtectedRoute allowedRoles={['owner']}>
+                    <OwnerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/agent"
+                element={
+                  <ProtectedRoute allowedRoles={['agent']}>
+                    <AgentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/buyer"
+                element={
+                  <ProtectedRoute allowedRoles={['buyer']}>
+                    <BuyerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/add-property"
+                element={
+                  <ProtectedRoute allowedRoles={['owner', 'agent']}>
+                    <AddProperty />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-properties"
+                element={
+                  <ProtectedRoute allowedRoles={['owner', 'agent']}>
+                    <MyProperties />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit-property/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['owner', 'agent']}>
+                    <EditProperty />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Admin routes (no layout) */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/properties" element={<AdminProperties />} />
+            <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
+
+            {/* Sub-admin routes (no layout) */}
+            <Route path="/subadmin/login" element={<SubAdminLogin />} />
+            <Route path="/subadmin/dashboard" element={<SubAdminDashboard />} />
+            <Route path="/subadmin/users" element={<SubAdminUsers />} />
+            <Route path="/subadmin/properties" element={<SubAdminProperties />} />
+          </Routes>
+          <ChatWidget />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#0F172A',
+                color: '#fff',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#D4AF37',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </Router>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

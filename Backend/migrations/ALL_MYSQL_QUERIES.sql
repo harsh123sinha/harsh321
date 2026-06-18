@@ -1,0 +1,5 @@
+-- See:
+--   00_fresh_install.sql          — new empty database (creates DB + 3 tables)
+--   00_upgrade_existing_database.sql — old DB: ENUM + amenity columns + district/state
+--
+-- Same content as the two files above (no need to run both on the same DB).
