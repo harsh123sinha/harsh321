@@ -189,7 +189,7 @@ export const forgotPassword = async (req, res) => {
     res.json({
       success: true,
       message: emailResult.devConsoleFallback
-        ? 'This network blocked email to Gmail. OTP is printed in the backend terminal (DEV_OTP_TO_CONSOLE). Use it within 10 minutes.'
+        ? 'Email could not be sent (network or Gmail login). OTP is printed in the backend terminal (DEV_OTP_TO_CONSOLE). Use it within 10 minutes.'
         : 'OTP sent to your email. Valid for 10 minutes.',
       devConsoleFallback: Boolean(emailResult.devConsoleFallback),
     });

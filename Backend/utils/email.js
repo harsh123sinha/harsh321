@@ -97,14 +97,28 @@ export const sendOTPEmail = async (email, otp, userName = 'User') => {
       error?.code === 'ECONNRESET' ||
       /ETIMEDOUT|ECONNREFUSED|ENOTFOUND|getaddrinfo/i.test(String(error?.message || ''));
 
+    const isAuthRejected =
+      error?.code === 'EAUTH' ||
+      /535|Invalid login|BadCredentials/i.test(String(error?.message || ''));
+
+    if (process.env.NODE_ENV !== 'production' && isAuthRejected) {
+      const u = (process.env.SMTP_USER || '').trim();
+      const plen = String(process.env.SMTP_PASSWORD ?? '')
+        .replace(/\s+/g, '')
+        .trim().length;
+      console.warn(
+        `[email] Gmail rejected login (535). SMTP_USER="${u}"; app-password length=${plen} (must be 16). User must match the Google account that created the App Password.`
+      );
+    }
+
     const devFallback =
       process.env.NODE_ENV !== 'production' &&
       process.env.DEV_OTP_TO_CONSOLE === 'true' &&
-      isUnreachable;
+      (isUnreachable || isAuthRejected);
 
     if (devFallback) {
       console.warn(
-        `\n========== DEV_OTP_TO_CONSOLE (SMTP blocked; do not use in production) ==========\n` +
+        `\n========== DEV_OTP_TO_CONSOLE (SMTP failed; do not use in production) ==========\n` +
           `  Email: ${email}\n` +
           `  OTP:   ${otp}\n` +
           `  Error: ${error?.message || error?.code}\n` +
