@@ -18,12 +18,11 @@ import {
   mergeShopTokenAmount,
   mergeFurnishingStatus
 } from '../utils/propertyAmenities.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {
+  uploadMulterFilesToS3,
+  resolvePropertyImageUrls,
+  deleteAllPropertyImages,
+} from '../utils/s3.js';
 
 // Admin login
 export const adminLogin = async (req, res) => {
@@ -172,14 +171,8 @@ export const deleteUser = async (req, res) => {
     // Delete user's properties first (optional - or set owner_id to NULL)
     const userProperties = await propertyModel.findByOwnerId(id);
     for (const property of userProperties) {
-      // Delete property images
       const images = parseImageUrls(property.image_url);
-      images.forEach(filename => {
-        const filePath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
+      await deleteAllPropertyImages(images);
       await propertyModel.delete(property.id);
     }
 
@@ -261,9 +254,9 @@ export const adminCreateProperty = async (req, res) => {
       return res.status(400).json({ error: fieldErrors.join(', ') });
     }
 
-    let imageFilenames = [];
+    let imageUrls = [];
     if (req.files && req.files.length > 0) {
-      imageFilenames = req.files.map((file) => file.filename);
+      imageUrls = await uploadMulterFilesToS3(req.files);
     }
 
     const loc = normalizeListingLocation(city);
@@ -323,7 +316,7 @@ export const adminCreateProperty = async (req, res) => {
       district,
       state,
       pincode: pinFinal,
-      image_url: stringifyImageUrls(imageFilenames),
+      image_url: stringifyImageUrls(imageUrls),
       other_type: other_type || null,
       owner_id: parseInt(owner_id, 10),
       featured: featured === 'true' || featured === true ? 1 : 0
@@ -336,7 +329,8 @@ export const adminCreateProperty = async (req, res) => {
     });
   } catch (error) {
     console.error('Admin create property error:', error);
-    res.status(500).json({ error: 'Server error' });
+    const status = error.status || (error.message?.includes('upload') ? 400 : 500);
+    res.status(status).json({ error: error.message || 'Server error' });
   }
 };
 
@@ -380,43 +374,16 @@ export const adminUpdateProperty = async (req, res) => {
       return res.status(404).json({ error: 'Property not found' });
     }
 
-    let existingImages = parseImageUrls(property.image_url);
-
-    if (removeAllImages === 'true' || removeAllImages === true) {
-      existingImages.forEach((filename) => {
-        const filePath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+    let existingImages;
+    try {
+      existingImages = await resolvePropertyImageUrls({
+        existingImages: parseImageUrls(property.image_url),
+        reqFiles: req.files,
+        removeAllImages,
+        removeImages,
       });
-      existingImages = [];
-    }
-
-    if (removeImages) {
-      let imagesToRemove = [];
-      if (typeof removeImages === 'string') {
-        try {
-          imagesToRemove = JSON.parse(removeImages);
-        } catch {
-          imagesToRemove = [removeImages];
-        }
-      } else if (Array.isArray(removeImages)) {
-        imagesToRemove = removeImages;
-      } else {
-        imagesToRemove = [removeImages];
-      }
-      imagesToRemove.forEach((filename) => {
-        const filePath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-        existingImages = existingImages.filter((img) => img !== filename);
-      });
-    }
-
-    if (req.files && req.files.length > 0) {
-      const newFilenames = req.files.map(file => file.filename);
-      existingImages = [...existingImages, ...newFilenames];
+    } catch (error) {
+      return res.status(error.status || 400).json({ error: error.message || 'Image upload failed' });
     }
 
     const nextType = type || property.type;
@@ -546,14 +513,8 @@ export const adminDeleteProperty = async (req, res) => {
       return res.status(404).json({ error: 'Property not found' });
     }
 
-    // Delete images
     const images = parseImageUrls(property.image_url);
-    images.forEach(filename => {
-      const filePath = path.join(__dirname, '../uploads', filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    });
+    await deleteAllPropertyImages(images);
 
     await propertyModel.delete(id);
 

@@ -88,50 +88,16 @@ api.interceptors.response.use(
 export default api;
 
 /**
- * Origin of the Node API (no `/api` suffix). Used for `/images/...` static uploads.
- * Set `VITE_API_BASE_URL` to your API root, e.g. `http://localhost:5000/api` or `https://api.example.com/api`.
+ * Resolve an image reference for display. Property images are stored as full S3 URLs;
+ * absolute http(s) URLs are returned unchanged.
  */
-export const getBackendOrigin = () => {
-  const raw = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-  const origin = String(raw)
-    .trim()
-    .replace(/\/api\/?$/i, '')
-    .replace(/\/+$/, '');
-  return origin || 'http://localhost:5000';
+export const getImageUrl = (imageRef) => {
+  if (imageRef == null) return '';
+  const url = String(imageRef).trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return url;
 };
 
-function normalizeImageRef(ref) {
-  if (ref == null) return '';
-  let t = String(ref).trim();
-  if (!t) return '';
-  if (/^https?:\/\//i.test(t)) return t;
-  t = t.replace(/^\/images\//i, '').replace(/^images\//i, '');
-  t = t.replace(/^uploads\//i, '').replace(/^\.?[\\/]+uploads[\\/]+/i, '');
-  const parts = t.split(/[/\\]/);
-  t = parts[parts.length - 1] || t;
-  return t;
-}
-
-/** Absolute image URL (e.g. WhatsApp links). Always hits the API host. */
-export const getAbsoluteImageUrl = (filename) => {
-  const name = normalizeImageRef(filename);
-  if (!name) return '';
-  if (/^https?:\/\//i.test(name)) return name;
-  const base = getBackendOrigin();
-  return `${base}/images/${encodeURIComponent(name)}`;
-};
-
-/**
- * URL for `<img src>` — in dev uses `/images/...` on the Vite host so the browser proxy
- * forwards to the API (fixes localhost vs 127.0.0.1 / LAN mismatches with absolute URLs).
- */
-export const getImageUrl = (filename) => {
-  const name = normalizeImageRef(filename);
-  if (!name) return '';
-  if (/^https?:\/\//i.test(name)) return name;
-  const path = `/images/${encodeURIComponent(name)}`;
-  if (import.meta.env.DEV) {
-    return path;
-  }
-  return `${getBackendOrigin()}${path}`;
-};
+/** Absolute image URL (e.g. WhatsApp links). Same as getImageUrl for S3-backed images. */
+export const getAbsoluteImageUrl = (imageRef) => getImageUrl(imageRef);

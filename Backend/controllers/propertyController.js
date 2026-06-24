@@ -14,12 +14,11 @@ import {
   mergeShopTokenAmount,
   mergeFurnishingStatus
 } from '../utils/propertyAmenities.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {
+  uploadMulterFilesToS3,
+  resolvePropertyImageUrls,
+  deleteAllPropertyImages,
+} from '../utils/s3.js';
 
 // Get all properties
 export const getAllProperties = async (req, res) => {
@@ -149,9 +148,9 @@ export const addProperty = async (req, res) => {
     }
 
     // Handle uploaded images
-    let imageFilenames = [];
+    let imageUrls = [];
     if (req.files && req.files.length > 0) {
-      imageFilenames = req.files.map(file => file.filename);
+      imageUrls = await uploadMulterFilesToS3(req.files);
     }
 
     const loc = normalizeListingLocation(city);
@@ -212,7 +211,7 @@ export const addProperty = async (req, res) => {
       district,
       state,
       pincode: pinFinal,
-      image_url: stringifyImageUrls(imageFilenames),
+      image_url: stringifyImageUrls(imageUrls),
       other_type: other_type || null,
       owner_id: req.user.id,
       featured: featured === 'true' ? 1 : 0
@@ -225,7 +224,8 @@ export const addProperty = async (req, res) => {
     });
   } catch (error) {
     console.error('Add property error:', error);
-    res.status(500).json({ error: 'Server error' });
+    const status = error.status || (error.message?.includes('upload') ? 400 : 500);
+    res.status(status).json({ error: error.message || 'Server error' });
   }
 };
 
@@ -250,37 +250,17 @@ export const updateProperty = async (req, res) => {
       return res.status(403).json({ error: 'You can only edit your own properties' });
     }
 
-    // Handle images
-    let existingImages = parseImageUrls(property.image_url);
-
-    // Remove all images if requested
-    if (removeAllImages === 'true') {
-      // Delete physical files
-      existingImages.forEach(filename => {
-        const filePath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+    // Handle images (upload new first, then delete removed from S3)
+    let existingImages;
+    try {
+      existingImages = await resolvePropertyImageUrls({
+        existingImages: parseImageUrls(property.image_url),
+        reqFiles: req.files,
+        removeAllImages,
+        removeImages,
       });
-      existingImages = [];
-    }
-
-    // Remove specific images
-    if (removeImages) {
-      const imagesToRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
-      imagesToRemove.forEach(filename => {
-        const filePath = path.join(__dirname, '../uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-        existingImages = existingImages.filter(img => img !== filename);
-      });
-    }
-
-    // Add new uploaded images
-    if (req.files && req.files.length > 0) {
-      const newFilenames = req.files.map(file => file.filename);
-      existingImages = [...existingImages, ...newFilenames];
+    } catch (error) {
+      return res.status(error.status || 400).json({ error: error.message || 'Image upload failed' });
     }
 
     const nextType = type || property.type;
@@ -417,14 +397,9 @@ export const deleteProperty = async (req, res) => {
       return res.status(403).json({ error: 'You can only delete your own properties' });
     }
 
-    // Delete associated images
+    // Delete associated images from S3
     const images = parseImageUrls(property.image_url);
-    images.forEach(filename => {
-      const filePath = path.join(__dirname, '../uploads', filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    });
+    await deleteAllPropertyImages(images);
 
     // Delete property from database
     await propertyModel.delete(id);

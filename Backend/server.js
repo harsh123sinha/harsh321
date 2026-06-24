@@ -1,8 +1,6 @@
 import './config/loadEnv.js';
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { ensurePropertySchema } from './utils/ensurePropertySchema.js';
 
 // Import routes
@@ -11,9 +9,6 @@ import propertyRoutes from './routes/propertyRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import subAdminRoutes from './routes/subAdminRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,9 +47,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded images (legacy compatibility: /images/)
-app.use('/images', express.static(path.join(__dirname, 'uploads')));
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Real Estate API is running' });
@@ -75,7 +67,12 @@ app.use((req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  res.status(err.status || 500).json({
+  const status =
+    err.status ||
+    (err.code === 'LIMIT_FILE_SIZE' ? 400 : undefined) ||
+    (err.code === 'LIMIT_FILE_COUNT' ? 400 : undefined) ||
+    500;
+  res.status(status).json({
     error: err.message || 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
@@ -93,6 +90,14 @@ async function start() {
     console.log(`🚀 Real Estate API running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV}`);
     console.log(`🌐 CORS allowlist: ${allowedOrigins.join(', ')}${process.env.NODE_ENV !== 'production' ? ' (+ dev localhost/127.0.0.1 any port)' : ''}`);
+    const awsOk =
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_REGION &&
+      process.env.AWS_BUCKET;
+    if (!awsOk) {
+      console.warn('⚠️  AWS S3 not configured — property image uploads will fail until AWS_* vars are set in Backend/.env');
+    }
   });
 }
 
