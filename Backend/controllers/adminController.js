@@ -19,9 +19,11 @@ import {
   mergeFurnishingStatus
 } from '../utils/propertyAmenities.js';
 import {
-  uploadMulterFilesToS3,
+  uploadAndModerateMulterFiles,
   resolvePropertyImageUrls,
   deleteAllPropertyImages,
+  deleteImagesFromS3,
+  buildPropertyRejectionMessage,
 } from '../utils/s3.js';
 
 // Admin login
@@ -255,8 +257,21 @@ export const adminCreateProperty = async (req, res) => {
     }
 
     let imageUrls = [];
+    let imageModeration = null;
     if (req.files && req.files.length > 0) {
-      imageUrls = await uploadMulterFilesToS3(req.files);
+      const uploadResult = await uploadAndModerateMulterFiles(req.files);
+      imageUrls = uploadResult.urls;
+      imageModeration = uploadResult.moderation;
+
+      if (imageModeration?.rejected > 0) {
+        await deleteImagesFromS3(imageUrls);
+        return res.status(400).json({
+          error:
+            imageModeration.userMessage ||
+            buildPropertyRejectionMessage(imageModeration, { action: 'add' }),
+          imageModeration,
+        });
+      }
     }
 
     const loc = normalizeListingLocation(city);
@@ -322,10 +337,15 @@ export const adminCreateProperty = async (req, res) => {
       featured: featured === 'true' || featured === true ? 1 : 0
     });
 
+    const successMessage = imageModeration?.rejectionMessage
+      ? `Property created successfully. ${imageModeration.rejectionMessage}`
+      : 'Property created successfully';
+
     res.status(201).json({
       success: true,
-      message: 'Property created successfully',
-      propertyId
+      message: successMessage,
+      propertyId,
+      ...(imageModeration && { imageModeration }),
     });
   } catch (error) {
     console.error('Admin create property error:', error);
@@ -375,13 +395,16 @@ export const adminUpdateProperty = async (req, res) => {
     }
 
     let existingImages;
+    let imageModeration = null;
     try {
-      existingImages = await resolvePropertyImageUrls({
+      const imageResult = await resolvePropertyImageUrls({
         existingImages: parseImageUrls(property.image_url),
         reqFiles: req.files,
         removeAllImages,
         removeImages,
       });
+      existingImages = imageResult.urls;
+      imageModeration = imageResult.moderation;
     } catch (error) {
       return res.status(error.status || 400).json({ error: error.message || 'Image upload failed' });
     }
@@ -493,9 +516,17 @@ export const adminUpdateProperty = async (req, res) => {
       owner_id: owner_id || property.owner_id
     });
 
+    const successMessage = imageModeration?.rejected > 0
+      ? `Property updated. ${imageModeration.rejectionMessage || 'Some images were rejected.'}`
+      : 'Property updated successfully';
+
     res.json({
       success: true,
-      message: 'Property updated successfully'
+      message: successMessage,
+      ...(imageModeration?.rejected > 0 && {
+        warning: imageModeration.userMessage,
+      }),
+      ...(imageModeration && { imageModeration }),
     });
   } catch (error) {
     console.error('Admin update property error:', error);

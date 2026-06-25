@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import VerificationOverlay from '../../components/properties/VerificationOverlay';
 import {
   ADD_PROPERTY_CATEGORIES,
   mapAddPropertyToApiType,
@@ -38,6 +39,14 @@ const AddProperty = () => {
   const [kathaDecimal, setKathaDecimal] = useState('');
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [verification, setVerification] = useState({
+    open: false,
+    files: [],
+    moderation: null,
+    loading: false,
+    error: null,
+  });
+  const [verificationPendingSuccess, setVerificationPendingSuccess] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -177,17 +186,101 @@ const AddProperty = () => {
 
     images.forEach((img) => data.append('images', img));
 
-    try {
-      await api.post('/properties', data, { headers: { 'Content-Type': 'multipart/form-data' } });
-      await queryClient.invalidateQueries({ queryKey: ['properties'] });
-      await queryClient.invalidateQueries({ queryKey: ['search'] });
-      await queryClient.invalidateQueries({ queryKey: ['homeData'] });
-      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      toast.success('Property added successfully!');
-      navigate('/my-properties');
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to add property');
+    const verifyingImages = images.length > 0;
+    if (verifyingImages) {
+      setVerification({
+        open: true,
+        files: images,
+        moderation: null,
+        loading: true,
+        error: null,
+      });
     }
+
+    try {
+      const response = await api.post('/properties', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const { imageModeration, message } = response.data;
+
+      if (verifyingImages) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          moderation: imageModeration || {
+            totalUploaded: images.length,
+            accepted: images.length,
+            rejected: 0,
+            results: images.map((file, index) => ({
+              index,
+              filename: file.name,
+              status: 'accepted',
+            })),
+          },
+        }));
+        setVerificationPendingSuccess({ message, imageModeration });
+      } else {
+        await finishAddSuccess(message);
+      }
+    } catch (error) {
+      const data = error.response?.data;
+      if (verifyingImages && data?.imageModeration) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          moderation: data.imageModeration,
+        }));
+        if (data.error) {
+          toast.error(data.error, { duration: 8000 });
+        }
+        setLoading(false);
+        return;
+      }
+      if (verifyingImages) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          error: data?.error || 'Failed to add property',
+        }));
+      } else {
+        toast.error(data?.error || 'Failed to add property');
+      }
+      setLoading(false);
+    }
+  };
+
+  const finishAddSuccess = async (message) => {
+    await queryClient.invalidateQueries({ queryKey: ['properties'] });
+    await queryClient.invalidateQueries({ queryKey: ['search'] });
+    await queryClient.invalidateQueries({ queryKey: ['homeData'] });
+    await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    toast.success(message || 'Property added successfully!');
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
+    setVerificationPendingSuccess(null);
+    setLoading(false);
+    navigate('/my-properties');
+  };
+
+  const handleVerificationComplete = () => {
+    if (verificationPendingSuccess) {
+      finishAddSuccess(verificationPendingSuccess.message);
+    }
+  };
+
+  const handleVerificationRejections = async ({ rejectedFilenames }) => {
+    setImages((prev) => prev.filter((file) => !rejectedFilenames.includes(file.name)));
+    const mod = verificationPendingSuccess?.imageModeration || verification.moderation;
+    const msg = mod?.userMessage || mod?.rejectionMessage;
+    if (msg) {
+      toast.error(msg, { duration: 8000 });
+    }
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
+    setVerificationPendingSuccess(null);
+    setLoading(false);
+  };
+
+  const handleVerificationErrorDismiss = () => {
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
     setLoading(false);
   };
 
@@ -558,13 +651,24 @@ const AddProperty = () => {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || verification.open}
             className="w-full bg-gold text-navy py-3 rounded-lg font-bold hover:bg-gold/90 disabled:opacity-50"
           >
             {loading ? 'Adding...' : 'Add Property'}
           </button>
         </form>
       </div>
+
+      <VerificationOverlay
+        open={verification.open}
+        imageFiles={verification.files}
+        imageModeration={verification.moderation}
+        loading={verification.loading}
+        error={verification.error}
+        onAllVerified={handleVerificationComplete}
+        onAcknowledgeRejections={handleVerificationRejections}
+        onErrorDismiss={handleVerificationErrorDismiss}
+      />
     </div>
   );
 };

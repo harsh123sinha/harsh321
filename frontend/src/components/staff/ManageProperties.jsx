@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import api, { getImageUrl } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, Plus, X, Star } from 'lucide-react';
+import VerificationOverlay from '../properties/VerificationOverlay';
 import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCategoryForm } from '../../utils/propertyListingMap';
 import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../../constants/propertyForm';
 
@@ -59,6 +60,15 @@ export default function ManageProperties({ variant }) {
   const [removeFilenames, setRemoveFilenames] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [verification, setVerification] = useState({
+    open: false,
+    files: [],
+    moderation: null,
+    loading: false,
+    error: null,
+  });
+  const [verificationPendingSuccess, setVerificationPendingSuccess] = useState(null);
 
   const loadProperties = useCallback(async () => {
     setLoading(true);
@@ -225,6 +235,24 @@ export default function ManageProperties({ variant }) {
     newFiles.forEach((f) => fd.append('images', f));
   };
 
+  const finishSaveSuccess = async (message, imageModeration) => {
+    if (imageModeration?.rejected > 0 && imageModeration?.userMessage) {
+      toast.error(imageModeration.userMessage, { duration: 8000 });
+    } else if (imageModeration?.rejected > 0) {
+      toast.error(imageModeration.rejectionMessage || 'Some images were rejected.', { duration: 6000 });
+    } else {
+      toast.success(message || (modal === 'add' ? 'Property created' : 'Property updated'));
+    }
+    await queryClient.invalidateQueries({ queryKey: ['properties'] });
+    await queryClient.invalidateQueries({ queryKey: ['search'] });
+    await queryClient.invalidateQueries({ queryKey: ['homeData'] });
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
+    setVerificationPendingSuccess(null);
+    setSaving(false);
+    closeModal();
+    loadProperties();
+  };
+
   const save = async (e) => {
     e.preventDefault();
     if (!form.owner_id) {
@@ -247,33 +275,120 @@ export default function ManageProperties({ variant }) {
         return;
       }
     }
+
+    const verifyingImages = newFiles.length > 0;
+    if (verifyingImages) {
+      setVerification({
+        open: true,
+        files: newFiles,
+        moderation: null,
+        loading: true,
+        error: null,
+      });
+    }
+
+    setSaving(true);
     try {
+      let response;
       if (modal === 'add') {
         const fd = new FormData();
         appendForm(fd);
-        await api.post(`${prefix}/properties`, fd, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+        response = await api.post(`${prefix}/properties`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
-        toast.success('Property created');
       } else {
         const fd = new FormData();
         appendForm(fd);
         if (removeFilenames.length > 0) {
           fd.append('removeImages', JSON.stringify(removeFilenames));
         }
-        await api.put(`${prefix}/properties/${editingId}`, fd, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+        response = await api.put(`${prefix}/properties/${editingId}`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
-        toast.success('Property updated');
       }
-      await queryClient.invalidateQueries({ queryKey: ['properties'] });
-      await queryClient.invalidateQueries({ queryKey: ['search'] });
-      await queryClient.invalidateQueries({ queryKey: ['homeData'] });
-      closeModal();
-      loadProperties();
+
+      const { imageModeration, message } = response.data;
+
+      if (verifyingImages) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          moderation: imageModeration || {
+            totalUploaded: newFiles.length,
+            accepted: newFiles.length,
+            rejected: 0,
+            results: newFiles.map((file, index) => ({
+              index,
+              filename: file.name,
+              status: 'accepted',
+            })),
+          },
+        }));
+        setVerificationPendingSuccess({ message, imageModeration });
+      } else {
+        await finishSaveSuccess(message, imageModeration);
+      }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Save failed');
+      const data = err.response?.data;
+      if (verifyingImages && data?.imageModeration) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          moderation: data.imageModeration,
+        }));
+        if (data.error) {
+          toast.error(data.error, { duration: 8000 });
+        }
+        setSaving(false);
+        return;
+      }
+      if (verifyingImages) {
+        setVerification((v) => ({
+          ...v,
+          loading: false,
+          error: data?.error || 'Save failed',
+        }));
+      } else {
+        toast.error(data?.error || 'Save failed');
+      }
+      setSaving(false);
     }
+  };
+
+  const handleVerificationComplete = () => {
+    if (verificationPendingSuccess) {
+      finishSaveSuccess(
+        verificationPendingSuccess.message,
+        verificationPendingSuccess.imageModeration
+      );
+    }
+  };
+
+  const handleVerificationRejections = ({ rejectedFilenames }) => {
+    setNewFiles((prev) => prev.filter((file) => !rejectedFilenames.includes(file.name)));
+    const mod = verificationPendingSuccess?.imageModeration || verification.moderation;
+    const msg = mod?.userMessage || mod?.rejectionMessage;
+    if (msg) {
+      toast.error(msg, { duration: 8000 });
+    }
+
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
+    setVerificationPendingSuccess(null);
+    setSaving(false);
+
+    if (modal === 'edit' && mod?.accepted > 0) {
+      toast.success(
+        `Property updated with ${mod.accepted} new verified image${mod.accepted !== 1 ? 's' : ''}.`,
+        { duration: 6000 }
+      );
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      loadProperties();
+    }
+  };
+
+  const handleVerificationErrorDismiss = () => {
+    setVerification({ open: false, files: [], moderation: null, loading: false, error: null });
+    setSaving(false);
   };
 
   const confirmDelete = async () => {
@@ -791,10 +906,19 @@ export default function ManageProperties({ variant }) {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-gold text-navy py-2 rounded-lg font-bold">
-                  Save
+                <button
+                  type="submit"
+                  disabled={saving || verification.open}
+                  className="flex-1 bg-gold text-navy py-2 rounded-lg font-bold disabled:opacity-50"
+                >
+                  {saving ? 'Saving…' : 'Save'}
                 </button>
-                <button type="button" onClick={closeModal} className="flex-1 border-2 border-gray-light py-2 rounded-lg">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={verification.open}
+                  className="flex-1 border-2 border-gray-light py-2 rounded-lg disabled:opacity-50"
+                >
                   Cancel
                 </button>
               </div>
@@ -802,6 +926,17 @@ export default function ManageProperties({ variant }) {
           </div>
         </div>
       )}
+
+      <VerificationOverlay
+        open={verification.open}
+        imageFiles={verification.files}
+        imageModeration={verification.moderation}
+        loading={verification.loading}
+        error={verification.error}
+        onAllVerified={handleVerificationComplete}
+        onAcknowledgeRejections={handleVerificationRejections}
+        onErrorDismiss={handleVerificationErrorDismiss}
+      />
 
       {deleteId != null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
