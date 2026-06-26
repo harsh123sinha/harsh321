@@ -15,6 +15,9 @@ const SQL_IS_PLOT_ROW = `(
   )
 )`;
 
+/** Public catalogue: only approved active listings */
+const SQL_PUBLIC_ACTIVE = `AND (COALESCE(p.listing_status, 'active') = 'active')`;
+
 export const propertyModel = {
   // Create new property
   create: async (propertyData) => {
@@ -22,7 +25,8 @@ export const propertyModel = {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status,
-      location, city, district, state, pincode, image_url, other_type, owner_id, featured
+      location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured,
+      listing_status
     } = propertyData;
 
     const query = `
@@ -30,8 +34,8 @@ export const propertyModel = {
       (title, description, price, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
        shop_road_distance, shop_token_amount, furnishing_status,
-       location, city, district, state, pincode, image_url, other_type, owner_id, featured)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.execute(query, [
@@ -48,8 +52,11 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
-      location, city, district, state, pincode || null, image_url,
-      other_type || null, owner_id, featured || 0
+      location,
+      road_no ?? null,
+      city, district, state, pincode || null, image_url,
+      other_type || null, owner_id, featured || 0,
+      listing_status || 'active'
     ]);
 
     return result.insertId;
@@ -61,6 +68,7 @@ export const propertyModel = {
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       FROM properties p
       LEFT JOIN user u ON p.owner_id = u.id
+      WHERE 1=1 ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query);
@@ -99,6 +107,7 @@ export const propertyModel = {
       FROM properties p
       LEFT JOIN user u ON p.owner_id = u.id
       WHERE p.type = ?
+      ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query, [type]);
@@ -112,6 +121,7 @@ export const propertyModel = {
       FROM properties p
       LEFT JOIN user u ON p.owner_id = u.id
       WHERE ${SQL_IS_PLOT_ROW}
+      ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query);
@@ -125,6 +135,7 @@ export const propertyModel = {
       FROM properties p
       LEFT JOIN user u ON p.owner_id = u.id
       WHERE p.featured = 1
+      ${SQL_PUBLIC_ACTIVE}
       ORDER BY RAND()
       LIMIT ?
     `;
@@ -141,7 +152,9 @@ export const propertyModel = {
     `;
     
     if (excludeId) {
-      query += ` WHERE p.id != ?`;
+      query += ` WHERE p.id != ? ${SQL_PUBLIC_ACTIVE}`;
+    } else {
+      query += ` WHERE 1=1 ${SQL_PUBLIC_ACTIVE}`;
     }
     
     query += ` ORDER BY RAND() LIMIT ?`;
@@ -158,6 +171,7 @@ export const propertyModel = {
       FROM properties p
       LEFT JOIN user u ON p.owner_id = u.id
       WHERE 1=1
+      ${SQL_PUBLIC_ACTIVE}
     `;
     const params = [];
 
@@ -304,7 +318,8 @@ export const propertyModel = {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status,
-      location, city, district, state, pincode, image_url, other_type, featured, owner_id
+      location, road_no, city, district, state, pincode, image_url, other_type, featured, owner_id,
+      listing_status
     } = propertyData;
 
     const query = `
@@ -313,8 +328,9 @@ export const propertyModel = {
           balconies = ?, bathrooms = ?, garden = ?, car_parking = ?, floor_no = ?,
           bike_parking = ?, shop_sqft_range = ?,
           shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?,
-          location = ?, city = ?, district = ?, state = ?, pincode = ?,
-          image_url = ?, other_type = ?, featured = ?, owner_id = ?
+          location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
+          image_url = ?, other_type = ?, featured = ?, owner_id = ?,
+          listing_status = COALESCE(?, listing_status)
       WHERE id = ?
     `;
 
@@ -332,10 +348,19 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
-      location, city, district, state, pincode || null, image_url,
-      other_type || null, featured || 0, owner_id, id
+      location,
+      road_no ?? null,
+      city, district, state, pincode || null, image_url,
+      other_type || null, featured || 0, owner_id,
+      listing_status || null,
+      id
     ]);
 
+    return true;
+  },
+
+  setListingStatus: async (id, listingStatus) => {
+    await db.execute('UPDATE properties SET listing_status = ? WHERE id = ?', [listingStatus, id]);
     return true;
   },
 

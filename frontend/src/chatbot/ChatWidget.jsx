@@ -165,6 +165,7 @@ const ChatWidget = () => {
 
     try {
       const params = buildSearchParams(category, mergedAnswers);
+      params.set('source', 'chatbot');
       const qs = params.toString();
       setLastQs(qs);
 

@@ -32,11 +32,16 @@ const EditProperty = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.put(`/properties/${id}`, formData);
-      toast.success('Property updated!');
+      const response = await api.put(`/properties/${id}`, formData);
+      if (response.data?.pendingReview) {
+        toast.success(response.data.message || 'Listing submitted for admin review.');
+      } else {
+        toast.success('Property updated!');
+      }
       navigate('/my-properties');
     } catch (error) {
-      toast.error('Failed to update');
+      const data = error.response?.data;
+      toast.error(data?.imageModeration?.userMessage || data?.error || 'Failed to update');
     }
     setLoading(false);
   };

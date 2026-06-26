@@ -17,8 +17,10 @@ const SearchResults = () => {
     const shop_sqft_range = searchParams.get('shop_sqft_range') || '';
     const katha = searchParams.get('katha') || '';
     const other_type = searchParams.get('other_type') || '';
+    const minPrice = searchParams.get('minPrice') || '';
+    const maxPrice = searchParams.get('maxPrice') || '';
 
-    setFilters({ location, type, bhk, shop_sqft_range, katha, other_type });
+    setFilters({ location, type, bhk, shop_sqft_range, katha, other_type, minPrice, maxPrice });
   }, [searchParams]);
 
   const { data, isLoading } = useQuery({
@@ -35,6 +37,8 @@ const SearchResults = () => {
       if (filters.shop_sqft_range && !plotKind) params.append('shop_sqft_range', filters.shop_sqft_range);
       if (filters.katha) params.append('katha', filters.katha);
       if (filters.other_type) params.append('other_type', filters.other_type);
+      if (filters.minPrice) params.append('minPrice', filters.minPrice);
+      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
 
       const response = await api.get(`/properties/search?${params.toString()}`);
       return response.data;

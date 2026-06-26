@@ -9,7 +9,8 @@ import {
   adminCreateProperty,
   toggleFeatured,
   adminUpdateProperty,
-  adminDeleteProperty
+  adminDeleteProperty,
+  approvePropertyListing
 } from '../controllers/adminController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
@@ -32,6 +33,7 @@ router.get('/properties', adminGetAllProperties);
 router.post('/properties', uploadMultipleImages, adminCreateProperty);
 router.post('/properties/:id/toggle-featured', toggleFeatured);
 router.put('/properties/:id', uploadMultipleImages, adminUpdateProperty);
+router.post('/properties/:id/approve', approvePropertyListing);
 router.delete('/properties/:id', adminDeleteProperty);
 
 export default router;

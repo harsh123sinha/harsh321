@@ -1,0 +1,102 @@
+import { getContactFieldError } from './contactValidation';
+import { getNoNumbersFieldError } from './noNumbersValidation';
+import { getRoadNoFieldError } from './roadNoValidation';
+
+export function validateAddPropertyForm({
+  formData,
+  kathaPreset,
+  kathaDecimal,
+  images,
+  isPlot,
+  isOther,
+  isShop,
+  showBhkAndAmenities,
+  showFurnishing,
+}) {
+  const errors = {};
+
+  if (!String(formData.title || '').trim()) errors.title = 'Title is required.';
+  if (!String(formData.description || '').trim()) errors.description = 'Description is required.';
+  if (!String(formData.price || '').trim()) errors.price = 'Price is required.';
+  if (!String(formData.location || '').trim()) errors.location = 'Location is required.';
+  if (!String(formData.city || '').trim()) errors.city = 'City is required.';
+  if (!String(formData.road_no || '').trim()) errors.road_no = 'Road no. is required.';
+  const roadErr = getRoadNoFieldError(formData.road_no);
+  if (formData.road_no && roadErr) errors.road_no = roadErr;
+  if (!images?.length) errors.images = 'At least one property image is required.';
+
+  if (isOther && !String(formData.otherDescription || '').trim()) {
+    errors.otherDescription = 'Property type description is required.';
+  }
+
+  if (isShop && !String(formData.shopSqftRange || '').trim()) {
+    errors.shopSqftRange = 'Shop size is required.';
+  }
+
+  if (isPlot) {
+    const kathaVal = (kathaPreset === 'custom' ? kathaDecimal : kathaPreset).trim();
+    if (!kathaVal) errors.katha = 'Katha is required.';
+  }
+
+  if (showBhkAndAmenities && !isShop) {
+    if (!String(formData.bhk || '').trim()) errors.bhk = 'BHK is required.';
+    if (!String(formData.balconies || '').trim() && formData.balconies !== 0) {
+      errors.balconies = 'Number of balconies is required (use 0 if none).';
+    }
+    if (!String(formData.bathrooms || '').trim() && formData.bathrooms !== 0) {
+      errors.bathrooms = 'Number of bathrooms is required (use 0 if none).';
+    }
+    if (!String(formData.floor_no || '').trim()) errors.floor_no = 'Floor number is required.';
+    if (showFurnishing && !String(formData.furnishing || '').trim()) {
+      errors.furnishing = 'Furnishing status is required.';
+    }
+    const parkingOk =
+      formData.no_parking || formData.car_parking || formData.bike_parking;
+    if (!parkingOk) {
+      errors.parking = 'Select Car parking, Bike parking, or No parking.';
+    }
+  }
+
+  if (showBhkAndAmenities && isShop) {
+    if (!String(formData.shopRoadDistance || '').trim()) {
+      errors.shopRoadDistance = 'Road distance is required.';
+    }
+    if (formData.shopTokenAmount === '' || formData.shopTokenAmount == null) {
+      errors.shopTokenAmount = 'Token amount is required (use 0 if not applicable).';
+    }
+    const parkingOk =
+      formData.no_parking || formData.car_parking || formData.bike_parking;
+    if (!parkingOk) {
+      errors.parking = 'Select Car parking, Bike parking, or No parking.';
+    }
+  }
+
+  for (const name of ['title', 'description']) {
+    const val = formData[name];
+    if (!val) continue;
+    const numErr = getNoNumbersFieldError(val);
+    if (numErr) errors[name] = numErr;
+  }
+
+  const textFields = [
+    'location',
+    'city',
+    'otherDescription',
+    'floor_no',
+    'shopRoadDistance',
+  ];
+
+  for (const name of textFields) {
+    const val = formData[name];
+    if (!val) continue;
+    const contactErr = getContactFieldError(val);
+    if (contactErr) errors[name] = contactErr;
+  }
+
+  if (kathaPreset === 'custom' && kathaDecimal) {
+    const contactErr = getContactFieldError(kathaDecimal);
+    if (contactErr) errors.katha = contactErr;
+  }
+
+  return errors;
+}

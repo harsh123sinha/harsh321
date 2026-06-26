@@ -2,6 +2,8 @@ import './config/loadEnv.js';
 import express from 'express';
 import cors from 'cors';
 import { ensurePropertySchema } from './utils/ensurePropertySchema.js';
+import { ensureNotificationSchema } from './utils/ensureNotificationSchema.js';
+import { isFirebaseConfigured } from './config/firebaseAdmin.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -9,6 +11,7 @@ import propertyRoutes from './routes/propertyRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import subAdminRoutes from './routes/subAdminRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +61,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -86,6 +90,31 @@ async function start() {
     console.error('⚠️ ensurePropertySchema failed — run Backend/migrations/002_property_amenities.sql in MySQL:', e.message);
   }
 
+  try {
+    await ensureNotificationSchema();
+  } catch (e) {
+    console.error('⚠️ ensureNotificationSchema failed — run Backend/migrations/003_fcm_notifications.sql:', e.message);
+  }
+
+  if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {
+    try {
+      const cron = await import('node-cron');
+      const { runDailyRecommendations } = await import('./services/dailyRecommendations.js');
+      cron.default.schedule(
+        process.env.DAILY_RECOMMENDATIONS_CRON || '0 8 * * *',
+        () => {
+          runDailyRecommendations()
+            .then((r) => console.log('📬 Daily recommendations:', r))
+            .catch((err) => console.error('Daily recommendations error:', err.message));
+        },
+        { timezone: process.env.CRON_TIMEZONE || 'Asia/Kolkata' }
+      );
+      console.log('📅 Daily recommendation cron scheduled');
+    } catch (e) {
+      console.warn('⚠️ node-cron not available — daily recommendations disabled');
+    }
+  }
+
   app.listen(PORT, () => {
     console.log(`🚀 Real Estate API running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV}`);
@@ -97,6 +126,9 @@ async function start() {
       process.env.AWS_BUCKET;
     if (!awsOk) {
       console.warn('⚠️  AWS S3 not configured — property image uploads will fail until AWS_* vars are set in Backend/.env');
+    }
+    if (!isFirebaseConfigured()) {
+      console.warn('⚠️  Firebase Admin not configured — push notifications will be in-app only until FIREBASE_* vars are set');
     }
   });
 }

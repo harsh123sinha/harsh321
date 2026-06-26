@@ -180,7 +180,8 @@ const PropertyDetail = () => {
           <div className="flex items-start space-x-2 text-gray-darker">
             <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5 text-gold lg:h-5 lg:w-5" />
             <p className="text-sm leading-snug lg:text-base xl:text-lg">
-              {property.location}, {property.city}
+              {property.location}
+              {property.road_no ? `, Road ${property.road_no}` : ''}, {property.city}
             </p>
           </div>
         </div>

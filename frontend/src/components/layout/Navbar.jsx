@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Home, LogIn, UserPlus, LogOut, User, Building2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -55,6 +56,7 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
+                <NotificationBell />
                 <Link
                   to={getDashboardLink()}
                   className="text-white hover:text-gold transition-colors duration-200 font-medium flex items-center space-x-1"
@@ -127,6 +129,10 @@ const Navbar = () => {
             <div className="border-t border-gold/20 pt-3 mt-3">
               {isAuthenticated ? (
                 <>
+                  <div className="flex items-center justify-between py-2 mb-2">
+                    <span className="text-white font-medium">Alerts</span>
+                    <NotificationBell />
+                  </div>
                   <Link
                     to={getDashboardLink()}
                     onClick={toggleMenu}

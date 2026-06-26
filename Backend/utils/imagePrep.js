@@ -1,40 +1,66 @@
 import sharp from 'sharp';
-import path from 'path';
+
+const JPEG_QUALITY = 88;
+const STORAGE_MAX_WIDTH = 1920;
+const STORAGE_MAX_HEIGHT = 1920;
+const STORAGE_JPEG_QUALITY = 78;
 
 /**
- * Rekognition only supports JPEG and PNG. Convert WEBP (and normalize) before moderation.
+ * Rekognition accepts JPEG/PNG; convert WEBP and normalize for OCR/moderation.
  */
-export async function prepareForRekognition(buffer, mimetype) {
+export async function prepareImageBytes(buffer, mimetype) {
   if (!buffer?.length) {
-    throw new Error('Empty image buffer');
+    const err = new Error('Empty image');
+    err.code = 'INVALID_IMAGE';
+    throw err;
   }
 
-  if (mimetype === 'image/jpeg' || mimetype === 'image/png') {
-    return buffer;
+  const mt = String(mimetype || '').toLowerCase();
+  if (mt === 'image/webp' || mt === 'image/png' || mt === 'image/jpeg' || mt === 'image/jpg') {
+    try {
+      const out = await sharp(buffer)
+        .rotate()
+        .resize(STORAGE_MAX_WIDTH, STORAGE_MAX_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
+        .toBuffer();
+      return { bytes: out, mimetype: 'image/jpeg' };
+    } catch (e) {
+      const err = new Error('Unreadable image file');
+      err.code = 'INVALID_IMAGE';
+      throw err;
+    }
   }
 
-  if (mimetype === 'image/webp') {
-    return sharp(buffer).jpeg({ quality: 92 }).toBuffer();
-  }
-
-  throw new Error(`Unsupported image type for moderation: ${mimetype}`);
+  const err = new Error('Unsupported image format');
+  err.code = 'INVALID_IMAGE';
+  throw err;
 }
 
-/** Normalize storage payload — WEBP is stored as JPEG on S3. */
-export async function prepareForStorage(buffer, mimetype, originalFilename) {
-  if (mimetype === 'image/webp') {
-    const jpegBuffer = await sharp(buffer).jpeg({ quality: 92 }).toBuffer();
-    const base = path.basename(originalFilename, path.extname(originalFilename)) || 'image';
-    return {
-      buffer: jpegBuffer,
-      mimetype: 'image/jpeg',
-      filename: `${base}.jpg`,
-    };
+/**
+ * Resize and compress listing photos before S3 upload (after moderation + watermark).
+ */
+export async function compressImageForStorage(buffer) {
+  if (!buffer?.length) {
+    const err = new Error('Empty image');
+    err.code = 'INVALID_IMAGE';
+    throw err;
   }
 
-  return {
-    buffer,
-    mimetype,
-    filename: originalFilename,
-  };
+  try {
+    return await sharp(buffer)
+      .rotate()
+      .resize(STORAGE_MAX_WIDTH, STORAGE_MAX_HEIGHT, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: STORAGE_JPEG_QUALITY, mozjpeg: true })
+      .toBuffer();
+  } catch (e) {
+    const err = new Error('Failed to process image');
+    err.code = 'INVALID_IMAGE';
+    throw err;
+  }
 }

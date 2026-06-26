@@ -54,3 +54,18 @@ export function mergeFurnishingStatus(incoming, existing) {
   const s = String(incoming ?? '').trim();
   return s === '' ? null : s;
 }
+
+/** Road number 1–999; undefined = keep existing on update */
+export function parseRoadNo(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return null;
+  const s = String(value).trim();
+  if (!/^[1-9]\d{0,2}$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  return n >= 1 && n <= 999 ? n : null;
+}
+
+export function mergeRoadNo(incoming, existing) {
+  if (incoming === undefined) return existing ?? null;
+  if (String(incoming).trim() === '') return null;
+  return parseRoadNo(incoming) ?? existing ?? null;
+}

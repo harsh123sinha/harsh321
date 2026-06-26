@@ -12,15 +12,22 @@ import {
   mergeShopSqftRange,
   mergeShopRoadDistance,
   mergeShopTokenAmount,
-  mergeFurnishingStatus
+  mergeFurnishingStatus,
+  mergeRoadNo,
+  parseRoadNo
 } from '../utils/propertyAmenities.js';
 import {
-  uploadAndModerateMulterFiles,
+  uploadProcessedFilesToS3,
   resolvePropertyImageUrls,
   deleteAllPropertyImages,
-  deleteImagesFromS3,
-  buildPropertyRejectionMessage,
 } from '../utils/s3.js';
+import {
+  assertListingTextAllowed,
+  processPropertyImagesForUpload,
+  assertNoRejectedImagesOnCreate,
+  resolveListingStatus,
+} from '../utils/propertyListingGuard.js';
+import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
 
 // Get all properties
 export const getAllProperties = async (req, res) => {
@@ -104,6 +111,14 @@ export const searchProperties = async (req, res) => {
     };
 
     const properties = await propertyModel.search(filters);
+
+    if (req.user?.role === 'buyer') {
+      const source = req.query.source === 'chatbot' ? 'chatbot' : 'search_bar';
+      import('../services/searchHistoryService.js')
+        .then(({ logSearchHistory }) => logSearchHistory(req.user.id, filters, source))
+        .catch((err) => console.error('Search history log error:', err.message));
+    }
+
     res.json({ success: true, properties, filters });
   } catch (error) {
     console.error('Search properties error:', error);
@@ -118,12 +133,17 @@ export const addProperty = async (req, res) => {
       title, description, price, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status
+      shop_road_distance, shop_token_amount, furnishing_status, road_no
     } = req.body;
 
     // Validation (district / state / pincode optional — filled from city for search compatibility)
-    if (!title || !description || !price || !type || !location || !city) {
+    if (!title || !description || !price || !type || !location || !city || road_no == null || String(road_no).trim() === '') {
       return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    const roadNoDb = parseRoadNo(road_no);
+    if (roadNoDb == null) {
+      return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
     }
 
     if (!VALID_PROPERTY_TYPES.includes(type)) {
@@ -149,24 +169,18 @@ export const addProperty = async (req, res) => {
       return res.status(400).json({ error: fieldErrors.join(', ') });
     }
 
-    // Handle uploaded images (S3 + moderation)
-    let imageUrls = [];
-    let imageModeration = null;
-    if (req.files && req.files.length > 0) {
-      const uploadResult = await uploadAndModerateMulterFiles(req.files);
-      imageUrls = uploadResult.urls;
-      imageModeration = uploadResult.moderation;
+    assertListingTextAllowed(req.body);
 
-      if (imageModeration?.rejected > 0) {
-        await deleteImagesFromS3(imageUrls);
-        return res.status(400).json({
-          error:
-            imageModeration.userMessage ||
-            buildPropertyRejectionMessage(imageModeration, { action: 'add' }),
-          imageModeration,
-        });
-      }
+    let imageUrls = [];
+    let needsReview = false;
+    if (req.files && req.files.length > 0) {
+      const processed = await processPropertyImagesForUpload(req.files);
+      assertNoRejectedImagesOnCreate(processed.rejected);
+      needsReview = processed.needsReview;
+      imageUrls = await uploadProcessedFilesToS3(processed.files);
     }
+
+    const listingStatus = resolveListingStatus(needsReview);
 
     const loc = normalizeListingLocation(city);
     const district =
@@ -222,6 +236,7 @@ export const addProperty = async (req, res) => {
       shop_token_amount: shopTokenDb,
       furnishing_status: furnishDb,
       location,
+      road_no: roadNoDb,
       city,
       district,
       state,
@@ -229,21 +244,33 @@ export const addProperty = async (req, res) => {
       image_url: stringifyImageUrls(imageUrls),
       other_type: other_type || null,
       owner_id: req.user.id,
-      featured: featured === 'true' ? 1 : 0
+      featured: featured === 'true' ? 1 : 0,
+      listing_status: listingStatus,
     });
 
-    const successMessage = imageModeration?.rejectionMessage
-      ? `Property added successfully. ${imageModeration.rejectionMessage}`
-      : 'Property added successfully';
+    if (listingStatus === 'pending_review') {
+      return res.status(201).json({
+        ...buildPendingReviewSuccess(),
+        propertyId,
+      });
+    }
 
     res.status(201).json({
       success: true,
-      message: successMessage,
-      propertyId,
-      ...(imageModeration && { imageModeration }),
+      message: 'Property added successfully',
+      propertyId
     });
+
+    if (listingStatus === 'active') {
+      import('../services/propertyMatchService.js')
+        .then(({ notifyMatchingBuyers }) => notifyMatchingBuyers(propertyId))
+        .catch((err) => console.error('Property match notification error:', err.message));
+    }
   } catch (error) {
     console.error('Add property error:', error);
+    if (error.payload) {
+      return res.status(error.status || 400).json(error.payload);
+    }
     const status = error.status || (error.message?.includes('upload') ? 400 : 500);
     res.status(status).json({ error: error.message || 'Server error' });
   }
@@ -257,7 +284,7 @@ export const updateProperty = async (req, res) => {
       title, description, price, type, bhk, katha, location, city,
       district, state, pincode, other_type, featured, removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status
+      shop_road_distance, shop_token_amount, furnishing_status, road_no
     } = req.body;
 
     // Check if property exists and user owns it
@@ -270,19 +297,37 @@ export const updateProperty = async (req, res) => {
       return res.status(403).json({ error: 'You can only edit your own properties' });
     }
 
-    // Handle images (upload + moderate new files, then delete removed from S3)
+    assertListingTextAllowed({
+      title: title || property.title,
+      description: description || property.description,
+      location: location || property.location,
+      city: city || property.city,
+      district: district ?? property.district,
+      state: state ?? property.state,
+      pincode: pincode ?? property.pincode,
+      other_type: other_type ?? property.other_type,
+      floor_no: floor_no ?? property.floor_no,
+      shop_road_distance: shop_road_distance ?? property.shop_road_distance,
+      katha: katha ?? property.katha,
+      furnishing_status: furnishing_status ?? property.furnishing_status,
+    });
+
+    // Handle images (moderate + watermark new uploads, then delete removed from S3)
     let existingImages;
-    let imageModeration = null;
+    let imageNeedsReview = false;
     try {
-      const imageResult = await resolvePropertyImageUrls({
+      const resolved = await resolvePropertyImageUrls({
         existingImages: parseImageUrls(property.image_url),
         reqFiles: req.files,
         removeAllImages,
         removeImages,
       });
-      existingImages = imageResult.urls;
-      imageModeration = imageResult.moderation;
+      existingImages = resolved.images;
+      imageNeedsReview = resolved.needsReview;
     } catch (error) {
+      if (error.payload) {
+        return res.status(error.status || 400).json(error.payload);
+      }
       return res.status(error.status || 400).json({ error: error.message || 'Image upload failed' });
     }
 
@@ -365,6 +410,14 @@ export const updateProperty = async (req, res) => {
     const mergedFurnish = mergeFurnishingStatus(furnishing_status, property.furnishing_status);
     const nextFurnishing = parseFurnishingForDb(nextType, effectiveOther, mergedFurnish);
 
+    const nextRoadNo = mergeRoadNo(road_no, property.road_no);
+    if (road_no !== undefined && parseRoadNo(road_no) == null && String(road_no).trim() !== '') {
+      return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
+    }
+
+    const nextListingStatus =
+      imageNeedsReview ? 'pending_review' : property.listing_status || 'active';
+
     // Update property
     await propertyModel.update(id, {
       title: title || property.title,
@@ -384,6 +437,7 @@ export const updateProperty = async (req, res) => {
       shop_token_amount: nextShopToken,
       furnishing_status: nextFurnishing,
       location: location || property.location,
+      road_no: nextRoadNo,
       city: city || property.city,
       district: nextDistrict,
       state: nextState,
@@ -391,23 +445,23 @@ export const updateProperty = async (req, res) => {
       image_url: stringifyImageUrls(existingImages),
       other_type: nextOther,
       featured: featured !== undefined ? (featured === 'true' ? 1 : 0) : property.featured,
-      owner_id: property.owner_id
+      owner_id: property.owner_id,
+      listing_status: nextListingStatus,
     });
 
-    const successMessage = imageModeration?.rejected > 0
-      ? `Property updated. ${imageModeration.rejectionMessage || 'Some images were rejected.'}`
-      : 'Property updated successfully';
+    if (nextListingStatus === 'pending_review') {
+      return res.json(buildPendingReviewSuccess());
+    }
 
     res.json({
       success: true,
-      message: successMessage,
-      ...(imageModeration?.rejected > 0 && {
-        warning: imageModeration.userMessage,
-      }),
-      ...(imageModeration && { imageModeration }),
+      message: 'Property updated successfully'
     });
   } catch (error) {
     console.error('Update property error:', error);
+    if (error.payload) {
+      return res.status(error.status || 400).json(error.payload);
+    }
     res.status(500).json({ error: 'Server error' });
   }
 };

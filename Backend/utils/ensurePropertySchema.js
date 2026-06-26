@@ -115,6 +115,12 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.furnishing_status`);
   }
+  if (!(await hasColumn(t, 'road_no'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN road_no SMALLINT UNSIGNED NULL DEFAULT NULL AFTER location`
+    );
+    console.log(`✅ DB: added ${t}.road_no`);
+  }
 
   try {
     await db.execute(`ALTER TABLE \`${t}\` MODIFY COLUMN district VARCHAR(100) NULL`);
@@ -132,5 +138,35 @@ export async function ensurePropertySchema() {
     }
   } catch {
     /* already nullable or permission */
+  }
+
+  await ensureListingStatusColumn();
+}
+
+async function ensureListingStatusColumn() {
+  const t = 'properties';
+  if (!(await hasColumn(t, 'listing_status'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN listing_status ENUM('active','pending_review','unavailable','sold') NOT NULL DEFAULT 'active' AFTER featured`
+    );
+    console.log(`✅ DB: added ${t}.listing_status`);
+    return;
+  }
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'listing_status'`,
+      [t]
+    );
+    const colType = String(rows[0]?.COLUMN_TYPE || '');
+    if (!colType.includes('pending_review')) {
+      await db.execute(
+        `ALTER TABLE \`${t}\` MODIFY COLUMN listing_status ENUM('active','pending_review','unavailable','sold') NOT NULL DEFAULT 'active'`
+      );
+      console.log(`✅ DB: extended ${t}.listing_status (pending_review)`);
+    }
+  } catch (e) {
+    console.warn('ensureListingStatusColumn:', e.message);
   }
 }

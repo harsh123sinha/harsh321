@@ -77,6 +77,11 @@ export const signup = async (req, res) => {
         phone_number
       }
     });
+
+    // Self-signup welcome notification (async, non-blocking)
+    import('../services/notificationService.js')
+      .then(({ sendWelcomeAfterSignup }) => sendWelcomeAfterSignup(userId))
+      .catch((err) => console.error('Welcome notification error:', err.message));
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during signup' });

@@ -26,3 +26,6 @@ export const FURNISHING_OPTIONS = [
   { value: 'semi_furnished', label: 'Semi-furnished' },
   { value: 'unfurnished', label: 'Unfurnished' },
 ];
+
+/** Suggestions for road no. datalist (user may type any 1–999) */
+export const ROAD_NO_SUGGESTIONS = Array.from({ length: 30 }, (_, i) => String(i + 1));

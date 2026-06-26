@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
 
+const FCM_TOKEN_KEY = 'fcmToken';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -66,7 +68,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const token = localStorage.getItem(FCM_TOKEN_KEY);
+    if (token) {
+      try {
+        await api.delete('/notifications/fcm', { data: { fcmToken: token } });
+      } catch {
+        // ignore
+      }
+      localStorage.removeItem(FCM_TOKEN_KEY);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);

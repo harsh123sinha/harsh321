@@ -15,6 +15,7 @@ import OtherProperties from './pages/OtherProperties';
 import PlotProperties from './pages/PlotProperties';
 import PropertyDetail from './pages/PropertyDetail';
 import SearchResults from './pages/SearchResults';
+import Notifications from './pages/Notifications';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -48,6 +49,7 @@ import SubAdminProperties from './pages/subadmin/SubAdminProperties';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import ChatWidget from './chatbot/ChatWidget';
+import FcmBootstrap from './components/notifications/FcmBootstrap';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +75,14 @@ function App() {
               <Route path="/plots" element={<PlotProperties />} />
               <Route path="/property/:id" element={<PropertyDetail />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
             </Route>
@@ -149,6 +159,7 @@ function App() {
             <Route path="/subadmin/properties" element={<SubAdminProperties />} />
           </Routes>
           <ChatWidget />
+          <FcmBootstrap />
           <Toaster
             position="top-center"
             toastOptions={{

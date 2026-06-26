@@ -10,6 +10,7 @@ import {
   deleteProperty
 } from '../controllers/propertyController.js';
 import { isAuthenticated, isOwnerOrAgent } from '../middleware/auth.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { apiLimiter } from '../middleware/rateLimiter.js';
 
@@ -17,7 +18,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', apiLimiter, getAllProperties);
-router.get('/search', apiLimiter, searchProperties);
+router.get('/search', apiLimiter, optionalAuth, searchProperties);
 router.get('/type/:type', apiLimiter, getPropertiesByType);
 router.get('/:id', apiLimiter, getPropertyById);
 

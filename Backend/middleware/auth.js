@@ -24,6 +24,14 @@ export const verifyToken = (req, res, next) => {
 // Check if user is authenticated
 export const isAuthenticated = verifyToken;
 
+/** Buyers only */
+export const isBuyer = (req, res, next) => {
+  if (req.user?.role !== 'buyer') {
+    return res.status(403).json({ error: 'Access denied. Buyers only.' });
+  }
+  next();
+};
+
 // Check if user is owner or agent (can add properties)
 export const isOwnerOrAgent = (req, res, next) => {
   if (req.user.role !== 'owner' && req.user.role !== 'agent') {

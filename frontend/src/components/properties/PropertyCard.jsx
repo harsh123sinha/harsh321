@@ -72,7 +72,8 @@ const PropertyCard = ({ property }) => {
           <div className="flex items-start space-x-2 text-gray-darker mb-3">
             <MapPin className="h-4 w-4 flex-shrink-0 mt-1 text-gold" />
             <p className="text-sm line-clamp-2">
-              {property.location}, {property.city}
+              {property.location}
+              {property.road_no ? `, Road ${property.road_no}` : ''}, {property.city}
             </p>
           </div>
 

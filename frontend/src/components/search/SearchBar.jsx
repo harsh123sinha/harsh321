@@ -23,6 +23,8 @@ const SearchBar = ({ expanded = false, onSearch }) => {
   const [katha, setKatha] = useState('');
   const [kathaCustom, setKathaCustom] = useState('');
   const [otherFreeText, setOtherFreeText] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   useEffect(() => {
     const loc = searchParams.get('location') || '';
@@ -31,10 +33,14 @@ const SearchBar = ({ expanded = false, onSearch }) => {
     const shopSqftParam = searchParams.get('shop_sqft_range') || '';
     const kathaParam = searchParams.get('katha') || '';
     const otherType = (searchParams.get('other_type') || '').trim();
+    const minPriceParam = searchParams.get('minPrice') || '';
+    const maxPriceParam = searchParams.get('maxPrice') || '';
 
     setLocation(loc);
     setBhk(bhkParam);
     setShopSqftRange(shopSqftParam);
+    setMinPrice(minPriceParam);
+    setMaxPrice(maxPriceParam);
 
     if (type === 'plot_lease') {
       setCategory('plot');
@@ -119,6 +125,8 @@ const SearchBar = ({ expanded = false, onSearch }) => {
       shop_sqft_range: isShop ? shopSqftRange || '' : '',
       katha: kathaVal,
       other_type: otherTypeParam,
+      minPrice: minPrice.trim(),
+      maxPrice: maxPrice.trim(),
     };
 
     const params = new URLSearchParams();
@@ -128,6 +136,8 @@ const SearchBar = ({ expanded = false, onSearch }) => {
     if (payload.shop_sqft_range) params.append('shop_sqft_range', payload.shop_sqft_range);
     if (payload.katha) params.append('katha', payload.katha);
     if (payload.other_type) params.append('other_type', payload.other_type);
+    if (payload.minPrice) params.append('minPrice', payload.minPrice);
+    if (payload.maxPrice) params.append('maxPrice', payload.maxPrice);
 
     if (onSearch) {
       onSearch(payload);
@@ -323,6 +333,39 @@ const SearchBar = ({ expanded = false, onSearch }) => {
             />
           </div>
         )}
+
+        <div className="flex w-full max-w-md flex-wrap items-end justify-center gap-2 px-1 sm:max-w-lg">
+          <div className="min-w-[7rem] flex-1">
+            <label className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-navy/60" htmlFor="search-min-price">
+              Min budget (₹)
+            </label>
+            <input
+              id="search-min-price"
+              type="number"
+              min="0"
+              inputMode="numeric"
+              placeholder="e.g. 10000"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="w-full rounded-lg border-2 border-gray-light px-2 py-1.5 text-xs focus:border-gold focus:outline-none sm:text-sm"
+            />
+          </div>
+          <div className="min-w-[7rem] flex-1">
+            <label className="mb-0.5 block text-[9px] font-semibold uppercase tracking-wide text-navy/60" htmlFor="search-max-price">
+              Max budget (₹)
+            </label>
+            <input
+              id="search-max-price"
+              type="number"
+              min="0"
+              inputMode="numeric"
+              placeholder="e.g. 25000"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-full rounded-lg border-2 border-gray-light px-2 py-1.5 text-xs focus:border-gold focus:outline-none sm:text-sm"
+            />
+          </div>
+        </div>
 
         {category === 'homes' && (
           <p className="max-w-md text-center text-[8px] leading-snug text-gray xs:text-[9px] sm:text-[10px] md:max-w-lg md:text-xs">
