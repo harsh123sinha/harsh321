@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import NotificationItem from './NotificationItem';
 import BrokerReviewModal from '../brokers/BrokerReviewModal';
 import { getNotificationPropertyPath } from '../../utils/notifications';
+import BrandLoader from '../ui/BrandLoader';
 
 const NotificationBell = () => {
   const { isAuthenticated } = useAuth();
@@ -126,7 +127,7 @@ const NotificationBell = () => {
 
             <div className="max-h-80 overflow-y-auto">
               {isLoading ? (
-                <div className="p-6 text-center text-gray text-sm">Loading…</div>
+                <BrandLoader size="sm" className="!py-4" />
               ) : listData?.notifications?.length ? (
                 listData.notifications.map((n) => (
                   <NotificationItem

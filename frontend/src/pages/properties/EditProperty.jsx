@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import BrandLoader from '../../components/ui/BrandLoader';
 
 const EditProperty = () => {
   const { id } = useParams();
@@ -46,7 +47,7 @@ const EditProperty = () => {
     setLoading(false);
   };
 
-  if (!formData.title) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div></div>;
+  if (!formData.title) return <BrandLoader fullScreen />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

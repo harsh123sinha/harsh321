@@ -1,4 +1,5 @@
-import { Loader2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ShieldCheck } from 'lucide-react';
+import BrandLoader from '../ui/BrandLoader';
 
 const ListingVerificationOverlay = ({ phase, pendingReview }) => {
   if (!phase) return null;
@@ -11,11 +12,8 @@ const ListingVerificationOverlay = ({ phase, pendingReview }) => {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl text-center">
         {verifying && (
           <>
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gold/15">
-              <Loader2 className="h-9 w-9 animate-spin text-gold" aria-hidden />
-            </div>
-            <p className="text-lg font-bold text-navy">Harsh To Let Services</p>
-            <p className="mt-2 text-sm text-gray">is verifying your listing…</p>
+            <BrandLoader size="sm" className="!py-2" />
+            <p className="mt-3 text-sm text-gray">is verifying your listing…</p>
             <p className="mt-4 text-xs text-gray">Checking details and images. Please wait.</p>
           </>
         )}

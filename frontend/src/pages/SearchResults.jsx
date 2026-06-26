@@ -5,6 +5,7 @@ import api from '../utils/api';
 import PropertyListRow from '../components/properties/PropertyListRow';
 import SearchBar from '../components/search/SearchBar';
 import { Building2 } from 'lucide-react';
+import BrandLoader from '../components/ui/BrandLoader';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -50,28 +51,23 @@ const SearchResults = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-navy text-white py-8 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-[#0a1020] text-white pb-8 pt-8 sm:pb-10 sm:pt-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
             Search Results
           </h1>
-          <p className="text-base sm:text-lg text-gray-light">
+          <p className="text-base sm:text-lg text-white/75">
             Find properties matching your criteria
           </p>
-        </div>
-      </div>
-
-      <div className="bg-white border-b py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SearchBar expanded />
+          <div className="mt-6 sm:mt-8">
+            <SearchBar variant="underline" />
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
-          </div>
+          <BrandLoader />
         ) : data?.properties?.length > 0 ? (
           <>
             <div className="mb-6">

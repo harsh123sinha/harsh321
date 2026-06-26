@@ -38,9 +38,100 @@
     animation: none !important;
   }
 
-  .htls-hero-square-grid {
+  .htls-hero-square-grid,
+  .htls-aurora-blob,
+  .htls-shimmer-text,
+  .htls-hero-fade-up,
+  .htls-hero-glow-line {
     animation: none !important;
   }
+}
+
+/* ——— Hero typography & motion ——— */
+
+@keyframes htls-shimmer {
+  0% {
+    background-position: -120% center;
+  }
+  100% {
+    background-position: 120% center;
+  }
+}
+
+@keyframes htls-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes htls-glow-line {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.htls-shimmer-text {
+  background: linear-gradient(
+    105deg,
+    #c9a227 0%,
+    #f5e6a8 22%,
+    #d4af37 44%,
+    #fff8e7 55%,
+    #d4af37 72%,
+    #b8941f 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: htls-shimmer 1.1s linear infinite;
+}
+
+.htls-hero-fade-up {
+  animation: htls-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.htls-hero-fade-up-1 {
+  animation-delay: 0.05s;
+}
+.htls-hero-fade-up-2 {
+  animation-delay: 0.12s;
+}
+.htls-hero-fade-up-3 {
+  animation-delay: 0.25s;
+}
+.htls-hero-fade-up-4 {
+  animation-delay: 0.38s;
+}
+
+.htls-hero-glow-line {
+  animation: htls-glow-line 3.5s ease-in-out infinite;
+}
+
+/* Hero search native selects — navy dropdown list, white options */
+.htls-dark-select {
+  color-scheme: dark;
+}
+
+.htls-dark-select option {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Legacy hero backdrop classes — kept for optional HeroBackdrop use */
+.htls-hero-square-grid {
+  display: none;
 }
 
 /* Guest phone “Get number” — gold highlight sweeps left → right → back */
@@ -67,40 +158,4 @@
 
 .htls-phone-sweep-bar {
   animation: htls-phone-sweep 3.2s ease-in-out infinite;
-}
-
-/* Home navy hero / CTA — white square grid + slow drift (no gold / no blur) */
-@keyframes htls-hero-grid-slide {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 38px 38px;
-  }
-}
-
-@keyframes htls-hero-grid-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 0.95;
-  }
-}
-
-.htls-hero-square-grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
-  background-size: 38px 38px;
-  background-position: 0 0;
-  opacity: 0.75;
-  will-change: background-position, opacity;
-  animation:
-    htls-hero-grid-slide 26s linear infinite,
-    htls-hero-grid-pulse 8s ease-in-out infinite;
 }

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
+import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
 
 /**
  * Horizontal slider for featured listings — touch swipe + arrow buttons (mobile & desktop).
@@ -33,6 +34,8 @@ export default function FeaturedPropertiesCarousel({ properties }) {
       ro.disconnect();
     };
   }, [properties, syncScrollState]);
+
+  useNaturalHorizontalScroll(scrollerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;

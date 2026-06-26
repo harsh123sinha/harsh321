@@ -4,6 +4,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import api from '../utils/api';
 import NotificationItem from '../components/notifications/NotificationItem';
 import { getNotificationPropertyPath } from '../utils/notifications';
+import BrandLoader from '../components/ui/BrandLoader';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ const Notifications = () => {
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {isLoading ? (
-            <div className="p-12 text-center text-gray">Loading…</div>
+            <BrandLoader size="sm" />
           ) : data?.notifications?.length ? (
             <ul>
               {data.notifications.map((n) => (

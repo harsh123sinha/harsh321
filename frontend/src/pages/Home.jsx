@@ -3,6 +3,7 @@ import { Building2, Shield, Users, Award } from 'lucide-react';
 import api from '../utils/api';
 import SearchBar from '../components/search/SearchBar';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
+import BrandLoader from '../components/ui/BrandLoader';
 
 /** One neutral surface after the hero — navy + gold accents only on hero, CTA, and highlights */
 const canvas = 'bg-stone-100';
@@ -46,46 +47,38 @@ const Home = () => {
 
   return (
     <div className={`min-h-screen ${canvas}`}>
-      {/* Hero — brand navy (only dark band above the fold) */}
-      <section className="relative flex min-h-[52vh] items-center overflow-hidden bg-navy sm:min-h-[58vh] md:min-h-[64vh]">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="htls-hero-square-grid" />
-        </div>
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_65%_at_50%_-10%,rgba(212,175,55,0.14),transparent_52%)]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-navy-light/25 via-transparent to-black/30"
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/35 to-transparent" aria-hidden />
+      {/* Hero — plain dark band + underline search */}
+      <section className="relative flex min-h-[54vh] items-center overflow-hidden bg-[#0a1020] sm:min-h-[60vh] md:min-h-[66vh]">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" aria-hidden />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pb-12 sm:pt-16 md:px-8 md:pb-14 md:pt-20">
-          <div className="mx-auto mb-8 max-w-4xl text-center sm:mb-10 md:mb-12">
+          <div className="mx-auto mb-7 max-w-4xl text-center sm:mb-9 md:mb-11">
+            <span className="htls-hero-fade-up htls-hero-fade-up-1 mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80 backdrop-blur-md sm:mb-5 sm:px-4 sm:py-1.5 sm:text-[11px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.9)]" />
+              Patna&apos;s trusted property platform
+            </span>
+
             <h1 className="flex flex-col items-center gap-2 text-balance sm:gap-2.5 md:gap-3">
-              <span className="block px-1 text-3xl font-extrabold leading-[1.05] tracking-tight text-gold drop-shadow-[0_2px_28px_rgba(212,175,55,0.28)] xs:text-4xl sm:text-6xl sm:leading-none md:text-7xl lg:text-8xl">
+              <span className="htls-shimmer-text htls-hero-fade-up htls-hero-fade-up-2 block px-1 text-3xl font-extrabold leading-[1.05] tracking-tight xs:text-4xl sm:text-6xl sm:leading-none md:text-7xl lg:text-8xl">
                 HarshToLetServices
               </span>
-              <span className="block text-sm font-semibold leading-snug tracking-wide text-white/95 sm:text-base md:text-lg">
-                Find, Visit, Move In
+              <span className="htls-shimmer-text htls-hero-fade-up htls-hero-fade-up-3 block text-sm font-semibold leading-snug tracking-[0.2em] sm:text-base md:text-lg md:tracking-[0.24em]">
+                Find · Visit · Move In
               </span>
             </h1>
 
             <div
-              className="mx-auto mt-4 h-px w-12 bg-gradient-to-r from-transparent via-gold/75 to-transparent sm:mt-5 md:mt-6 md:w-16"
+              className="htls-hero-glow-line mx-auto mt-4 h-px w-14 origin-center bg-gradient-to-r from-transparent via-gold to-transparent sm:mt-5 md:mt-6 md:w-20"
               aria-hidden
             />
 
-            <p className="text-pretty mx-auto mt-4 max-w-md px-1 text-xs font-normal leading-relaxed text-white/85 sm:mt-5 sm:max-w-lg sm:text-sm md:mt-6 md:max-w-xl md:text-sm">
-              Buy, Rent, or Sell Properties Across Patna with Ease
+            <p className="htls-hero-fade-up htls-hero-fade-up-4 text-pretty mx-auto mt-4 max-w-md px-1 text-xs font-normal leading-relaxed text-white/75 sm:mt-5 sm:max-w-lg sm:text-sm md:mt-6 md:max-w-xl">
+              Buy, rent, or sell across Patna — verified listings, trusted agents, zero hassle.
             </p>
           </div>
 
-          <div className="mx-auto flex w-full justify-center px-1 sm:px-2">
-            <div className="w-full max-w-4xl rounded-xl border border-white/25 bg-white/98 px-2 py-1.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] ring-1 ring-white/40 backdrop-blur-sm sm:px-3 sm:py-2 md:max-w-5xl md:px-4 md:py-2.5">
-              <SearchBar />
-            </div>
+          <div className="htls-hero-fade-up htls-hero-fade-up-4 mx-auto w-full max-w-6xl px-1 sm:px-2">
+            <SearchBar variant="underline" />
           </div>
         </div>
       </section>
@@ -135,9 +128,7 @@ const Home = () => {
 
           <div className="mt-8 sm:mt-10">
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-gold" />
-              </div>
+              <BrandLoader />
             ) : data?.featuredProperties?.length > 0 ? (
               <FeaturedPropertiesCarousel
                 properties={data.featuredProperties.slice(0, 20)}
@@ -152,20 +143,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA — navy with depth; gold ties to hero */}
-      <section className="relative isolate overflow-hidden bg-navy py-14 sm:py-20">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="htls-hero-square-grid" />
-        </div>
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_60%_at_50%_0%,rgba(212,175,55,0.1),transparent_55%)]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-navy-light/15"
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" aria-hidden />
+      {/* CTA — matches hero */}
+      <section className="relative isolate overflow-hidden bg-[#0a1020] py-14 sm:py-20">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" aria-hidden />
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="mb-4 text-2xl font-bold tracking-tight text-white sm:mb-5 sm:text-3xl md:text-4xl">
@@ -177,13 +157,13 @@ const Home = () => {
           <div className="mx-auto flex max-w-md flex-col justify-center gap-3 sm:max-w-lg sm:flex-row sm:gap-4">
             <a
               href="/signup"
-              className="touch-target inline-flex items-center justify-center rounded-lg bg-gold px-8 py-3 text-center text-sm font-bold text-navy shadow-md transition hover:bg-gold-light sm:py-3.5 sm:text-base"
+              className="touch-target inline-flex items-center justify-center rounded-full bg-gold px-8 py-3 text-center text-sm font-bold text-navy shadow-[0_8px_32px_rgba(212,175,55,0.35)] transition hover:bg-gold-light hover:shadow-[0_12px_40px_rgba(212,175,55,0.45)] sm:py-3.5 sm:text-base"
             >
               Get Started
             </a>
             <a
               href="/rent"
-              className="touch-target inline-flex items-center justify-center rounded-lg border border-white/40 bg-white/5 px-8 py-3 text-center text-sm font-semibold text-white backdrop-blur-[2px] transition hover:border-gold/60 hover:bg-white/10 sm:py-3.5 sm:text-base"
+              className="touch-target inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-8 py-3 text-center text-sm font-semibold text-white backdrop-blur-md transition hover:border-gold/50 hover:bg-white/10 sm:py-3.5 sm:text-base"
             >
               Browse Properties
             </a>
@@ -202,9 +182,9 @@ const Home = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="flex flex-col rounded-2xl border border-stone-200/90 bg-white p-6 text-center shadow-sm transition hover:border-gold/35 hover:shadow-md"
+                className="group flex flex-col rounded-2xl border border-stone-200/90 bg-white p-6 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
               >
-                <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gold/12 ring-1 ring-gold/20 sm:h-16 sm:w-16">
+                <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gold/15 to-gold/5 ring-1 ring-gold/25 transition group-hover:ring-gold/40 sm:h-16 sm:w-16">
                   <feature.icon className="h-7 w-7 text-gold sm:h-8 sm:w-8" />
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-navy sm:text-xl">{feature.title}</h3>

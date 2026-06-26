@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, UserPlus, X } from 'lucide-react';
+import BrandLoader from '../ui/BrandLoader';
 
 const emptyUser = { name: '', email: '', password: '', role: 'buyer', phone_number: '' };
 
@@ -112,7 +113,7 @@ export default function ManageUsers({ variant }) {
       </div>
 
       {loading ? (
-        <p className="text-gray">Loading…</p>
+        <BrandLoader size="sm" />
       ) : (
         <div className="bg-white rounded-xl shadow overflow-x-auto">
           <table className="min-w-full text-sm">

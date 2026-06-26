@@ -6,6 +6,7 @@ import { Pencil, Trash2, Plus, X, Star } from 'lucide-react';
 import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCategoryForm } from '../../utils/propertyListingMap';
 import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../../constants/propertyForm';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
+import BrandLoader from '../ui/BrandLoader';
 
 function parseImages(imageUrl) {
   if (!imageUrl) return [];
@@ -361,7 +362,7 @@ export default function ManageProperties({ variant }) {
       </div>
 
       {loading ? (
-        <p className="text-gray">Loading…</p>
+        <BrandLoader size="sm" />
       ) : (
         <div className="bg-white rounded-xl shadow overflow-x-auto">
           <table className="min-w-full text-sm">

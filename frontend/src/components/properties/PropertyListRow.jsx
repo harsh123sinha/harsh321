@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
+import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
 
 const scrollerClass =
   'scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-visible scroll-smooth pb-3 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:pb-4 sm:pt-1 md:gap-6 [&::-webkit-scrollbar]:hidden';
@@ -36,6 +37,8 @@ const PropertyListRow = ({ properties, renderCard }) => {
       ro.disconnect();
     };
   }, [properties, syncScrollState]);
+
+  useNaturalHorizontalScroll(scrollerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;

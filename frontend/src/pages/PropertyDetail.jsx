@@ -17,6 +17,7 @@ import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButto
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 import BookmarkButton from '../components/properties/BookmarkButton';
 import AgentListingInfo, { getAgentListingInfo } from '../components/properties/AgentListingInfo';
+import BrandLoader from '../components/ui/BrandLoader';
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -37,11 +38,7 @@ const PropertyDetail = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
-      </div>
-    );
+    return <BrandLoader fullScreen />;
   }
 
   const property = data?.property;

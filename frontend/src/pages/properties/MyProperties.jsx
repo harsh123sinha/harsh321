@@ -5,6 +5,7 @@ import api from '../../utils/api';
 import PropertyListRow from '../../components/properties/PropertyListRow';
 import PropertyCard from '../../components/properties/PropertyCard';
 import toast from 'react-hot-toast';
+import BrandLoader from '../../components/ui/BrandLoader';
 
 const MyProperties = () => {
   const { data, isLoading, refetch } = useQuery({
@@ -38,9 +39,7 @@ const MyProperties = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
-          </div>
+          <BrandLoader />
         ) : data?.properties?.length > 0 ? (
           <PropertyListRow
             properties={data.properties}

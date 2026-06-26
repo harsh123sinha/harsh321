@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
+import { useNaturalHorizontalScroll } from '../hooks/useNaturalHorizontalScroll';
 
 const scrollerClass =
   'scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-visible scroll-smooth pb-2 pt-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-3.5 sm:pb-2.5 [&::-webkit-scrollbar]:hidden';
@@ -35,6 +36,8 @@ const PropertyCarousel = ({ properties, onAfterPropertyNavigate }) => {
       ro.disconnect();
     };
   }, [properties, syncScrollState]);
+
+  useNaturalHorizontalScroll(scrollerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;

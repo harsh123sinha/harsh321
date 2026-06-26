@@ -5,6 +5,7 @@ import api from '../../utils/api';
 import PropertyCard from '../../components/properties/PropertyCard';
 import { StarRatingDisplay } from '../../components/brokers/StarRating';
 import { brokerInitials } from '../../utils/brokerHelpers';
+import BrandLoader from '../../components/ui/BrandLoader';
 
 const BrokerProperties = () => {
   const { brokerId } = useParams();
@@ -29,9 +30,7 @@ const BrokerProperties = () => {
         </Link>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold" />
-          </div>
+          <BrandLoader />
         ) : !broker ? (
           <p className="text-center text-gray">Broker not found.</p>
         ) : (

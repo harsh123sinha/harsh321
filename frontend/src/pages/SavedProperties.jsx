@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Bookmark, Building2 } from 'lucide-react';
 import api from '../utils/api';
 import PropertyCard from '../components/properties/PropertyCard';
+import BrandLoader from '../components/ui/BrandLoader';
 
 const SavedProperties = () => {
   const { data, isLoading } = useQuery({
@@ -27,9 +28,7 @@ const SavedProperties = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold" />
-          </div>
+          <BrandLoader />
         ) : properties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((property) => (

@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
  * Searchable location picker: opens a panel with filter input + scrollable list.
  * Uses fixed + portal so parent overflow does not clip the menu.
  */
-export default function LocationSearchCombobox({ value, onChange, options, triggerClassName }) {
+export default function LocationSearchCombobox({ value, onChange, options, triggerClassName, tone = 'light' }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
   const triggerRef = useRef(null);
@@ -94,6 +94,8 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
     setFilter('');
   };
 
+  const isDark = tone === 'dark';
+
   return (
     <>
       <button
@@ -111,9 +113,9 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
       >
         <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
         {open ? (
-          <ChevronUp className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+          <ChevronUp className={`h-3 w-3 shrink-0 lg:h-3.5 lg:w-3.5 ${tone === 'dark' ? 'text-white/50' : 'opacity-60'}`} aria-hidden />
         ) : (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+          <ChevronDown className={`h-3 w-3 shrink-0 lg:h-3.5 lg:w-3.5 ${tone === 'dark' ? 'text-white/50' : 'opacity-60'}`} aria-hidden />
         )}
       </button>
 
@@ -121,7 +123,11 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
         createPortal(
           <div
             ref={menuRef}
-            className="z-[10000] max-h-[min(70vh,22rem)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl ring-1 ring-black/5"
+            className={`z-[10000] max-h-[min(70vh,22rem)] overflow-hidden rounded-lg shadow-2xl ${
+              isDark
+                ? 'border border-white/15 bg-navy text-white ring-1 ring-black/30'
+                : 'border border-gray-200 bg-white ring-1 ring-black/5'
+            }`}
             style={{
               position: 'fixed',
               top: menuPos.top,
@@ -129,14 +135,18 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
               width: menuPos.width,
             }}
           >
-            <div className="border-b border-gray-100 p-2">
+            <div className={`border-b p-2 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
               <input
                 ref={inputRef}
                 type="search"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Search area…"
-                className="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-sm text-navy outline-none placeholder:text-gray-400 focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold/30"
+                className={
+                  isDark
+                    ? 'w-full rounded-md border border-white/15 bg-navy-light px-2.5 py-2 text-sm text-white outline-none placeholder:text-white/40 focus:border-gold focus:ring-1 focus:ring-gold/30'
+                    : 'w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-sm text-navy outline-none placeholder:text-gray-400 focus:border-gold focus:bg-white focus:ring-1 focus:ring-gold/30'
+                }
                 aria-autocomplete="list"
                 autoComplete="off"
                 onKeyDown={(e) => {
@@ -154,7 +164,9 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
               className="max-h-[min(50vh,16rem)] overflow-y-auto py-1 [scrollbar-width:thin]"
             >
               {filtered.length === 0 ? (
-                <li className="px-3 py-4 text-center text-sm text-gray">No areas match</li>
+                <li className={`px-3 py-4 text-center text-sm ${isDark ? 'text-white/60' : 'text-gray'}`}>
+                  No areas match
+                </li>
               ) : (
                 filtered.map((opt) => {
                   const selected = opt.value === value;
@@ -164,9 +176,15 @@ export default function LocationSearchCombobox({ value, onChange, options, trigg
                         type="button"
                         role="option"
                         aria-selected={selected}
-                        className={`flex w-full px-3 py-2.5 text-left text-sm text-navy hover:bg-gold/10 ${
-                          selected ? 'bg-gold/15 font-semibold' : 'font-normal'
-                        }`}
+                        className={
+                          isDark
+                            ? `flex w-full px-3 py-2.5 text-left text-sm text-white hover:bg-white/10 ${
+                                selected ? 'bg-white/15 font-semibold' : 'font-normal'
+                              }`
+                            : `flex w-full px-3 py-2.5 text-left text-sm text-navy hover:bg-gold/10 ${
+                                selected ? 'bg-gold/15 font-semibold' : 'font-normal'
+                              }`
+                        }
                         onClick={() => pick(opt)}
                       >
                         {opt.label}
