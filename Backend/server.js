@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { ensurePropertySchema } from './utils/ensurePropertySchema.js';
 import { ensureNotificationSchema } from './utils/ensureNotificationSchema.js';
+import { ensureAdminSchema } from './utils/ensureAdminSchema.js';
 import { isFirebaseConfigured } from './config/firebaseAdmin.js';
 
 // Import routes
@@ -12,6 +13,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import subAdminRoutes from './routes/subAdminRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -62,6 +64,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/subadmin', subAdminRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/saved-properties', savedPropertyRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -94,6 +97,12 @@ async function start() {
     await ensureNotificationSchema();
   } catch (e) {
     console.error('⚠️ ensureNotificationSchema failed — run Backend/migrations/003_fcm_notifications.sql:', e.message);
+  }
+
+  try {
+    await ensureAdminSchema();
+  } catch (e) {
+    console.error('⚠️ ensureAdminSchema failed — run Backend/migrations/004_admin_accounts.sql:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

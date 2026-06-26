@@ -16,6 +16,7 @@ import PlotProperties from './pages/PlotProperties';
 import PropertyDetail from './pages/PropertyDetail';
 import SearchResults from './pages/SearchResults';
 import Notifications from './pages/Notifications';
+import SavedProperties from './pages/SavedProperties';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -80,6 +81,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saved"
+                element={
+                  <ProtectedRoute>
+                    <SavedProperties />
                   </ProtectedRoute>
                 }
               />

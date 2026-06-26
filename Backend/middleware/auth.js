@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { adminModel } from '../models/adminModel.js';
 
 /** Normalize email for admin checks (trim + lowercase). */
 export const normEmail = (e) => (e || '').trim().toLowerCase();
@@ -40,9 +41,9 @@ export const isOwnerOrAgent = (req, res, next) => {
   next();
 };
 
-// Check if user is admin
+// Check if user is admin (JWT issued after successful admin login)
 export const isAdmin = (req, res, next) => {
-  if (normEmail(req.user.email) !== normEmail(process.env.ADMIN_EMAIL)) {
+  if (!req.user?.isAdmin) {
     return res.status(403).json({ error: 'Access denied. Admin only.' });
   }
   next();
@@ -56,20 +57,16 @@ export const isSubAdmin = (req, res, next) => {
   next();
 };
 
-// Verify admin login (separate from JWT auth)
+// Verify admin login against `admins` table (bcrypt hashed password)
 export const verifyAdminCredentials = async (email, password, bcrypt) => {
-  if (normEmail(email) !== normEmail(process.env.ADMIN_EMAIL)) {
-    return false;
-  }
-
-  const hash = process.env.ADMIN_PASSWORD;
-  if (!hash || typeof hash !== 'string') {
+  const admin = await adminModel.findByEmail(email);
+  if (!admin?.hashed_password) {
     return false;
   }
 
   try {
-    return await bcrypt.compare(password, hash);
-  } catch (error) {
+    return await bcrypt.compare(password, admin.hashed_password);
+  } catch {
     return false;
   }
 };

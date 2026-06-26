@@ -12,6 +12,7 @@ import {
 } from '../../utils/helpers';
 import { getImageUrl } from '../../utils/api';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
+import BookmarkButton from './BookmarkButton';
 
 const PropertyCard = ({ property }) => {
   const images = parseImageUrls(property.image_url);
@@ -52,9 +53,16 @@ const PropertyCard = ({ property }) => {
             {badge.text}
           </div>
 
+          <div className="absolute top-3 right-3 z-10">
+            <BookmarkButton
+              propertyId={property.id}
+              className="bg-white/95 text-navy p-2 shadow-md hover:bg-white"
+            />
+          </div>
+
           {/* Featured Badge */}
           {property.featured && (
-            <div className="absolute top-3 right-3 bg-gold text-navy px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+            <div className="absolute top-14 right-3 bg-gold text-navy px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
               <Star className="h-3 w-3" />
               <span>Featured</span>
             </div>

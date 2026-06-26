@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, LogIn, UserPlus, LogOut, User, Building2 } from 'lucide-react';
+import { Menu, X, Home, LogIn, UserPlus, LogOut, User, Building2, Bookmark } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
 
@@ -57,6 +57,14 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <NotificationBell />
+                <Link
+                  to="/saved"
+                  className="text-white hover:text-gold transition-colors duration-200 font-medium flex items-center space-x-1"
+                  title="Saved properties"
+                >
+                  <Bookmark className="h-4 w-4" />
+                  <span>Saved</span>
+                </Link>
                 <Link
                   to={getDashboardLink()}
                   className="text-white hover:text-gold transition-colors duration-200 font-medium flex items-center space-x-1"
@@ -133,6 +141,14 @@ const Navbar = () => {
                     <span className="text-white font-medium">Alerts</span>
                     <NotificationBell />
                   </div>
+                  <Link
+                    to="/saved"
+                    onClick={toggleMenu}
+                    className="flex items-center space-x-2 text-white hover:text-gold transition-colors py-2 mb-2 touch-target"
+                  >
+                    <Bookmark className="h-5 w-5" />
+                    <span className="font-medium">Saved properties</span>
+                  </Link>
                   <Link
                     to={getDashboardLink()}
                     onClick={toggleMenu}

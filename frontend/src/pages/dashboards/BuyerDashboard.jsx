@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { Building2 } from 'lucide-react';
+import { Building2, Bookmark } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 import PropertyListRow from '../../components/properties/PropertyListRow';
@@ -41,6 +42,17 @@ const BuyerDashboard = () => {
             </div>
           </div>
         )}
+
+        <Link
+          to="/saved"
+          className="flex items-center gap-3 bg-white rounded-xl shadow-md p-5 mb-8 border border-gold/20 hover:border-gold/50 transition-colors"
+        >
+          <Bookmark className="h-8 w-8 text-gold flex-shrink-0" />
+          <div>
+            <p className="font-bold text-navy">Saved properties</p>
+            <p className="text-sm text-gray">View listings you bookmarked</p>
+          </div>
+        </Link>
 
         <h2 className="text-2xl font-bold text-navy mb-6">Featured Properties</h2>
         {homeData?.featuredProperties?.length > 0 ? (

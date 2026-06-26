@@ -478,7 +478,7 @@ export const deleteProperty = async (req, res) => {
     }
 
     // Check ownership (only owner or admin can delete)
-    if (property.owner_id !== req.user.id && normEmail(req.user.email) !== normEmail(process.env.ADMIN_EMAIL)) {
+    if (property.owner_id !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({ error: 'You can only delete your own properties' });
     }
 

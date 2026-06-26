@@ -10,6 +10,7 @@ import '../config/loadEnv.js';
 import db from '../config/database.js';
 import { ensurePropertySchema } from '../utils/ensurePropertySchema.js';
 import { ensureNotificationSchema } from '../utils/ensureNotificationSchema.js';
+import { ensureAdminSchema } from '../utils/ensureAdminSchema.js';
 
 async function main() {
   const name = process.env.DB_NAME || 'realestate';
@@ -18,6 +19,7 @@ async function main() {
 
   await ensurePropertySchema();
   await ensureNotificationSchema();
+  await ensureAdminSchema();
 
   console.log('\nDone. You can start the API with: npm run dev');
   await db.end();

@@ -4,6 +4,7 @@ import { userModel } from '../models/userModel.js';
 import { propertyModel } from '../models/propertyModel.js';
 import { subAdminModel } from '../models/subAdminModel.js';
 import { verifyAdminCredentials } from '../middleware/auth.js';
+import { adminModel } from '../models/adminModel.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields, isValidIndianMobile } from '../utils/helpers.js';
 import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
@@ -44,14 +45,18 @@ export const adminLogin = async (req, res) => {
 
     // Verify admin credentials
     const isValid = await verifyAdminCredentials(email, password, bcrypt);
-    
+
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
 
-    // Generate admin JWT token
+    const admin = await adminModel.findByEmail(email);
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+
     const token = jwt.sign(
-      { email, isAdmin: true },
+      { id: admin.id, email: admin.email, isAdmin: true },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
@@ -60,7 +65,7 @@ export const adminLogin = async (req, res) => {
       success: true,
       message: 'Admin login successful',
       token,
-      admin: { email }
+      admin: { id: admin.id, email: admin.email, name: admin.name }
     });
   } catch (error) {
     console.error('Admin login error:', error);

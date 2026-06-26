@@ -15,6 +15,7 @@ import {
 import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
+import BookmarkButton from '../components/properties/BookmarkButton';
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -162,7 +163,8 @@ const PropertyDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 xl:py-12">
         {/* Title & address — tighter on small screens; full size from lg */}
         <div className="mb-3 lg:mb-8">
-          <div className="flex flex-wrap items-center gap-2 mb-1.5 lg:mb-3">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-1.5 lg:mb-3">
+            <div className="flex flex-wrap items-center gap-2">
             <span
               className={`${badge.bg} text-white rounded-full font-semibold px-2.5 py-0.5 text-xs lg:px-3 lg:py-1 lg:text-sm`}
             >
@@ -173,6 +175,12 @@ const PropertyDetail = () => {
                 Featured
               </span>
             )}
+            </div>
+            <BookmarkButton
+              propertyId={property.id}
+              showLabel
+              className="border-2 border-gold/40 text-navy px-4 py-2 hover:bg-gold/10"
+            />
           </div>
           <h1 className="text-xl font-bold text-navy mb-1.5 leading-snug lg:text-2xl xl:text-3xl 2xl:text-4xl lg:mb-3">
             {property.title}
