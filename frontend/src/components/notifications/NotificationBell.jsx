@@ -5,11 +5,13 @@ import { Bell, CheckCheck } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationItem from './NotificationItem';
+import BrokerReviewModal from '../brokers/BrokerReviewModal';
 import { getNotificationPropertyPath } from '../../utils/notifications';
 
 const NotificationBell = () => {
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
+  const [reviewModal, setReviewModal] = useState(null);
   const panelRef = useRef(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -62,6 +64,21 @@ const NotificationBell = () => {
   const unread = countData?.count ?? 0;
 
   const handleNotificationClick = (n) => {
+    if (n.type === 'broker_review_request' || n.data?.openReviewModal) {
+      if (!n.is_read) {
+        markReadMutation.mutate(n.id);
+      }
+      setOpen(false);
+      setReviewModal({
+        brokerId: n.data?.brokerId,
+        brokerName: n.data?.brokerName,
+        brokerPhoto: n.data?.brokerPhoto,
+        propertyId: n.data?.propertyId,
+        notificationId: n.id,
+      });
+      return;
+    }
+
     if (!n.is_read) {
       markReadMutation.mutate(n.id);
     }
@@ -75,69 +92,84 @@ const NotificationBell = () => {
   };
 
   return (
-    <div className="relative" ref={panelRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="relative text-white hover:text-gold transition-colors p-2 touch-target"
-        aria-label="Notifications"
-      >
-        <Bell className="h-5 w-5" />
-        {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-gold text-navy text-[10px] font-bold">
-            {unread > 99 ? '99+' : unread}
-          </span>
-        )}
-      </button>
+    <>
+      <div className="relative" ref={panelRef}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="relative text-white hover:text-gold transition-colors p-2 touch-target"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+          {unread > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-gold text-navy text-[10px] font-bold">
+              {unread > 99 ? '99+' : unread}
+            </span>
+          )}
+        </button>
 
-      {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-xl bg-white shadow-xl border border-gray-100 z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-navy text-white">
-            <span className="font-semibold">Notifications</span>
-            {unread > 0 && (
+        {open && (
+          <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-xl bg-white shadow-xl border border-gray-100 z-50">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-navy text-white">
+              <span className="font-semibold">Notifications</span>
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={() => markAllMutation.mutate()}
+                  className="text-xs text-gold hover:text-gold/80 flex items-center gap-1"
+                >
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  Mark all read
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-80 overflow-y-auto">
+              {isLoading ? (
+                <div className="p-6 text-center text-gray text-sm">Loading…</div>
+              ) : listData?.notifications?.length ? (
+                listData.notifications.map((n) => (
+                  <NotificationItem
+                    key={n.id}
+                    notification={n}
+                    compact
+                    onClick={() => handleNotificationClick(n)}
+                  />
+                ))
+              ) : (
+                <div className="p-6 text-center text-gray text-sm">No notifications yet</div>
+              )}
+            </div>
+
+            <div className="px-4 py-2 border-t bg-gray-50">
               <button
                 type="button"
-                onClick={() => markAllMutation.mutate()}
-                className="text-xs text-gold hover:text-gold/80 flex items-center gap-1"
+                onClick={() => {
+                  setOpen(false);
+                  navigate('/notifications');
+                }}
+                className="text-xs font-medium text-navy hover:text-gold w-full text-center py-1"
               >
-                <CheckCheck className="h-3.5 w-3.5" />
-                Mark all read
+                View all notifications
               </button>
-            )}
+            </div>
           </div>
+        )}
+      </div>
 
-          <div className="max-h-80 overflow-y-auto">
-            {isLoading ? (
-              <div className="p-6 text-center text-gray text-sm">Loading…</div>
-            ) : listData?.notifications?.length ? (
-              listData.notifications.map((n) => (
-                <NotificationItem
-                  key={n.id}
-                  notification={n}
-                  compact
-                  onClick={() => handleNotificationClick(n)}
-                />
-              ))
-            ) : (
-              <div className="p-6 text-center text-gray text-sm">No notifications yet</div>
-            )}
-          </div>
-
-          <div className="px-4 py-2 border-t bg-gray-50">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate('/notifications');
-              }}
-              className="text-xs font-medium text-navy hover:text-gold w-full text-center py-1"
-            >
-              View all notifications
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      <BrokerReviewModal
+        open={Boolean(reviewModal)}
+        brokerId={reviewModal?.brokerId}
+        brokerName={reviewModal?.brokerName}
+        brokerPhoto={reviewModal?.brokerPhoto}
+        propertyId={reviewModal?.propertyId}
+        notificationId={reviewModal?.notificationId}
+        onClose={() => {
+          setReviewModal(null);
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        }}
+      />
+    </>
   );
 };
 

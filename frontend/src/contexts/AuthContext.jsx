@@ -49,9 +49,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (userData) => {
+  const signup = async (userData, photoFile = null) => {
     try {
-      const response = await api.post('/auth/signup', userData);
+      let response;
+      if (userData.role === 'agent' || photoFile) {
+        const fd = new FormData();
+        Object.entries(userData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && key !== 'photo') {
+            fd.append(key, typeof value === 'boolean' ? String(value) : value);
+          }
+        });
+        if (photoFile) fd.append('photo', photoFile);
+        response = await api.post('/auth/signup', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.post('/auth/signup', userData);
+      }
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);

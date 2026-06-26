@@ -1,16 +1,36 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../models/userModel.js';
+import { brokerModel } from '../models/brokerModel.js';
 import { isValidIndianMobile, generateOTP } from '../utils/helpers.js';
 import { sendOTPEmail } from '../utils/email.js';
+import { compressImageForStorage } from '../utils/imagePrep.js';
+import { uploadBrokerPhotoToS3 } from '../utils/s3.js';
 
-// In-memory OTP store (use Redis or DB table in production)
-const otpStore = new Map();
+function parseAgentYears(value) {
+  const n = parseInt(String(value ?? '').trim(), 10);
+  if (!Number.isFinite(n) || n < 0 || n > 60) return null;
+  return n;
+}
+
+async function uploadAgentPhoto(file) {
+  if (!file?.buffer?.length) return null;
+  try {
+    const compressed = await compressImageForStorage(file.buffer);
+    return await uploadBrokerPhotoToS3(compressed, file.originalname || 'broker.jpg');
+  } catch (err) {
+    console.warn('Agent photo upload skipped:', err.message);
+    return null;
+  }
+}
 
 // Signup controller
 export const signup = async (req, res) => {
   try {
     const { name, email, password, confirm_password, role, phone_number, accept_terms } = req.body;
+    const area_of_work = req.body.area_of_work;
+    const years_of_experience = req.body.years_of_experience;
+    const roleLower = String(role || '').toLowerCase();
 
     // Validation
     if (!name || !email || !password || !confirm_password || !role || !phone_number) {
@@ -25,42 +45,66 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    // Validate Indian mobile number
     if (!isValidIndianMobile(phone_number)) {
       return res.status(400).json({ error: 'Invalid Indian mobile number. Must start with 6-9 and be 10 digits.' });
     }
 
-    // Validate role
     const validRoles = ['owner', 'agent', 'buyer'];
-    if (!validRoles.includes(role.toLowerCase())) {
+    if (!validRoles.includes(roleLower)) {
       return res.status(400).json({ error: 'Invalid role. Must be owner, agent, or buyer.' });
     }
 
-    if (!accept_terms) {
+    if (!accept_terms && accept_terms !== 'true' && accept_terms !== true) {
       return res.status(400).json({ error: 'You must accept the terms and conditions' });
     }
 
-    // Check if user already exists
+    if (roleLower === 'agent') {
+      if (!String(area_of_work || '').trim()) {
+        return res.status(400).json({ error: 'Area of work is required for agents' });
+      }
+      if (parseAgentYears(years_of_experience) == null) {
+        return res.status(400).json({ error: 'Years of experience is required (0–60)' });
+      }
+    }
+
     const existingUser = await userModel.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const userId = await userModel.create({
       name,
       email,
       password: hashedPassword,
-      role: role.toLowerCase(),
-      phone_number
+      role: roleLower,
+      phone_number,
     });
 
-    // Generate JWT token
+    let brokerProfile = null;
+    if (roleLower === 'agent') {
+      const photoUrl = await uploadAgentPhoto(req.file);
+      const publicId = await brokerModel.generatePublicBrokerId();
+      const brokerDbId = await brokerModel.createForAgent({
+        broker_id: publicId,
+        name,
+        photo_url: photoUrl,
+        area_of_work: String(area_of_work).trim(),
+        years_of_experience: parseAgentYears(years_of_experience),
+        user_id: userId,
+      });
+      brokerProfile = {
+        id: brokerDbId,
+        brokerId: publicId,
+        photoUrl,
+        areaOfWork: String(area_of_work).trim(),
+        yearsOfExperience: parseAgentYears(years_of_experience),
+      };
+    }
+
     const token = jwt.sign(
-      { id: userId, email, role: role.toLowerCase() },
+      { id: userId, email, role: roleLower },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
@@ -73,9 +117,10 @@ export const signup = async (req, res) => {
         id: userId,
         name,
         email,
-        role: role.toLowerCase(),
-        phone_number
-      }
+        role: roleLower,
+        phone_number,
+        broker: brokerProfile,
+      },
     });
 
     // Self-signup welcome notification (async, non-blocking)
@@ -87,6 +132,9 @@ export const signup = async (req, res) => {
     res.status(500).json({ error: 'Server error during signup' });
   }
 };
+
+// In-memory OTP store (use Redis or DB table in production)
+const otpStore = new Map();
 
 // Login controller
 export const login = async (req, res) => {

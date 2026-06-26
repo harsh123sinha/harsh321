@@ -12,6 +12,8 @@ import {
   adminDeleteProperty,
   approvePropertyListing
 } from '../controllers/adminController.js';
+import { submitBrokerInternalRating } from '../controllers/brokerAdminController.js';
+import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -35,5 +37,8 @@ router.post('/properties/:id/toggle-featured', toggleFeatured);
 router.put('/properties/:id', uploadMultipleImages, adminUpdateProperty);
 router.post('/properties/:id/approve', approvePropertyListing);
 router.delete('/properties/:id', adminDeleteProperty);
+
+router.get('/brokers/lookup', lookupBrokerByPublicId);
+router.post('/broker-ratings', submitBrokerInternalRating);
 
 export default router;

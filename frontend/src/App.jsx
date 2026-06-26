@@ -17,6 +17,9 @@ import PropertyDetail from './pages/PropertyDetail';
 import SearchResults from './pages/SearchResults';
 import Notifications from './pages/Notifications';
 import SavedProperties from './pages/SavedProperties';
+import BrokerSearch from './pages/broker/BrokerSearch';
+import BrokerProperties from './pages/broker/BrokerProperties';
+import BrokerReviews from './pages/broker/BrokerReviews';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -76,6 +79,9 @@ function App() {
               <Route path="/plots" element={<PlotProperties />} />
               <Route path="/property/:id" element={<PropertyDetail />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/broker" element={<BrokerSearch />} />
+              <Route path="/broker/:brokerId/properties" element={<BrokerProperties />} />
+              <Route path="/broker/:brokerId/reviews" element={<BrokerReviews />} />
               <Route
                 path="/notifications"
                 element={

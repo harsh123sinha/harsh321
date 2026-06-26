@@ -18,6 +18,23 @@ const SQL_IS_PLOT_ROW = `(
 /** Public catalogue: only approved active listings */
 const SQL_PUBLIC_ACTIVE = `AND (COALESCE(p.listing_status, 'active') = 'active')`;
 
+const SQL_OWNER_JOIN = 'LEFT JOIN user u ON p.owner_id = u.id';
+
+const SQL_BROKER_JOIN = `LEFT JOIN brokers br ON (
+  (p.broker_id IS NOT NULL AND br.id = p.broker_id)
+  OR (p.broker_id IS NULL AND LOWER(COALESCE(u.role, '')) = 'agent' AND br.user_id = u.id)
+)`;
+
+const SQL_BROKER_FIELDS = `,
+  br.broker_id AS broker_public_id,
+  br.name AS broker_name,
+  br.photo_url AS broker_photo_url`;
+
+const SQL_FROM_WITH_BROKER = `
+  FROM properties p
+  ${SQL_OWNER_JOIN}
+  ${SQL_BROKER_JOIN}`;
+
 export const propertyModel = {
   // Create new property
   create: async (propertyData) => {
@@ -66,8 +83,8 @@ export const propertyModel = {
   getAll: async () => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE 1=1 ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
     `;
@@ -79,8 +96,8 @@ export const propertyModel = {
   findById: async (id) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone, u.email as owner_email
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE p.id = ?
     `;
     const [rows] = await db.execute(query, [id]);
@@ -104,8 +121,8 @@ export const propertyModel = {
   findByType: async (type) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE p.type = ?
       ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
@@ -118,8 +135,8 @@ export const propertyModel = {
   findByPlotTypes: async () => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE ${SQL_IS_PLOT_ROW}
       ${SQL_PUBLIC_ACTIVE}
       ORDER BY p.id DESC
@@ -132,8 +149,8 @@ export const propertyModel = {
   getFeatured: async (limit = 50) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE p.featured = 1
       ${SQL_PUBLIC_ACTIVE}
       ORDER BY RAND()
@@ -147,8 +164,8 @@ export const propertyModel = {
   getRandom: async (limit = 12, excludeId = null) => {
     let query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
     `;
     
     if (excludeId) {
@@ -168,12 +185,20 @@ export const propertyModel = {
   search: async (filters) => {
     let query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE 1=1
       ${SQL_PUBLIC_ACTIVE}
     `;
     const params = [];
+
+    if (filters.brokerId) {
+      const bid = String(filters.brokerId).trim();
+      if (bid) {
+        query += ' AND br.broker_id = ?';
+        params.push(bid);
+      }
+    }
 
     if (filters.location) {
       const loc = String(filters.location).trim();
@@ -246,9 +271,9 @@ export const propertyModel = {
   // Admin search (includes title/description)
   adminSearch: async (filters) => {
     let query = `
-      SELECT p.*, u.name as owner_name, u.phone_number as owner_phone
-      FROM properties p
-      LEFT JOIN user u ON p.owner_id = u.id
+      SELECT p.*, u.name as owner_name, u.phone_number as owner_phone, u.role as owner_role
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
       WHERE 1=1
     `;
     const params = [];

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff, Briefcase, MapPin, ImagePlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { isValidIndianMobile } from '../../utils/helpers';
 import toast from 'react-hot-toast';
@@ -23,6 +23,9 @@ function loadSignupDraft() {
       phone_number: typeof data.phone_number === 'string' ? data.phone_number : '',
       role: ['buyer', 'owner', 'agent'].includes(data.role) ? data.role : 'buyer',
       accept_terms: Boolean(data.accept_terms),
+      area_of_work: typeof data.area_of_work === 'string' ? data.area_of_work : '',
+      years_of_experience:
+        data.years_of_experience != null ? String(data.years_of_experience) : '',
     };
   } catch {
     return null;
@@ -36,6 +39,8 @@ function buildDraftPayload(formData) {
     phone_number: formData.phone_number,
     role: formData.role,
     accept_terms: formData.accept_terms,
+    area_of_work: formData.area_of_work,
+    years_of_experience: formData.years_of_experience,
   };
 }
 
@@ -48,7 +53,11 @@ const Signup = () => {
     role: 'buyer',
     phone_number: '',
     accept_terms: false,
+    area_of_work: '',
+    years_of_experience: '',
   });
+  const [agentPhoto, setAgentPhoto] = useState(null);
+  const [agentPhotoPreview, setAgentPhotoPreview] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
@@ -94,7 +103,23 @@ const Signup = () => {
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    setFormData({ ...formData, [e.target.name]: value });
+    const next = { ...formData, [e.target.name]: value };
+    setFormData(next);
+    if (e.target.name === 'role' && value !== 'agent') {
+      setAgentPhoto(null);
+      setAgentPhotoPreview('');
+    }
+  };
+
+  const handleAgentPhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+      toast.error('Please choose a JPEG, PNG, or WebP image');
+      return;
+    }
+    setAgentPhoto(file);
+    setAgentPhotoPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -110,13 +135,25 @@ const Signup = () => {
       return;
     }
 
+    if (formData.role === 'agent') {
+      if (!String(formData.area_of_work || '').trim()) {
+        toast.error('Area of work is required for agents');
+        return;
+      }
+      const yrs = parseInt(String(formData.years_of_experience), 10);
+      if (!Number.isFinite(yrs) || yrs < 0 || yrs > 60) {
+        toast.error('Enter years of experience (0–60)');
+        return;
+      }
+    }
+
     if (!formData.accept_terms) {
       toast.error('Please accept the terms and conditions');
       return;
     }
 
     setLoading(true);
-    const result = await signup(formData);
+    const result = await signup(formData, agentPhoto);
 
     if (result.success) {
       try {
@@ -210,9 +247,78 @@ const Signup = () => {
               >
                 <option value="buyer">Buyer</option>
                 <option value="owner">Owner</option>
-                <option value="agent">Agent</option>
+                <option value="agent">Agent / Broker</option>
               </select>
             </div>
+
+            {formData.role === 'agent' && (
+              <div className="rounded-xl border-2 border-gold/30 bg-gold/5 p-4 space-y-4">
+                <p className="text-sm font-semibold text-navy">Broker profile</p>
+
+                <div>
+                  <label className="block text-sm font-medium text-navy mb-2">
+                    Profile photo <span className="text-gray font-normal">(optional)</span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {agentPhotoPreview ? (
+                      <img
+                        src={agentPhotoPreview}
+                        alt=""
+                        className="h-16 w-16 rounded-full object-cover border-2 border-gold/40"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-full bg-navy/10 flex items-center justify-center">
+                        <ImagePlus className="h-7 w-7 text-navy/50" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer text-sm font-medium text-gold hover:underline">
+                      Upload image
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleAgentPhoto}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-navy mb-2">Area of work *</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray" />
+                    <input
+                      type="text"
+                      name="area_of_work"
+                      value={formData.area_of_work}
+                      onChange={handleChange}
+                      required={formData.role === 'agent'}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-light rounded-lg focus:border-gold focus:outline-none text-navy touch-target"
+                      placeholder="e.g. Boring Road, Kankarbagh, Patna"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-navy mb-2">Years of experience *</label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray" />
+                    <input
+                      type="number"
+                      name="years_of_experience"
+                      min="0"
+                      max="60"
+                      step="1"
+                      value={formData.years_of_experience}
+                      onChange={handleChange}
+                      required={formData.role === 'agent'}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-light rounded-lg focus:border-gold focus:outline-none text-navy touch-target"
+                      placeholder="e.g. 5"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Password</label>

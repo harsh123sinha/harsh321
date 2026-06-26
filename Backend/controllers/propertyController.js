@@ -107,7 +107,8 @@ export const searchProperties = async (req, res) => {
       shop_sqft_range: req.query.shop_sqft_range,
       city: req.query.city,
       minPrice: req.query.minPrice,
-      maxPrice: req.query.maxPrice
+      maxPrice: req.query.maxPrice,
+      brokerId: req.query.brokerId,
     };
 
     const properties = await propertyModel.search(filters);

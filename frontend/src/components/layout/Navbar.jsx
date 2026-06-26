@@ -23,7 +23,13 @@ const Navbar = () => {
     { to: '/plots', label: 'Plots' },
     { to: '/search?type=rent&other_type=Shop', label: 'Shop' },
     { to: '/other', label: 'Other' },
+    { to: '/broker', label: 'Brokers', highlight: true },
   ];
+
+  const linkClass = (highlight) =>
+    highlight
+      ? 'border-2 border-gold bg-gold/15 text-gold px-3 py-1 rounded-lg font-semibold hover:bg-gold/25 hover:text-gold-light transition-colors duration-200 shadow-sm shadow-gold/10'
+      : 'text-white hover:text-gold transition-colors duration-200 font-medium';
 
   const getDashboardLink = () => {
     if (user?.role === 'owner') return '/dashboard/owner';
@@ -48,7 +54,7 @@ const Navbar = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-white hover:text-gold transition-colors duration-200 font-medium"
+                className={linkClass(link.highlight)}
               >
                 {link.label}
               </Link>
@@ -128,7 +134,7 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 onClick={toggleMenu}
-                className="block text-white hover:text-gold transition-colors py-2 font-medium touch-target"
+                className={`block py-2 touch-target ${link.highlight ? 'inline-block border-2 border-gold bg-gold/15 text-gold px-4 py-2 rounded-lg font-semibold hover:bg-gold/25' : 'text-white hover:text-gold transition-colors font-medium'}`}
               >
                 {link.label}
               </Link>

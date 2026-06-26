@@ -4,6 +4,7 @@ import cors from 'cors';
 import { ensurePropertySchema } from './utils/ensurePropertySchema.js';
 import { ensureNotificationSchema } from './utils/ensureNotificationSchema.js';
 import { ensureAdminSchema } from './utils/ensureAdminSchema.js';
+import { ensureBrokerSchema } from './utils/ensureBrokerSchema.js';
 import { isFirebaseConfigured } from './config/firebaseAdmin.js';
 
 // Import routes
@@ -14,6 +15,7 @@ import subAdminRoutes from './routes/subAdminRoutes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
+import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './routes/brokerRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -65,6 +67,8 @@ app.use('/api/subadmin', subAdminRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/saved-properties', savedPropertyRoutes);
+app.use('/api/brokers', brokerRoutes);
+app.use('/api/broker-customer-reviews', brokerCustomerReviewRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -103,6 +107,12 @@ async function start() {
     await ensureAdminSchema();
   } catch (e) {
     console.error('⚠️ ensureAdminSchema failed — run Backend/migrations/004_admin_accounts.sql:', e.message);
+  }
+
+  try {
+    await ensureBrokerSchema();
+  } catch (e) {
+    console.error('⚠️ ensureBrokerSchema failed — run Backend/migrations/005_brokers.sql:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

@@ -16,6 +16,7 @@ import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 import BookmarkButton from '../components/properties/BookmarkButton';
+import AgentListingInfo, { getAgentListingInfo } from '../components/properties/AgentListingInfo';
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -60,6 +61,7 @@ const PropertyDetail = () => {
   const images = parseImageUrls(property.image_url);
   const badge = getPropertyTypeBadge(property.type);
   const listingParty = getListingParty(property.owner_role);
+  const agentInfo = getAgentListingInfo(property);
 
   const CONTACT_OFFICE_PHONE_1 =
     import.meta.env.VITE_CONTACT_OFFICE_1 || DEFAULT_SITE_INQUIRY_PHONE;
@@ -361,8 +363,22 @@ const PropertyDetail = () => {
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray mb-0.5 lg:text-xs lg:mb-1">
                   Listed by
                 </p>
-                <p className="text-base font-bold text-navy leading-tight lg:text-lg">{listingParty.label}</p>
-                <p className="text-[10px] text-gray mt-0.5 leading-snug lg:text-xs lg:mt-1">{listingParty.description}</p>
+                {agentInfo ? (
+                  <>
+                    <p className="text-base font-bold text-navy leading-tight lg:text-lg">
+                      Listed by agent — {agentInfo.name}
+                    </p>
+                    <p className="text-[10px] text-gray mt-0.5 leading-snug lg:text-xs lg:mt-1">
+                      All inquiries go through Harsh To Let Services — contact us below.
+                    </p>
+                    <AgentListingInfo property={property} variant="detail" />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-base font-bold text-navy leading-tight lg:text-lg">{listingParty.label}</p>
+                    <p className="text-[10px] text-gray mt-0.5 leading-snug lg:text-xs lg:mt-1">{listingParty.description}</p>
+                  </>
+                )}
               </div>
 
               <div className="space-y-3 lg:space-y-4">

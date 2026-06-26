@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Pencil, Trash2, Plus, X, Star } from 'lucide-react';
 import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCategoryForm } from '../../utils/propertyListingMap';
 import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../../constants/propertyForm';
+import BrokerDoneModal from '../brokers/BrokerDoneModal';
 
 function parseImages(imageUrl) {
   if (!imageUrl) return [];
@@ -59,6 +60,7 @@ export default function ManageProperties({ variant }) {
   const [removeFilenames, setRemoveFilenames] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
+  const [doneProperty, setDoneProperty] = useState(null);
 
   const loadProperties = useCallback(async () => {
     setLoading(true);
@@ -370,6 +372,9 @@ export default function ManageProperties({ variant }) {
                 <th className="px-3 py-3">Type</th>
                 <th className="px-3 py-3">City</th>
                 <th className="px-3 py-3">Owner</th>
+                <th className="px-3 py-3">User role</th>
+                <th className="px-3 py-3">User ID</th>
+                <th className="px-3 py-3">Broker ID</th>
                 <th className="px-3 py-3">Phone</th>
                 <th className="px-3 py-3">Price</th>
                 <th className="px-3 py-3">Featured</th>
@@ -385,6 +390,9 @@ export default function ManageProperties({ variant }) {
                   <td className="px-3 py-2 capitalize">{p.type}</td>
                   <td className="px-3 py-2">{p.city}</td>
                   <td className="px-3 py-2">{p.owner_name || p.owner_id}</td>
+                  <td className="px-3 py-2 capitalize">{p.owner_role || '—'}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{p.owner_id ?? '—'}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{p.broker_public_id || '—'}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{p.owner_phone || '—'}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{fmtPrice(p.price)}</td>
                   <td className="px-3 py-2">
@@ -413,6 +421,15 @@ export default function ManageProperties({ variant }) {
                           className="px-2 py-1 text-xs font-semibold rounded bg-gold text-navy hover:bg-gold/90"
                         >
                           Approve
+                        </button>
+                      )}
+                      {(p.listing_status === 'active' || !p.listing_status) && (
+                        <button
+                          type="button"
+                          onClick={() => setDoneProperty(p)}
+                          className="px-2 py-1 text-xs font-semibold rounded bg-navy text-white hover:bg-navy/90"
+                        >
+                          Done
                         </button>
                       )}
                       <button
@@ -856,6 +873,14 @@ export default function ManageProperties({ variant }) {
           </div>
         </div>
       )}
+
+      <BrokerDoneModal
+        open={Boolean(doneProperty)}
+        property={doneProperty}
+        apiPrefix={prefix}
+        users={users}
+        onClose={() => setDoneProperty(null)}
+      />
     </div>
   );
 }

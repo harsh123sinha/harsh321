@@ -61,3 +61,24 @@ export async function sendWelcomeAfterSignup(userId) {
   if (!user) return null;
   return sendWelcomeNotification(userId, user.name);
 }
+
+export async function sendBrokerReviewRequest({ userId, broker, propertyId }) {
+  const referenceKey = `broker_review_${broker.id}_${propertyId || 'general'}_${Date.now()}`;
+  return deliverNotification({
+    userId,
+    type: 'broker_review_request',
+    title: 'Review your broker',
+    body: 'Please kindly review our broker.',
+    data: {
+      type: 'broker_review_request',
+      openReviewModal: true,
+      brokerId: broker.broker_id,
+      brokerDbId: broker.id,
+      brokerName: broker.name,
+      brokerPhoto: broker.photo_url || null,
+      propertyId: propertyId || null,
+    },
+    referenceKey,
+    sendPush: true,
+  });
+}

@@ -54,7 +54,7 @@ function extractS3KeyFromUrl(imageUrl) {
 /**
  * Upload a single image buffer to S3. Returns the public object URL.
  */
-export async function uploadImageToS3(fileBuffer, originalFilename, mimetype) {
+export async function uploadImageToS3(fileBuffer, originalFilename, mimetype, folderPrefix = FOLDER_PREFIX) {
   if (!fileBuffer?.length) {
     throw new Error('Empty file upload');
   }
@@ -68,7 +68,7 @@ export async function uploadImageToS3(fileBuffer, originalFilename, mimetype) {
   }
 
   const ext = getExtension(originalFilename);
-  const key = `${FOLDER_PREFIX}${randomUUID()}${ext}`;
+  const key = `${folderPrefix}${randomUUID()}${ext}`;
 
   try {
     await getS3Client().send(
@@ -105,7 +105,10 @@ export async function deleteImageFromS3(imageUrl) {
   }
 }
 
-/** Upload processed image buffers (after moderation + watermark). */
+/** Upload broker profile photo (compressed JPEG buffer). */
+export async function uploadBrokerPhotoToS3(fileBuffer, originalFilename) {
+  return uploadImageToS3(fileBuffer, originalFilename, 'image/jpeg', 'brokers/');
+}
 export async function uploadProcessedFilesToS3(files) {
   if (!files?.length) return [];
 

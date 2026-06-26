@@ -11,10 +11,12 @@ import {
 import { isAuthenticated } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 
+import { uploadSingleImage } from '../middleware/upload.js';
+
 const router = express.Router();
 
-// Public routes with rate limiting
-router.post('/signup', authLimiter, signup);
+// Public routes with rate limiting (optional photo for agent signup)
+router.post('/signup', authLimiter, uploadSingleImage, signup);
 router.post('/login', authLimiter, login);
 router.post('/forgot-password', authLimiter, forgotPassword);
 router.post('/verify-otp', authLimiter, verifyOTP);

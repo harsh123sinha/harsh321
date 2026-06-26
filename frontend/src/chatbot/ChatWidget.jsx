@@ -130,6 +130,7 @@ const ChatWidget = () => {
     const hideTimer = window.setTimeout(() => {
       setFabTeaserMounted(false);
       setFabTeaserExiting(false);
+      window.dispatchEvent(new CustomEvent('hts:chat-teaser-finished'));
     }, CHAT_TEASER_VISIBLE_MS);
     return () => {
       window.clearTimeout(exitTimer);

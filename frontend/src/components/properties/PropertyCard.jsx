@@ -13,6 +13,7 @@ import {
 import { getImageUrl } from '../../utils/api';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
 import BookmarkButton from './BookmarkButton';
+import { getAgentListingInfo } from './AgentListingInfo';
 
 const PropertyCard = ({ property }) => {
   const images = parseImageUrls(property.image_url);
@@ -25,14 +26,19 @@ const PropertyCard = ({ property }) => {
 
   const badge = getPropertyTypeBadge(property.type);
   const listingParty = getListingParty(property.owner_role);
+  const agentInfo = getAgentListingInfo(property);
 
   const isShop = String(property.other_type || '').toLowerCase() === 'shop';
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
 
+  const ownerRole = (property.owner_role || '').toLowerCase();
+  const partyBadge =
+    ownerRole === 'agent' ? 'Agent' : ownerRole === 'owner' ? 'Owner' : null;
+
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-light/30">
-      <Link to={`/property/${property.id}`} className="block">
+    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-light/30 h-full flex flex-col">
+      <Link to={`/property/${property.id}`} className="block flex-1 flex flex-col min-h-0">
         {/* Image */}
         <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-light">
           {mainImage && !imageFailed ? (
@@ -48,9 +54,16 @@ const PropertyCard = ({ property }) => {
             </div>
           )}
 
-          {/* Type Badge */}
-          <div className={`absolute top-3 left-3 ${badge.bg} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
-            {badge.text}
+          {/* Type + listing party badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
+            <div className={`${badge.bg} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+              {badge.text}
+            </div>
+            {partyBadge && (
+              <div className="bg-navy text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                {partyBadge}
+              </div>
+            )}
           </div>
 
           <div className="absolute top-3 right-3 z-10">
@@ -70,7 +83,7 @@ const PropertyCard = ({ property }) => {
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-5">
+        <div className="p-4 sm:p-5 flex-1 flex flex-col">
           {/* Title */}
           <h3 className="text-lg sm:text-xl font-bold text-navy mb-2 line-clamp-1">
             {property.title}
@@ -91,7 +104,7 @@ const PropertyCard = ({ property }) => {
           </p>
 
           {/* Details */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-start content-start gap-2 flex-1 min-h-[4.5rem]">
             {!isShop && property.bhk && (
               <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
                 {property.bhk} BHK
@@ -158,23 +171,53 @@ const PropertyCard = ({ property }) => {
               </span>
             )}
           </div>
-
-          {/* Price and Owner — bottom of clickable area */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-light pb-1">
-            <div>
-              <p className="text-xs text-gray mb-1">Price</p>
-              <p className="text-xl sm:text-2xl font-bold text-gold">
-                {formatIndianPrice(property.price)}
-              </p>
-            </div>
-
-            <div className="text-right max-w-[48%]">
-              <p className="text-xs text-gray mb-1">Listing</p>
-              <p className="text-sm font-semibold text-navy leading-tight">{listingParty.label}</p>
-            </div>
-          </div>
         </div>
       </Link>
+
+      <div className="flex items-start gap-3 sm:gap-5 px-4 sm:px-5 pt-4 border-t border-gray-light pb-3 mt-auto">
+        <Link to={`/property/${property.id}`} className="flex-shrink-0 hover:opacity-90">
+          <p className="text-xs text-gray mb-1">Price</p>
+          <p className="text-xl sm:text-2xl font-bold text-gold leading-tight whitespace-nowrap">
+            {formatIndianPrice(property.price)}
+          </p>
+        </Link>
+
+        <div className="flex-1 text-right min-w-0">
+          <p className="text-xs text-gray mb-1">Listing</p>
+          <div className="space-y-0.5 min-h-[3.75rem]">
+            {agentInfo ? (
+              <>
+                <p className="text-sm font-semibold text-navy leading-snug">Listed by Agent</p>
+                <p className="text-sm font-bold text-navy leading-snug break-words">{agentInfo.name}</p>
+                {agentInfo.profileUrl ? (
+                  <Link
+                    to={agentInfo.profileUrl}
+                    className="inline-block text-xs font-semibold text-gold hover:underline leading-snug"
+                  >
+                    Agent Profile
+                  </Link>
+                ) : (
+                  <span className="inline-block h-[18px]" aria-hidden />
+                )}
+              </>
+            ) : ownerRole === 'owner' ? (
+              <>
+                <p className="text-sm font-semibold text-navy leading-snug">Listed by Owner</p>
+                <p className="text-sm font-bold text-navy leading-snug break-words">
+                  {property.owner_name || 'Direct owner'}
+                </p>
+                <span className="inline-block h-[18px]" aria-hidden />
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-navy leading-snug">Listed by</p>
+                <p className="text-sm font-bold text-navy leading-snug break-words">{listingParty.label}</p>
+                <span className="inline-block h-[18px]" aria-hidden />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Full-width WhatsApp CTA (outside Link to avoid nested <a>) */}
       <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-light">

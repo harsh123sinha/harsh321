@@ -112,7 +112,7 @@ export default function FeaturedPropertiesCarousel({ properties }) {
         {properties.map((property) => (
           <div
             key={property.id}
-            className="w-[min(88vw,20rem)] shrink-0 snap-start sm:w-80 md:w-[22rem] lg:w-[23rem]"
+            className="w-[min(88vw,20rem)] shrink-0 snap-start sm:w-80 md:w-[22rem] lg:w-[23rem] h-full"
             role="group"
             aria-roledescription="slide"
           >
