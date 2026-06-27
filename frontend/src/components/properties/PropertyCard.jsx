@@ -37,136 +37,130 @@ const PropertyCard = ({ property }) => {
     ownerRole === 'agent' ? 'Agent' : ownerRole === 'owner' ? 'Owner' : null;
 
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-light/30 h-full flex flex-col">
-      <Link to={`/property/${property.id}`} className="block flex-1 flex flex-col min-h-0">
-        {/* Image */}
-        <div className="relative h-48 sm:h-56 overflow-hidden bg-gray-light">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-light/30 bg-white shadow-md transition-shadow duration-300 hover:shadow-xl sm:rounded-xl">
+      <Link to={`/property/${property.id}`} className="block flex min-h-0 flex-1 flex-col">
+        {/* Image — shorter on mobile so the full card fits one screen */}
+        <div className="relative h-32 overflow-hidden bg-gray-light sm:h-48 md:h-56">
           {mainImage && !imageFailed ? (
             <img
               src={getImageUrl(mainImage)}
               alt={property.title}
-              className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+              className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
               onError={() => setImageFailed(true)}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy to-navy-light">
-              <Home className="h-16 w-16 text-gold/30" />
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-navy to-navy-light">
+              <Home className="h-10 w-10 text-gold/30 sm:h-16 sm:w-16" />
             </div>
           )}
 
-          {/* Type + listing party badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
-            <div className={`${badge.bg} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+          <div className="absolute left-2 top-2 z-10 flex flex-col items-start gap-1 sm:left-3 sm:top-3 sm:gap-1.5">
+            <div className={`${badge.bg} rounded-full px-2 py-0.5 text-[9px] font-semibold text-white sm:px-3 sm:py-1 sm:text-xs`}>
               {badge.text}
             </div>
             {partyBadge && (
-              <div className="bg-navy text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">
+              <div className="rounded-full bg-navy px-1.5 py-px text-[8px] font-bold uppercase tracking-wide text-white sm:px-2.5 sm:py-0.5 sm:text-[10px]">
                 {partyBadge}
               </div>
             )}
           </div>
 
-          <div className="absolute top-3 right-3 z-10">
+          <div className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3">
             <BookmarkButton
               propertyId={property.id}
-              className="bg-white/95 text-navy p-2 shadow-md hover:bg-white"
+              className="bg-white/95 p-1.5 text-navy shadow-md hover:bg-white sm:p-2"
             />
           </div>
 
-          {/* Featured Badge */}
           {property.featured && (
-            <div className="absolute top-14 right-3 bg-gold text-navy px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-              <Star className="h-3 w-3" />
+            <div className="absolute right-2 top-10 flex items-center space-x-0.5 rounded-full bg-gold px-2 py-0.5 text-[9px] font-semibold text-navy sm:right-3 sm:top-14 sm:space-x-1 sm:px-3 sm:py-1 sm:text-xs">
+              <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               <span>Featured</span>
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col">
-          {/* Title */}
-          <h3 className="text-lg sm:text-xl font-bold text-navy mb-2 line-clamp-1">
+        <div className="flex flex-1 flex-col p-2.5 sm:p-4 md:p-5">
+          <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-snug text-navy sm:mb-2 sm:line-clamp-1 sm:text-lg md:text-xl">
             {property.title}
           </h3>
 
-          {/* Location */}
-          <div className="flex items-start space-x-2 text-gray-darker mb-3">
-            <MapPin className="h-4 w-4 flex-shrink-0 mt-1 text-gold" />
-            <p className="text-sm line-clamp-2">
+          <div className="mb-1.5 flex items-start gap-1 text-gray-darker sm:mb-3 sm:gap-2">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-gold sm:mt-1 sm:h-4 sm:w-4" />
+            <p className="line-clamp-2 text-[11px] leading-snug sm:text-sm">
               {property.location}
               {property.road_no ? `, Road ${property.road_no}` : ''}, {property.city}
             </p>
           </div>
 
-          {/* Description */}
-          <p className="text-sm text-gray mb-4 line-clamp-2">
+          <p className="mb-2 line-clamp-2 text-[10px] leading-snug text-gray sm:mb-4 sm:text-sm">
             {truncateText(property.description, 80)}
           </p>
 
-          {/* Details */}
-          <div className="flex flex-wrap items-start content-start gap-2 flex-1 min-h-[4.5rem]">
+          <div className="flex flex-wrap content-start items-start gap-1 sm:min-h-[4.5rem] sm:gap-2">
             {!isShop && property.bhk && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {property.bhk} BHK
               </span>
             )}
             {isShop && shopSqftLabel && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {shopSqftLabel}
               </span>
             )}
             {!isShop && furnishingLabel && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {furnishingLabel}
               </span>
             )}
             {property.katha && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {property.katha} Katha
               </span>
             )}
             {property.other_type && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {property.other_type}
               </span>
             )}
             {!isShop && property.balconies != null && Number(property.balconies) > 0 && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {property.balconies} balcony{Number(property.balconies) !== 1 ? 's' : ''}
               </span>
             )}
             {!isShop && property.bathrooms != null && Number(property.bathrooms) > 0 && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {property.bathrooms} bath
               </span>
             )}
             {!isShop && property.floor_no && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Floor {property.floor_no}
               </span>
             )}
             {!isShop && !!property.garden && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Garden
               </span>
             )}
             {!!property.car_parking && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Car parking
               </span>
             )}
             {!!property.bike_parking && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Bike parking
               </span>
             )}
             {isShop && property.shop_road_distance && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Road dist {property.shop_road_distance}
               </span>
             )}
             {isShop && property.shop_token_amount != null && Number(property.shop_token_amount) > 0 && (
-              <span className="bg-navy/5 text-navy px-3 py-1 rounded-full text-xs font-medium">
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 Token {formatIndianPrice(property.shop_token_amount)}
               </span>
             )}
@@ -174,53 +168,82 @@ const PropertyCard = ({ property }) => {
         </div>
       </Link>
 
-      <div className="flex items-start gap-3 sm:gap-5 px-4 sm:px-5 pt-4 border-t border-gray-light pb-3 mt-auto">
-        <Link to={`/property/${property.id}`} className="flex-shrink-0 hover:opacity-90">
-          <p className="text-xs text-gray mb-1">Price</p>
-          <p className="text-xl sm:text-2xl font-bold text-gold leading-tight whitespace-nowrap">
+      <div className="mt-auto flex items-center gap-2 border-t border-gray-light px-2.5 pb-2 pt-2 sm:items-start sm:gap-5 sm:px-4 sm:pb-3 sm:pt-4 md:px-5">
+        <Link to={`/property/${property.id}`} className="shrink-0 hover:opacity-90">
+          <p className="mb-0.5 text-[9px] text-gray sm:mb-1 sm:text-xs">Price</p>
+          <p className="whitespace-nowrap text-base font-bold leading-tight text-gold sm:text-xl md:text-2xl">
             {formatIndianPrice(property.price)}
           </p>
         </Link>
 
-        <div className="flex-1 text-right min-w-0">
-          <p className="text-xs text-gray mb-1">Listing</p>
-          <div className="space-y-0.5 min-h-[3.75rem]">
-            {agentInfo ? (
-              <>
-                <p className="text-sm font-semibold text-navy leading-snug">Listed by Agent</p>
-                <p className="text-sm font-bold text-navy leading-snug break-words">{agentInfo.name}</p>
-                {agentInfo.profileUrl ? (
-                  <Link
-                    to={agentInfo.profileUrl}
-                    className="inline-block text-xs font-semibold text-gold hover:underline leading-snug"
-                  >
-                    Agent Profile
-                  </Link>
-                ) : (
+        <div className="min-w-0 flex-1 text-right">
+          <p className="mb-0.5 text-[9px] text-gray sm:mb-1 sm:text-xs">Listing</p>
+          <div className="sm:min-h-[3.75rem]">
+            <div className="sm:hidden">
+              {agentInfo ? (
+                <>
+                  <p className="text-[10px] font-semibold leading-tight text-navy">Listed by Agent</p>
+                  <p className="line-clamp-1 text-[10px] font-bold leading-tight text-navy">{agentInfo.name}</p>
+                  {agentInfo.profileUrl ? (
+                    <Link
+                      to={agentInfo.profileUrl}
+                      className="inline-block text-[9px] font-semibold leading-tight text-gold hover:underline"
+                    >
+                      Agent Profile
+                    </Link>
+                  ) : null}
+                </>
+              ) : ownerRole === 'owner' ? (
+                <>
+                  <p className="text-[10px] font-semibold leading-tight text-navy">Listed by Owner</p>
+                  <p className="line-clamp-1 text-[10px] font-bold leading-tight text-navy">
+                    {property.owner_name || 'Direct owner'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] font-semibold leading-tight text-navy">Listed by</p>
+                  <p className="line-clamp-1 text-[10px] font-bold leading-tight text-navy">{listingParty.label}</p>
+                </>
+              )}
+            </div>
+            <div className="hidden sm:block">
+              {agentInfo ? (
+                <>
+                  <p className="text-sm font-semibold leading-snug text-navy">Listed by Agent</p>
+                  <p className="break-words text-sm font-bold leading-snug text-navy">{agentInfo.name}</p>
+                  {agentInfo.profileUrl ? (
+                    <Link
+                      to={agentInfo.profileUrl}
+                      className="inline-block text-xs font-semibold leading-snug text-gold hover:underline"
+                    >
+                      Agent Profile
+                    </Link>
+                  ) : (
+                    <span className="inline-block h-[18px]" aria-hidden />
+                  )}
+                </>
+              ) : ownerRole === 'owner' ? (
+                <>
+                  <p className="text-sm font-semibold leading-snug text-navy">Listed by Owner</p>
+                  <p className="break-words text-sm font-bold leading-snug text-navy">
+                    {property.owner_name || 'Direct owner'}
+                  </p>
                   <span className="inline-block h-[18px]" aria-hidden />
-                )}
-              </>
-            ) : ownerRole === 'owner' ? (
-              <>
-                <p className="text-sm font-semibold text-navy leading-snug">Listed by Owner</p>
-                <p className="text-sm font-bold text-navy leading-snug break-words">
-                  {property.owner_name || 'Direct owner'}
-                </p>
-                <span className="inline-block h-[18px]" aria-hidden />
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-semibold text-navy leading-snug">Listed by</p>
-                <p className="text-sm font-bold text-navy leading-snug break-words">{listingParty.label}</p>
-                <span className="inline-block h-[18px]" aria-hidden />
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold leading-snug text-navy">Listed by</p>
+                  <p className="break-words text-sm font-bold leading-snug text-navy">{listingParty.label}</p>
+                  <span className="inline-block h-[18px]" aria-hidden />
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Full-width WhatsApp CTA (outside Link to avoid nested <a>) */}
-      <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t border-gray-light">
+      <div className="border-t border-gray-light bg-white px-2.5 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4">
         <WhatsAppInquiryButton property={property} />
       </div>
     </div>

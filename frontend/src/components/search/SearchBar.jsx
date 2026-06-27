@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { PATNA_LOCATION_OPTIONS } from '../../constants/patnaLocations';
 import { SHOP_SQFT_RANGES } from '../../constants/propertyForm';
 import LocationSearchCombobox from './LocationSearchCombobox';
+import { saveSearchSession } from '../../utils/searchSession';
 
 function UnderlineField({ label, gold = false, children, className = '' }) {
   return (
@@ -173,8 +174,10 @@ const SearchBar = ({ expanded = false, variant, onSearch }) => {
     if (payload.maxPrice) params.append('maxPrice', payload.maxPrice);
 
     if (onSearch) {
+      saveSearchSession(payload);
       onSearch(payload);
     } else {
+      saveSearchSession(payload);
       navigate(`/search?${params.toString()}`);
     }
   };

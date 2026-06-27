@@ -86,6 +86,39 @@ export async function uploadImageToS3(fileBuffer, originalFilename, mimetype, fo
   }
 }
 
+/** Upload a project brochure PDF to S3. Returns the public object URL. */
+export async function uploadPdfToS3(fileBuffer, originalFilename) {
+  if (!fileBuffer?.length) {
+    throw new Error('Empty PDF upload');
+  }
+  const ext = path.extname(originalFilename || '').toLowerCase();
+  if (ext !== '.pdf') {
+    throw new Error('Only PDF files are allowed for project brochures');
+  }
+  if (!process.env.AWS_BUCKET || !process.env.AWS_REGION) {
+    throw new Error(
+      'File upload is not configured. Add AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and AWS_BUCKET to Backend/.env.'
+    );
+  }
+
+  const key = `projects/pdfs/${randomUUID()}.pdf`;
+
+  try {
+    await getS3Client().send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_BUCKET,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: 'application/pdf',
+      })
+    );
+    return buildPublicUrl(key);
+  } catch (error) {
+    console.error('S3 PDF upload failed:', error);
+    throw new Error('PDF upload failed. Please try again.');
+  }
+}
+
 /**
  * Delete a single object from S3 by its public URL. Logs failures; does not throw.
  */

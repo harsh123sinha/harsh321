@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSafeInternalReturnPath } from '../../utils/helpers';
+import { buildAuthSwitchUrl } from '../../utils/addListingDraft';
 import toast from 'react-hot-toast';
 
 const LOGIN_EMAIL_DRAFT_KEY = 'harshToLet_login_email_v1';
@@ -16,6 +17,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const emailDraftLoaded = useRef(false);
   const contactHintShown = useRef(false);
+  const listingHintShown = useRef(false);
 
   useEffect(() => {
     if (searchParams.get('from') !== 'contact' || contactHintShown.current) return;
@@ -24,6 +26,15 @@ const Login = () => {
       'Please log in to view full office numbers and to use WhatsApp chat with a pre-filled message.',
       { duration: 6000, id: 'login-contact-hint' }
     );
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get('from') !== 'listing' || listingHintShown.current) return;
+    listingHintShown.current = true;
+    toast('Log in to publish your property listing. Your form details are saved.', {
+      duration: 6000,
+      id: 'login-listing-hint',
+    });
   }, [searchParams]);
 
   useEffect(() => {
@@ -102,6 +113,12 @@ const Login = () => {
                 the listing.
               </p>
             ) : null}
+            {searchParams.get('from') === 'listing' ? (
+              <p className="mt-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2.5 text-left text-sm leading-snug text-navy">
+                Log in to publish your listing. After login you&apos;ll return to the add-property form with your
+                details restored.
+              </p>
+            ) : null}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -162,7 +179,7 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-gold font-semibold hover:underline">
+              <Link to={buildAuthSwitchUrl('/signup', searchParams)} className="text-gold font-semibold hover:underline">
                 Sign up
               </Link>
             </p>

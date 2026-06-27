@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
@@ -6,6 +6,8 @@ import PropertyListRow from '../components/properties/PropertyListRow';
 import SearchBar from '../components/search/SearchBar';
 import { Building2 } from 'lucide-react';
 import BrandLoader from '../components/ui/BrandLoader';
+import { usePropertyRecommendations } from '../hooks/usePropertyRecommendations';
+import { hasSearchContext, saveSearchSession } from '../utils/searchSession';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +23,21 @@ const SearchResults = () => {
     const minPrice = searchParams.get('minPrice') || '';
     const maxPrice = searchParams.get('maxPrice') || '';
 
-    setFilters({ location, type, bhk, shop_sqft_range, katha, other_type, minPrice, maxPrice });
+    const nextFilters = {
+      location,
+      type,
+      bhk,
+      shop_sqft_range,
+      katha,
+      other_type,
+      minPrice,
+      maxPrice,
+    };
+
+    setFilters(nextFilters);
+    if (hasSearchContext(nextFilters)) {
+      saveSearchSession(nextFilters);
+    }
   }, [searchParams]);
 
   const { data, isLoading } = useQuery({
@@ -48,6 +64,22 @@ const SearchResults = () => {
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  const mainPropertyIds = useMemo(
+    () => (data?.properties || []).map((property) => property.id),
+    [data?.properties]
+  );
+
+  const { data: recommendationData, isLoading: recommendationsLoading } = usePropertyRecommendations(
+    filters,
+    {
+      excludeIds: mainPropertyIds,
+      limit: 8,
+      enabled: hasSearchContext(filters),
+    }
+  );
+
+  const recommendedProperties = recommendationData?.properties || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,6 +115,19 @@ const SearchResults = () => {
             <Building2 className="h-16 w-16 sm:h-20 sm:w-20 text-gray mx-auto mb-4" />
             <h3 className="text-xl sm:text-2xl font-bold text-navy mb-2">No Properties Found</h3>
             <p className="text-gray mb-6">Try different search criteria</p>
+          </div>
+        )}
+
+        {hasSearchContext(filters) && (
+          <div className="mt-12 sm:mt-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-6 sm:mb-8">Recommended For You</h2>
+            {recommendationsLoading ? (
+              <BrandLoader />
+            ) : recommendedProperties.length > 0 ? (
+              <PropertyListRow properties={recommendedProperties} />
+            ) : (
+              <p className="text-gray">No close matches yet. Try widening your budget or location.</p>
+            )}
           </div>
         )}
       </div>

@@ -4,10 +4,9 @@ import { userModel } from '../models/userModel.js';
 // Get homepage data (featured properties + stats)
 export const getHomeData = async (req, res) => {
   try {
-    // Get featured properties
     const featuredProperties = await propertyModel.getFeatured(20);
+    const featuredProjects = await propertyModel.getHomeProjects(12);
 
-    // Get stats
     const totalUsers = await userModel.getCount();
     const totalProperties = await propertyModel.getCount();
     const yearsOfExperience = parseInt(process.env.YEARS_OF_EXPERIENCE) || 15;
@@ -15,6 +14,7 @@ export const getHomeData = async (req, res) => {
     res.json({
       success: true,
       featuredProperties,
+      featuredProjects,
       stats: {
         totalUsers,
         totalProperties,
@@ -23,6 +23,40 @@ export const getHomeData = async (req, res) => {
     });
   } catch (error) {
     console.error('Get home data error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get all featured projects
+export const getFeaturedProjects = async (req, res) => {
+  try {
+    const projects = await propertyModel.getAllProjects();
+    res.json({ success: true, projects });
+  } catch (error) {
+    console.error('Get projects error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Single featured project detail
+export const getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const project = await propertyModel.findProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const relatedProjects = await propertyModel.getRelatedProjects(id, 8);
+
+    res.json({
+      success: true,
+      project,
+      relatedProjects,
+    });
+  } catch (error) {
+    console.error('Get project error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

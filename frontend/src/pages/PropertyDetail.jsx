@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, Home, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import api, { getImageUrl } from '../utils/api';
@@ -11,6 +11,11 @@ import {
   DEFAULT_SITE_INQUIRY_PHONE,
   getShopSqftRangeLabel,
   getFurnishingLabel,
+  isProjectListing,
+  formatBhkOptions,
+  formatSqftRange,
+  formatProjectPriceFrom,
+  getProjectTypeLabel,
 } from '../utils/helpers';
 import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
@@ -21,6 +26,7 @@ import BrandLoader from '../components/ui/BrandLoader';
 
 const PropertyDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
@@ -36,6 +42,12 @@ const PropertyDetail = () => {
       return response.data;
     },
   });
+
+  useEffect(() => {
+    if (data?.property?.listing_kind === 'project') {
+      navigate(`/projects/${id}`, { replace: true });
+    }
+  }, [data, id, navigate]);
 
   if (isLoading) {
     return <BrandLoader fullScreen />;
@@ -66,23 +78,31 @@ const PropertyDetail = () => {
     import.meta.env.VITE_CONTACT_OFFICE_2 || DEFAULT_SITE_INQUIRY_PHONE;
 
   const isShop = String(property.other_type || '').toLowerCase() === 'shop';
+  const isProject = isProjectListing(property);
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
 
   const specParts = [];
-  if (!isShop && property.bhk) specParts.push(`${property.bhk} BHK`);
-  if (!isShop && furnishingLabel) specParts.push(furnishingLabel);
-  if (isShop && shopSqftLabel) specParts.push(shopSqftLabel);
-  if (property.katha) specParts.push(String(property.katha));
-  if (property.other_type) specParts.push(String(property.other_type));
-  if (!isShop && property.balconies != null && Number(property.balconies) > 0) specParts.push(`${property.balconies} balcony`);
-  if (!isShop && property.bathrooms != null && Number(property.bathrooms) > 0) specParts.push(`${property.bathrooms} bath`);
-  if (!isShop && property.floor_no) specParts.push(`Floor ${property.floor_no}`);
-  if (!isShop && property.garden) specParts.push('Garden');
-  if (property.car_parking) specParts.push('Car parking');
-  if (property.bike_parking) specParts.push('Bike parking');
-  if (isShop && property.shop_road_distance) specParts.push(`Road dist ${property.shop_road_distance}`);
-  if (isShop && property.shop_token_amount != null && Number(property.shop_token_amount) > 0) {
+  if (isProject) {
+    const bhk = formatBhkOptions(property.bhk_options);
+    const sqft = formatSqftRange(property.sqft_from, property.sqft_to);
+    if (bhk) specParts.push(bhk);
+    if (sqft) specParts.push(sqft);
+    if (property.developer_name) specParts.push(`by ${property.developer_name}`);
+    if (property.marketed_by) specParts.push(`Marketed by ${property.marketed_by}`);
+  } else if (!isShop && property.bhk) specParts.push(`${property.bhk} BHK`);
+  if (!isProject && !isShop && furnishingLabel) specParts.push(furnishingLabel);
+  if (!isProject && isShop && shopSqftLabel) specParts.push(shopSqftLabel);
+  if (!isProject && property.katha) specParts.push(String(property.katha));
+  if (!isProject && property.other_type) specParts.push(String(property.other_type));
+  if (!isProject && !isShop && property.balconies != null && Number(property.balconies) > 0) specParts.push(`${property.balconies} balcony`);
+  if (!isProject && !isShop && property.bathrooms != null && Number(property.bathrooms) > 0) specParts.push(`${property.bathrooms} bath`);
+  if (!isProject && !isShop && property.floor_no) specParts.push(`Floor ${property.floor_no}`);
+  if (!isProject && !isShop && property.garden) specParts.push('Garden');
+  if (!isProject && property.car_parking) specParts.push('Car parking');
+  if (!isProject && property.bike_parking) specParts.push('Bike parking');
+  if (!isProject && isShop && property.shop_road_distance) specParts.push(`Road dist ${property.shop_road_distance}`);
+  if (!isProject && isShop && property.shop_token_amount != null && Number(property.shop_token_amount) > 0) {
     specParts.push(`Token ${formatIndianPrice(property.shop_token_amount)}`);
   }
   const specLine = specParts.join(' · ');
@@ -165,9 +185,9 @@ const PropertyDetail = () => {
           <div className="flex flex-wrap items-start justify-between gap-3 mb-1.5 lg:mb-3">
             <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`${badge.bg} text-white rounded-full font-semibold px-2.5 py-0.5 text-xs lg:px-3 lg:py-1 lg:text-sm`}
+              className={`${isProject ? 'bg-navy' : badge.bg} text-white rounded-full font-semibold px-2.5 py-0.5 text-xs lg:px-3 lg:py-1 lg:text-sm`}
             >
-              {badge.text}
+              {isProject ? getProjectTypeLabel(property.project_type) : badge.text}
             </span>
             {property.featured && (
               <span className="bg-gold text-navy rounded-full font-semibold px-2.5 py-0.5 text-xs lg:px-3 lg:py-1 lg:text-sm">
@@ -188,7 +208,7 @@ const PropertyDetail = () => {
             <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5 text-gold lg:h-5 lg:w-5" />
             <p className="text-sm leading-snug lg:text-base xl:text-lg">
               {property.location}
-              {property.road_no ? `, Road ${property.road_no}` : ''}, {property.city}
+              {!isProject && property.road_no ? `, Road ${property.road_no}` : ''}, {property.city}
             </p>
           </div>
         </div>
@@ -200,7 +220,7 @@ const PropertyDetail = () => {
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                 <span className="text-[11px] text-gray uppercase tracking-wide">Price</span>
                 <p className="text-xl font-bold text-gold leading-none tabular-nums">
-                  {formatIndianPrice(property.price)}
+                  {isProject ? formatProjectPriceFrom(property.price) : formatIndianPrice(property.price)}
                 </p>
               </div>
 
@@ -236,7 +256,9 @@ const PropertyDetail = () => {
             <div className="hidden lg:block space-y-6">
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <p className="text-sm text-gray mb-1">Price</p>
-                <p className="text-3xl sm:text-4xl font-bold text-gold">{formatIndianPrice(property.price)}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-gold">
+                  {isProject ? formatProjectPriceFrom(property.price) : formatIndianPrice(property.price)}
+                </p>
               </div>
 
               {(property.bhk ||
@@ -399,7 +421,7 @@ const PropertyDetail = () => {
         {/* Related Properties */}
         {relatedProperties.length > 0 && (
           <div className="mt-12 sm:mt-16">
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-6 sm:mb-8">Similar Properties</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-6 sm:mb-8">Recommended For You</h2>
             <PropertyListRow properties={relatedProperties} />
           </div>
         )}

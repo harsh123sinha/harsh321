@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff, Briefcase, MapPin, ImagePlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { isValidIndianMobile } from '../../utils/helpers';
+import { isValidIndianMobile, getSafeInternalReturnPath } from '../../utils/helpers';
+import { buildAuthSwitchUrl } from '../../utils/addListingDraft';
 import toast from 'react-hot-toast';
 import ScrollableLegalModal from '../../components/legal/ScrollableLegalModal';
 import TermsContent from '../../components/legal/TermsContent';
@@ -64,7 +65,10 @@ const Signup = () => {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const draftHydrated = useRef(false);
+  const listingHintShown = useRef(false);
+  const fromListing = searchParams.get('from') === 'listing';
 
   useEffect(() => {
     const draft = loadSignupDraft();
@@ -72,10 +76,22 @@ const Signup = () => {
       setFormData((prev) => ({
         ...prev,
         ...draft,
+        ...(fromListing ? { role: 'owner' } : {}),
       }));
+    } else if (fromListing) {
+      setFormData((prev) => ({ ...prev, role: 'owner' }));
     }
     draftHydrated.current = true;
-  }, []);
+  }, [fromListing]);
+
+  useEffect(() => {
+    if (!fromListing || listingHintShown.current) return;
+    listingHintShown.current = true;
+    toast('Sign up as a Property Owner or Agent to publish your listing.', {
+      duration: 6000,
+      id: 'signup-listing-hint',
+    });
+  }, [fromListing]);
 
   const persistDraft = useCallback((data) => {
     try {
@@ -162,6 +178,12 @@ const Signup = () => {
         /* ignore */
       }
       toast.success('Account created successfully!');
+      const next = getSafeInternalReturnPath(searchParams.get('next'));
+      if (next) {
+        navigate(next, { replace: true });
+        setLoading(false);
+        return;
+      }
       const role = result.user.role;
       if (role === 'owner') navigate('/dashboard/owner');
       else if (role === 'agent') navigate('/dashboard/agent');
@@ -184,6 +206,12 @@ const Signup = () => {
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-2">Create Account</h2>
             <p className="text-gray">Join us to start your property journey</p>
+            {fromListing ? (
+              <p className="mt-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2.5 text-left text-sm leading-snug text-navy">
+                Create an owner or agent account to publish your listing. You&apos;ll return to the form with your
+                details already filled in.
+              </p>
+            ) : null}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -401,7 +429,7 @@ const Signup = () => {
           <div className="mt-6 text-center">
             <p className="text-gray">
               Already have an account?{' '}
-              <Link to="/login" className="text-gold font-semibold hover:underline">
+              <Link to={buildAuthSwitchUrl('/login', searchParams)} className="text-gold font-semibold hover:underline">
                 Login
               </Link>
             </p>

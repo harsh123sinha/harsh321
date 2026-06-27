@@ -1,7 +1,10 @@
 import multer from 'multer';
 import path from 'path';
+import { PDF_MAX_UPLOAD_BYTES } from '../utils/pdfPrep.js';
 
 const storage = multer.memoryStorage();
+
+const IMAGE_MAX_BYTES = 15 * 1024 * 1024;
 
 const fileFilter = (req, file, cb) => {
   const allowedExts = /\.(jpe?g|png|webp)$/i;
@@ -27,5 +30,55 @@ export const upload = multer({
 });
 
 export const uploadMultipleImages = upload.array('images', 10);
-
 export const uploadSingleImage = upload.single('photo');
+
+const pdfFilter = (req, file, cb) => {
+  const isPdf =
+    file.mimetype === 'application/pdf' ||
+    /\.pdf$/i.test(path.extname(file.originalname || ''));
+  if (isPdf) return cb(null, true);
+  const err = new Error('Project PDF must be a .pdf file');
+  err.status = 400;
+  cb(err);
+};
+
+/** Images + optional project PDF on create/update — PDFs allow up to 50MB. */
+const listingAssetsMulter = multer({
+  storage,
+  limits: { fileSize: PDF_MAX_UPLOAD_BYTES },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'project_pdf') {
+      return pdfFilter(req, file, cb);
+    }
+    return fileFilter(req, file, cb);
+  },
+}).fields([
+  { name: 'images', maxCount: 10 },
+  { name: 'project_pdf', maxCount: 1 },
+]);
+
+function formatFileSizeLimit(bytes) {
+  const mb = bytes / (1024 * 1024);
+  return Number.isInteger(mb) ? `${mb}MB` : `${mb.toFixed(0)}MB`;
+}
+
+/** Multer middleware with clearer errors when a file exceeds the size limit. */
+export function uploadListingAssets(req, res, next) {
+  listingAssetsMulter(req, res, (err) => {
+    if (!err) return next();
+
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      const pdfMax = formatFileSizeLimit(PDF_MAX_UPLOAD_BYTES);
+      const imageMax = formatFileSizeLimit(IMAGE_MAX_BYTES);
+      err.message = `File is too large. Images up to ${imageMax} each; project PDF up to ${pdfMax} (compressed automatically before storage).`;
+      err.status = 400;
+    } else if (err.code === 'LIMIT_FILE_COUNT') {
+      err.message = 'Too many files uploaded.';
+      err.status = 400;
+    }
+
+    next(err);
+  });
+}
+
+export { IMAGE_MAX_BYTES, PDF_MAX_UPLOAD_BYTES };

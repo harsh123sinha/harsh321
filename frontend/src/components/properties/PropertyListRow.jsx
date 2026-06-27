@@ -4,10 +4,10 @@ import PropertyCard from './PropertyCard';
 import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
 
 const scrollerClass =
-  'scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-visible scroll-smooth pb-3 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:pb-4 sm:pt-1 md:gap-6 [&::-webkit-scrollbar]:hidden';
+  'scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-visible scroll-smooth pb-2 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:pb-4 sm:pt-1 md:gap-6 [&::-webkit-scrollbar]:hidden';
 
 const shellClass =
-  'w-[min(88vw,340px)] flex-shrink-0 snap-start sm:w-[300px] md:w-[320px] lg:w-[340px] h-full';
+  'w-[min(86vw,310px)] flex-shrink-0 snap-start sm:w-[300px] md:w-[320px] lg:w-[340px] h-full';
 
 /** Horizontal scroll of property cards with prev/next arrows (mobile + desktop). */
 const PropertyListRow = ({ properties, renderCard }) => {

@@ -9,6 +9,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Public pages
 import Home from './pages/Home';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
 import RentProperties from './pages/RentProperties';
 import BuyProperties from './pages/BuyProperties';
 import OtherProperties from './pages/OtherProperties';
@@ -77,6 +79,8 @@ function App() {
               <Route path="/buy" element={<BuyProperties />} />
               <Route path="/other" element={<OtherProperties />} />
               <Route path="/plots" element={<PlotProperties />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
               <Route path="/property/:id" element={<PropertyDetail />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/broker" element={<BrokerSearch />} />
@@ -100,6 +104,7 @@ function App() {
               />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/add-property" element={<AddProperty />} />
             </Route>
 
             {/* Auth routes (no layout) */}
@@ -134,14 +139,6 @@ function App() {
                 }
               />
               
-              <Route
-                path="/add-property"
-                element={
-                  <ProtectedRoute allowedRoles={['owner', 'agent']}>
-                    <AddProperty />
-                  </ProtectedRoute>
-                }
-              />
               <Route
                 path="/my-properties"
                 element={

@@ -1,8 +1,14 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  saveAddListingDraft,
+  loadAddListingDraft,
+  clearAddListingDraft,
+} from '../../utils/addListingDraft';
 import {
   ADD_PROPERTY_CATEGORIES,
   mapAddPropertyToApiType,
@@ -28,6 +34,8 @@ import {
   isDigitKey as isRoadNoDigitKey,
 } from '../../utils/roadNoValidation';
 import ListingVerificationOverlay from '../../components/properties/ListingVerificationOverlay';
+import AddListingModeToggle from '../../components/properties/AddListingModeToggle';
+import AddProjectFields, { validateAddProjectForm } from '../../components/properties/AddProjectFields';
 
 const inputClass = (err) =>
   `w-full px-4 py-3 border-2 rounded-lg focus:outline-none ${fieldErrorClass(err)}`;
@@ -66,13 +74,57 @@ const AddProperty = () => {
   const [loading, setLoading] = useState(false);
   const [submitPhase, setSubmitPhase] = useState(null);
   const [pendingReviewResult, setPendingReviewResult] = useState(false);
+  const [listingMode, setListingMode] = useState('property');
+  const [projectData, setProjectData] = useState({
+    projectType: 'apartment',
+    developerName: '',
+    marketedBy: '',
+    bhkSelected: [],
+    sqftFrom: '',
+    sqftTo: '',
+  });
+  const [projectPdf, setProjectPdf] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const { user, isAuthenticated } = useAuth();
+  const draftHydrated = useRef(false);
+  const listingHintShown = useRef(false);
 
-  const isPlot = formData.category === 'plot';
-  const isOther = formData.category === 'other';
-  const isShop = formData.category === 'shop';
-  const showBhkAndAmenities = !isPlot && !isOther;
+  useEffect(() => {
+    if (draftHydrated.current) return;
+    draftHydrated.current = true;
+
+    (async () => {
+      const draft = await loadAddListingDraft();
+      if (!draft) return;
+
+      setListingMode(draft.listingMode);
+      setFormData((prev) => ({ ...prev, ...draft.formData }));
+      setProjectData((prev) => ({ ...prev, ...draft.projectData }));
+      setKathaPreset(draft.kathaPreset);
+      setKathaDecimal(draft.kathaDecimal);
+      if (draft.images?.length) setImages(draft.images);
+      if (draft.projectPdf) setProjectPdf(draft.projectPdf);
+
+      toast.success('Your listing details have been restored. Review and submit when ready.');
+      if (draft.imagesTruncated) {
+        toast('Some files were too large to save — please re-upload images or PDF.', { duration: 5000 });
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get('from') !== 'listing' || listingHintShown.current) return;
+    listingHintShown.current = true;
+    toast('Complete sign up or log in, then submit your listing.', { duration: 6000, id: 'listing-auth-hint' });
+  }, [searchParams]);
+
+  const isProject = listingMode === 'project';
+  const isPlot = !isProject && formData.category === 'plot';
+  const isOther = !isProject && formData.category === 'other';
+  const isShop = !isProject && formData.category === 'shop';
+  const showBhkAndAmenities = !isProject && !isPlot && !isOther;
   const showFurnishing =
     showBhkAndAmenities &&
     !isShop &&
@@ -229,17 +281,19 @@ const AddProperty = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const errors = validateAddPropertyForm({
-      formData,
-      kathaPreset,
-      kathaDecimal,
-      images,
-      isPlot,
-      isOther,
-      isShop,
-      showBhkAndAmenities,
-      showFurnishing,
-    });
+    const errors = isProject
+      ? validateAddProjectForm({ formData, projectData, images })
+      : validateAddPropertyForm({
+          formData,
+          kathaPreset,
+          kathaDecimal,
+          images,
+          isPlot,
+          isOther,
+          isShop,
+          showBhkAndAmenities,
+          showFurnishing,
+        });
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors((prev) => ({ ...prev, ...errors }));
@@ -249,8 +303,77 @@ const AddProperty = () => {
       return;
     }
 
+    if (!isAuthenticated) {
+      const saved = await saveAddListingDraft({
+        listingMode,
+        formData,
+        projectData,
+        kathaPreset,
+        kathaDecimal,
+        images,
+        projectPdf,
+      });
+      if (!saved.ok) {
+        toast.error(saved.error || 'Could not save your listing. Try fewer or smaller images.');
+        return;
+      }
+      toast('Sign up or log in to publish your listing. Your details have been saved.', {
+        duration: 5500,
+      });
+      navigate('/signup?from=listing&next=/add-property');
+      return;
+    }
+
+    if (user?.role === 'buyer') {
+      toast.error(
+        'Buyer accounts cannot publish listings. Log out and sign up as a Property Owner or Agent.'
+      );
+      return;
+    }
+
     setLoading(true);
     setSubmitPhase('verifying');
+
+    if (isProject) {
+      const data = new FormData();
+      data.append('listing_kind', 'project');
+      data.append('project_type', projectData.projectType);
+      data.append('title', formData.title.trim());
+      data.append('description', formData.description.trim());
+      data.append('price', formData.price);
+      data.append('developer_name', projectData.developerName.trim());
+      data.append('marketed_by', projectData.marketedBy.trim());
+      data.append('bhk_options', projectData.bhkSelected.join(','));
+      data.append('sqft_from', projectData.sqftFrom || '');
+      data.append('sqft_to', projectData.sqftTo || '');
+      data.append('location', formData.location.trim());
+      data.append('city', formData.city.trim());
+      data.append('featured', formData.featured ? 'true' : 'false');
+      if (projectPdf) data.append('project_pdf', projectPdf);
+      images.forEach((img) => data.append('images', img));
+
+      try {
+        const response = await api.post('/properties', data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        await queryClient.invalidateQueries({ queryKey: ['homeData'] });
+        await queryClient.invalidateQueries({ queryKey: ['projects'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+
+        const isPending = Boolean(response.data?.pendingReview);
+        setPendingReviewResult(isPending);
+        setSubmitPhase('verified');
+        await new Promise((r) => setTimeout(r, 2000));
+        toast.success(isPending ? 'Project submitted for review.' : 'Project added successfully!');
+        clearAddListingDraft();
+        navigate('/my-properties');
+      } catch (error) {
+        setSubmitPhase(null);
+        toast.error(error.response?.data?.error || 'Failed to add project');
+      }
+      setLoading(false);
+      return;
+    }
 
     const kathaVal = isPlot
       ? (kathaPreset === 'custom' ? kathaDecimal : kathaPreset).trim()
@@ -324,6 +447,7 @@ const AddProperty = () => {
       } else {
         toast.success('Property verified and added successfully!');
       }
+      clearAddListingDraft();
       navigate('/my-properties');
     } catch (error) {
       setSubmitPhase(null);
@@ -386,13 +510,38 @@ const AddProperty = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <ListingVerificationOverlay phase={submitPhase} pendingReview={pendingReviewResult} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-navy mb-2">Add New Property</h1>
+        <h1 className="text-3xl font-bold text-navy mb-2">
+          {isProject ? 'Add New Project' : 'Add New Property'}
+        </h1>
         <p className="text-sm text-gray mb-8">
-          All fields marked * are required. Title and description must not contain any numbers (0–9).
-          Phone numbers, emails, and external links are not allowed in other text fields.
+          {isProject
+            ? 'List an enclave or apartment development with BHK options, sq ft range, and starting price.'
+            : 'All fields marked * are required. Title and description must not contain any numbers (0–9).'}
         </p>
+        {!isAuthenticated && (
+          <p className="mb-6 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-navy">
+            You can fill in everything now. When you submit, we&apos;ll ask you to sign up or log in — your
+            details will be saved and restored automatically.
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AddListingModeToggle mode={listingMode} onChange={setListingMode} />
+
+            {isProject ? (
+              <AddProjectFields
+                projectData={projectData}
+                setProjectData={setProjectData}
+                formData={formData}
+                handleChange={handleChange}
+                fieldErrors={fieldErrors}
+                inputClass={inputClass}
+                handleNoNumbersKeyDown={handleNoNumbersKeyDown}
+                projectPdf={projectPdf}
+                onProjectPdfChange={setProjectPdf}
+              />
+            ) : (
+              <>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-navy mb-2">Title *</label>
               <input
@@ -763,6 +912,38 @@ const AddProperty = () => {
                 Request featured listing (optional — subject to admin approval)
               </label>
             </div>
+              </>
+            )}
+
+            {isProject && (
+              <>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-navy mb-2">Project images *</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    required
+                    className={inputClass(fieldErrors.images)}
+                  />
+                  <FieldHint error={fieldErrors.images} />
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    checked={formData.featured}
+                    onChange={handleChange}
+                    id="featured-project"
+                    className="rounded border-gray-light"
+                  />
+                  <label htmlFor="featured-project" className="text-sm font-medium text-navy">
+                    Feature on home page (subject to admin approval)
+                  </label>
+                </div>
+              </>
+            )}
           </div>
           <button
             type="submit"
@@ -773,7 +954,9 @@ const AddProperty = () => {
               ? 'Verifying…'
               : loading
                 ? 'Adding...'
-                : 'Add Property'}
+                : isProject
+                  ? 'Add Project'
+                  : 'Add Property'}
           </button>
         </form>
       </div>

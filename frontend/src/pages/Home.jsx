@@ -3,7 +3,10 @@ import { Building2, Shield, Users, Award } from 'lucide-react';
 import api from '../utils/api';
 import SearchBar from '../components/search/SearchBar';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
+import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 /** One neutral surface after the hero — navy + gold accents only on hero, CTA, and highlights */
 const canvas = 'bg-stone-100';
@@ -118,6 +121,43 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* Featured Projects — above individual properties */}
+      <section className={`border-b border-stone-200/80 ${canvas} py-12 sm:py-16`}>
+        <div className={sectionShell}>
+          <div className="mb-6 flex flex-col items-center justify-between gap-3 sm:mb-8 sm:flex-row sm:items-end">
+            <div className="text-center sm:text-left">
+              <div className={sectionAccent} aria-hidden />
+              <h2 className="text-2xl font-bold tracking-tight text-navy sm:text-3xl md:text-4xl">
+                Featured Projects
+              </h2>
+              <p className="mt-2 text-sm text-stone-600 sm:text-base">
+                New enclaves & apartment developments
+              </p>
+            </div>
+            <Link
+              to="/projects"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-gold hover:text-navy"
+            >
+              See all projects
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div>
+            {isLoading ? (
+              <BrandLoader />
+            ) : data?.featuredProjects?.length > 0 ? (
+              <FeaturedProjectsCarousel projects={data.featuredProjects.slice(0, 12)} />
+            ) : (
+              <div className="py-10 text-center">
+                <Building2 className="mx-auto mb-3 h-12 w-12 text-stone-400" />
+                <p className="text-stone-600 text-sm">No projects listed yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* Featured — same canvas; property cards supply white */}
       <section className={`border-b border-stone-200/80 ${canvas} py-12 sm:py-16`}>

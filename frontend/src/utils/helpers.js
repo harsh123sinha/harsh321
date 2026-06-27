@@ -307,3 +307,37 @@ export const getPropertyWhatsAppHref = (property, listingUrl, recipientOverride)
   const text = buildPropertyWhatsAppMessage(property, listingUrl);
   return `https://wa.me/${to}?text=${encodeURIComponent(text)}`;
 };
+
+export const isProjectListing = (item) => item?.listing_kind === 'project';
+
+export const getProjectTypeLabel = (projectType) => {
+  if (projectType === 'enclave') return 'Enclave';
+  if (projectType === 'apartment') return 'Apartment';
+  return 'Project';
+};
+
+export const formatBhkOptions = (bhkOptions) => {
+  if (!bhkOptions) return '';
+  const nums = String(bhkOptions)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!nums.length) return '';
+  return `${nums.join(', ')} BHK Flats`;
+};
+
+export const formatSqftRange = (from, to) => {
+  const f = from != null && from !== '' ? Number(from) : null;
+  const t = to != null && to !== '' ? Number(to) : null;
+  if (f && t) {
+    return `${f.toLocaleString('en-IN')} – ${t.toLocaleString('en-IN')} sq ft`;
+  }
+  if (f) return `From ${f.toLocaleString('en-IN')} sq ft`;
+  if (t) return `Up to ${t.toLocaleString('en-IN')} sq ft`;
+  return '';
+};
+
+export const formatProjectPriceFrom = (price) => {
+  const formatted = formatIndianPrice(price);
+  return `${formatted} onwards`;
+};

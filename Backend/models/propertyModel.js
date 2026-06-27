@@ -18,6 +18,12 @@ const SQL_IS_PLOT_ROW = `(
 /** Public catalogue: only approved active listings */
 const SQL_PUBLIC_ACTIVE = `AND (COALESCE(p.listing_status, 'active') = 'active')`;
 
+/** Standard property listings (exclude enclave / apartment projects) */
+const SQL_PROPERTIES_ONLY = `AND (COALESCE(p.listing_kind, 'property') = 'property')`;
+
+/** Project listings only */
+const SQL_PROJECTS_ONLY = `AND p.listing_kind = 'project'`;
+
 const SQL_OWNER_JOIN = 'LEFT JOIN user u ON p.owner_id = u.id';
 
 const SQL_BROKER_JOIN = `LEFT JOIN brokers br ON (
@@ -43,7 +49,9 @@ export const propertyModel = {
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status,
       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured,
-      listing_status
+      listing_status,
+      listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to,
+      enclave_pdf_url,
     } = propertyData;
 
     const query = `
@@ -51,8 +59,10 @@ export const propertyModel = {
       (title, description, price, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
        shop_road_distance, shop_token_amount, furnishing_status,
-       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status,
+       listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+              ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.execute(query, [
@@ -73,7 +83,15 @@ export const propertyModel = {
       road_no ?? null,
       city, district, state, pincode || null, image_url,
       other_type || null, owner_id, featured || 0,
-      listing_status || 'active'
+      listing_status || 'active',
+      listing_kind || 'property',
+      project_type || null,
+      developer_name || null,
+      marketed_by || null,
+      bhk_options || null,
+      sqft_from != null && sqft_from !== '' ? Number(sqft_from) : null,
+      sqft_to != null && sqft_to !== '' ? Number(sqft_to) : null,
+      enclave_pdf_url || null,
     ]);
 
     return result.insertId;
@@ -85,7 +103,7 @@ export const propertyModel = {
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
       ${SQL_FROM_WITH_BROKER}
-      WHERE 1=1 ${SQL_PUBLIC_ACTIVE}
+      WHERE 1=1 ${SQL_PUBLIC_ACTIVE} ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query);
@@ -125,6 +143,7 @@ export const propertyModel = {
       ${SQL_FROM_WITH_BROKER}
       WHERE p.type = ?
       ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query, [type]);
@@ -139,6 +158,7 @@ export const propertyModel = {
       ${SQL_FROM_WITH_BROKER}
       WHERE ${SQL_IS_PLOT_ROW}
       ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
     `;
     const [rows] = await db.execute(query);
@@ -153,10 +173,191 @@ export const propertyModel = {
       ${SQL_FROM_WITH_BROKER}
       WHERE p.featured = 1
       ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROPERTIES_ONLY}
       ORDER BY RAND()
       LIMIT ?
     `;
     const [rows] = await db.execute(query, [limit]);
+    return rows;
+  },
+
+  // Featured projects only (e.g. related carousel on project detail)
+  getFeaturedProjects: async (limit = 12) => {
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE p.featured = 1
+      ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROJECTS_ONLY}
+      ORDER BY p.id DESC
+      LIMIT ?
+    `;
+    const [rows] = await db.execute(query, [limit]);
+    return rows;
+  },
+
+  /** All active projects for home page — featured first, then newest. */
+  getHomeProjects: async (limit = 12) => {
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE 1=1
+      ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROJECTS_ONLY}
+      ORDER BY p.featured DESC, p.id DESC
+      LIMIT ?
+    `;
+    const [rows] = await db.execute(query, [limit]);
+    return rows;
+  },
+
+  getAllProjects: async () => {
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE 1=1 ${SQL_PUBLIC_ACTIVE} ${SQL_PROJECTS_ONLY}
+      ORDER BY p.id DESC
+    `;
+    const [rows] = await db.execute(query);
+    return rows;
+  },
+
+  /**
+   * Pre-filter candidate rows for recommendation scoring (SQL WHERE, not full-table scan).
+   * Relax level widens location, BHK, and price tolerance progressively.
+   */
+  findRecommendationCandidates: async (filters, options = {}) => {
+    const { excludeIds = [], relaxLevel = 0, candidateLimit = 120 } = options;
+
+    let query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE 1=1
+      ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROPERTIES_ONLY}
+    `;
+    const params = [];
+
+    const safeExclude = excludeIds.filter((id) => Number.isFinite(id) && id > 0);
+    if (safeExclude.length) {
+      query += ` AND p.id NOT IN (${safeExclude.map(() => '?').join(',')})`;
+      params.push(...safeExclude);
+    }
+
+    const plotTypeFilter = (t) =>
+      t === 'plot' || t === 'plot_lease' || t === 'plot_buy';
+
+    const loc = String(filters.location || '').trim();
+    const city = String(filters.city || '').trim();
+    const type = filters.type;
+    const bhk = filters.bhk;
+    const minPrice = filters.minPrice;
+    const maxPrice = filters.maxPrice;
+    const priceSlack = [0, 0.15, 0.25, 0.35][Math.min(relaxLevel, 3)] ?? 0.35;
+
+    const orParts = [];
+
+    if (loc) {
+      if (relaxLevel < 3) {
+        const pat = `%${loc}%`;
+        orParts.push('(p.location LIKE ? OR p.city LIKE ? OR p.district LIKE ?)');
+        params.push(pat, pat, pat);
+      } else if (city) {
+        const pat = `%${city}%`;
+        orParts.push('(p.city LIKE ? OR p.district LIKE ?)');
+        params.push(pat, pat);
+      }
+    } else if (city && relaxLevel < 3) {
+      const pat = `%${city}%`;
+      orParts.push('(p.city LIKE ? OR p.district LIKE ?)');
+      params.push(pat, pat);
+    }
+
+    if (type) {
+      if (type === 'plot') {
+        orParts.push(SQL_IS_PLOT_ROW);
+      } else {
+        orParts.push('p.type = ?');
+        params.push(type);
+      }
+    }
+
+    if (bhk != null && !plotTypeFilter(type)) {
+      if (relaxLevel < 2) {
+        orParts.push('p.bhk = ?');
+        params.push(Number(bhk));
+      } else {
+        orParts.push('p.bhk BETWEEN ? AND ?');
+        params.push(Math.max(1, Number(bhk) - 1), Number(bhk) + 1);
+      }
+    }
+
+    if (filters.katha) {
+      orParts.push("TRIM(COALESCE(p.katha, '')) = ?");
+      params.push(filters.katha);
+    }
+
+    if (minPrice != null || maxPrice != null) {
+      const minBound =
+        minPrice != null ? Math.max(0, Number(minPrice) * (1 - priceSlack)) : 0;
+      const maxBound =
+        maxPrice != null
+          ? Number(maxPrice) * (1 + priceSlack)
+          : Number.MAX_SAFE_INTEGER;
+      orParts.push('(p.price >= ? AND p.price <= ?)');
+      params.push(minBound, maxBound);
+    }
+
+    if (filters.furnishing_status && relaxLevel >= 1) {
+      orParts.push('p.furnishing_status = ?');
+      params.push(filters.furnishing_status);
+    }
+
+    if (!orParts.length) {
+      return [];
+    }
+
+    query += ` AND (${orParts.join(' OR ')})`;
+    query += ' ORDER BY p.id DESC LIMIT ?';
+    params.push(Math.min(Math.max(candidateLimit, 1), 200));
+
+    const [rows] = await db.execute(query, params);
+    return rows;
+  },
+
+  findProjectById: async (id) => {
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone, u.email as owner_email
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE p.id = ? AND p.listing_kind = 'project'
+      ${SQL_PUBLIC_ACTIVE}
+    `;
+    const [rows] = await db.execute(query, [id]);
+    return rows[0];
+  },
+
+  getRelatedProjects: async (excludeId, limit = 8) => {
+    let query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${SQL_FROM_WITH_BROKER}
+      WHERE p.featured = 1
+      ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROJECTS_ONLY}
+    `;
+    const params = [];
+    if (excludeId) {
+      query += ' AND p.id != ?';
+      params.push(excludeId);
+    }
+    query += ' ORDER BY p.id DESC LIMIT ?';
+    params.push(limit);
+    const [rows] = await db.execute(query, params);
     return rows;
   },
 
@@ -169,9 +370,9 @@ export const propertyModel = {
     `;
     
     if (excludeId) {
-      query += ` WHERE p.id != ? ${SQL_PUBLIC_ACTIVE}`;
+      query += ` WHERE p.id != ? ${SQL_PUBLIC_ACTIVE} ${SQL_PROPERTIES_ONLY}`;
     } else {
-      query += ` WHERE 1=1 ${SQL_PUBLIC_ACTIVE}`;
+      query += ` WHERE 1=1 ${SQL_PUBLIC_ACTIVE} ${SQL_PROPERTIES_ONLY}`;
     }
     
     query += ` ORDER BY RAND() LIMIT ?`;
@@ -189,6 +390,7 @@ export const propertyModel = {
       ${SQL_FROM_WITH_BROKER}
       WHERE 1=1
       ${SQL_PUBLIC_ACTIVE}
+      ${SQL_PROPERTIES_ONLY}
     `;
     const params = [];
 
@@ -347,6 +549,8 @@ export const propertyModel = {
       listing_status
     } = propertyData;
 
+    const enclavePdfUrl = propertyData.enclave_pdf_url;
+
     const query = `
       UPDATE properties
       SET title = ?, description = ?, price = ?, type = ?, bhk = ?, katha = ?,
@@ -355,7 +559,8 @@ export const propertyModel = {
           shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?,
           location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
           image_url = ?, other_type = ?, featured = ?, owner_id = ?,
-          listing_status = COALESCE(?, listing_status)
+          listing_status = COALESCE(?, listing_status),
+          enclave_pdf_url = COALESCE(?, enclave_pdf_url)
       WHERE id = ?
     `;
 
@@ -378,6 +583,7 @@ export const propertyModel = {
       city, district, state, pincode || null, image_url,
       other_type || null, featured || 0, owner_id,
       listing_status || null,
+      enclavePdfUrl ?? null,
       id
     ]);
 

@@ -5,6 +5,8 @@ import { ensurePropertySchema } from './utils/ensurePropertySchema.js';
 import { ensureNotificationSchema } from './utils/ensureNotificationSchema.js';
 import { ensureAdminSchema } from './utils/ensureAdminSchema.js';
 import { ensureBrokerSchema } from './utils/ensureBrokerSchema.js';
+import { ensurePerformanceIndexes } from './utils/ensurePerformanceIndexes.js';
+import { ensureProjectSchema } from './utils/ensureProjectSchema.js';
 import { isFirebaseConfigured } from './config/firebaseAdmin.js';
 
 // Import routes
@@ -113,6 +115,18 @@ async function start() {
     await ensureBrokerSchema();
   } catch (e) {
     console.error('⚠️ ensureBrokerSchema failed — run Backend/migrations/005_brokers.sql:', e.message);
+  }
+
+  try {
+    await ensurePerformanceIndexes();
+  } catch (e) {
+    console.error('⚠️ ensurePerformanceIndexes failed — run npm run db:migrate:', e.message);
+  }
+
+  try {
+    await ensureProjectSchema();
+  } catch (e) {
+    console.error('⚠️ ensureProjectSchema failed:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

@@ -3,6 +3,7 @@ import { normEmail } from '../middleware/auth.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields } from '../utils/helpers.js';
 import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
+import { getRecommendations, parseRecommendationQuery } from '../services/recommendationService.js';
 import {
   parseOptionalInt,
   parseBool01,
@@ -20,6 +21,8 @@ import {
   uploadProcessedFilesToS3,
   resolvePropertyImageUrls,
   deleteAllPropertyImages,
+  uploadPdfToS3,
+  deleteImageFromS3,
 } from '../utils/s3.js';
 import {
   assertListingTextAllowed,
@@ -27,7 +30,20 @@ import {
   assertNoRejectedImagesOnCreate,
   resolveListingStatus,
 } from '../utils/propertyListingGuard.js';
+import { compressPdfForUpload } from '../utils/pdfPrep.js';
 import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
+
+function getUploadedImages(req) {
+  if (!req.files) return [];
+  if (Array.isArray(req.files)) return req.files;
+  return req.files.images || [];
+}
+
+function getUploadedProjectPdf(req) {
+  if (!req.files || Array.isArray(req.files)) return null;
+  const pdfs = req.files.project_pdf;
+  return pdfs?.[0] || null;
+}
 
 // Get all properties
 export const getAllProperties = async (req, res) => {
@@ -50,13 +66,15 @@ export const getPropertyById = async (req, res) => {
       return res.status(404).json({ error: 'Property not found' });
     }
 
-    // Get 5 random related properties (excluding current)
-    const relatedProperties = await propertyModel.getRandom(5, id);
+    const relatedProperties = await getRecommendations({}, {
+      basedOnPropertyId: id,
+      limit: 8,
+    });
 
     res.json({
       success: true,
       property,
-      relatedProperties
+      relatedProperties,
     });
   } catch (error) {
     console.error('Get property error:', error);
@@ -95,6 +113,59 @@ export const getPropertiesByType = async (req, res) => {
   }
 };
 
+// Smart recommendations from search filters or a reference property
+export const getPropertyRecommendations = async (req, res) => {
+  try {
+    const { filters, limit, excludeIds, basedOnPropertyId } = parseRecommendationQuery(req.query);
+
+    const properties = await getRecommendations(filters, {
+      limit,
+      excludeIds,
+      basedOnPropertyId,
+    });
+
+    if (req.user?.role === 'buyer' && hasRecommendationSearchContext(filters)) {
+      import('../services/searchHistoryService.js')
+        .then(({ logSearchHistory }) =>
+          logSearchHistory(req.user.id, {
+            location: filters.location,
+            city: filters.city,
+            type: filters.type,
+            bhk: filters.bhk,
+            katha: filters.katha,
+            other_type: filters.other_type,
+            shop_sqft_range: filters.shop_sqft_range,
+            minPrice: filters.minPrice,
+            maxPrice: filters.maxPrice,
+          }, 'api')
+        )
+        .catch((err) => console.error('Recommendation search log error:', err.message));
+    }
+
+    res.json({
+      success: true,
+      properties,
+      filters,
+    });
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+function hasRecommendationSearchContext(filters) {
+  return Boolean(
+    filters.location ||
+      filters.city ||
+      filters.type ||
+      filters.bhk != null ||
+      filters.katha ||
+      filters.other_type ||
+      filters.minPrice != null ||
+      filters.maxPrice != null
+  );
+}
+
 // Search properties
 export const searchProperties = async (req, res) => {
   try {
@@ -127,9 +198,122 @@ export const searchProperties = async (req, res) => {
   }
 };
 
-// Add new property
+// Add new property or project
 export const addProperty = async (req, res) => {
   try {
+    const listingKind = req.body.listing_kind === 'project' ? 'project' : 'property';
+
+    if (listingKind === 'project') {
+      const {
+        title,
+        description,
+        price,
+        location,
+        city,
+        featured,
+        project_type,
+        developer_name,
+        marketed_by,
+        bhk_options,
+        sqft_from,
+        sqft_to,
+        road_no,
+      } = req.body;
+
+      if (
+        !title ||
+        !description ||
+        !price ||
+        !location ||
+        !city ||
+        !project_type ||
+        !developer_name ||
+        !bhk_options
+      ) {
+        return res.status(400).json({ error: 'Required project fields missing' });
+      }
+
+      if (!['enclave', 'apartment'].includes(String(project_type))) {
+        return res.status(400).json({ error: 'Invalid project type' });
+      }
+
+      assertListingTextAllowed(req.body);
+
+      let imageUrls = [];
+      let needsReview = false;
+      const imageFiles = getUploadedImages(req);
+      if (imageFiles.length > 0) {
+        const processed = await processPropertyImagesForUpload(imageFiles);
+        assertNoRejectedImagesOnCreate(processed.rejected);
+        needsReview = processed.needsReview;
+        imageUrls = await uploadProcessedFilesToS3(processed.files);
+      } else {
+        return res.status(400).json({ error: 'At least one project image is required' });
+      }
+
+      let enclavePdfUrl = null;
+      const pdfFile = getUploadedProjectPdf(req);
+      if (pdfFile) {
+        const compressedPdf = await compressPdfForUpload(pdfFile.buffer);
+        enclavePdfUrl = await uploadPdfToS3(compressedPdf, pdfFile.originalname);
+      }
+
+      const listingStatus = resolveListingStatus(needsReview);
+      const loc = normalizeListingLocation(city);
+      const roadNoDb = parseRoadNo(road_no) ?? 1;
+
+      const propertyId = await propertyModel.create({
+        title,
+        description,
+        price: parseFloat(price),
+        type: 'buy',
+        bhk: null,
+        katha: null,
+        balconies: null,
+        bathrooms: null,
+        garden: 0,
+        car_parking: 0,
+        floor_no: null,
+        bike_parking: 0,
+        shop_sqft_range: null,
+        shop_road_distance: null,
+        shop_token_amount: null,
+        furnishing_status: null,
+        location,
+        road_no: roadNoDb,
+        city,
+        district: loc.district,
+        state: loc.state,
+        pincode: loc.pincode,
+        image_url: stringifyImageUrls(imageUrls),
+        other_type: project_type === 'enclave' ? 'Enclave' : 'Apartment',
+        owner_id: req.user.id,
+        featured: featured === 'true' ? 1 : 0,
+        listing_status: listingStatus,
+        listing_kind: 'project',
+        project_type,
+        developer_name: String(developer_name).trim(),
+        marketed_by: marketed_by ? String(marketed_by).trim() : null,
+        bhk_options: String(bhk_options).trim(),
+        sqft_from: sqft_from || null,
+        sqft_to: sqft_to || null,
+        enclave_pdf_url: enclavePdfUrl,
+      });
+
+      if (listingStatus === 'pending_review') {
+        return res.status(201).json({
+          ...buildPendingReviewSuccess(),
+          propertyId,
+        });
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Project added successfully',
+        propertyId,
+      });
+    }
+
     const {
       title, description, price, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured,
@@ -174,8 +358,9 @@ export const addProperty = async (req, res) => {
 
     let imageUrls = [];
     let needsReview = false;
-    if (req.files && req.files.length > 0) {
-      const processed = await processPropertyImagesForUpload(req.files);
+    const imageFiles = getUploadedImages(req);
+    if (imageFiles.length > 0) {
+      const processed = await processPropertyImagesForUpload(imageFiles);
       assertNoRejectedImagesOnCreate(processed.rejected);
       needsReview = processed.needsReview;
       imageUrls = await uploadProcessedFilesToS3(processed.files);
@@ -247,6 +432,7 @@ export const addProperty = async (req, res) => {
       owner_id: req.user.id,
       featured: featured === 'true' ? 1 : 0,
       listing_status: listingStatus,
+      listing_kind: 'property',
     });
 
     if (listingStatus === 'pending_review') {
@@ -319,7 +505,7 @@ export const updateProperty = async (req, res) => {
     try {
       const resolved = await resolvePropertyImageUrls({
         existingImages: parseImageUrls(property.image_url),
-        reqFiles: req.files,
+        reqFiles: getUploadedImages(req),
         removeAllImages,
         removeImages,
       });
@@ -419,6 +605,16 @@ export const updateProperty = async (req, res) => {
     const nextListingStatus =
       imageNeedsReview ? 'pending_review' : property.listing_status || 'active';
 
+    let nextEnclavePdfUrl = property.enclave_pdf_url;
+    const pdfFile = getUploadedProjectPdf(req);
+    if (pdfFile && property.listing_kind === 'project') {
+      if (property.enclave_pdf_url) {
+        await deleteImageFromS3(property.enclave_pdf_url);
+      }
+      const compressedPdf = await compressPdfForUpload(pdfFile.buffer);
+      nextEnclavePdfUrl = await uploadPdfToS3(compressedPdf, pdfFile.originalname);
+    }
+
     // Update property
     await propertyModel.update(id, {
       title: title || property.title,
@@ -448,6 +644,7 @@ export const updateProperty = async (req, res) => {
       featured: featured !== undefined ? (featured === 'true' ? 1 : 0) : property.featured,
       owner_id: property.owner_id,
       listing_status: nextListingStatus,
+      enclave_pdf_url: nextEnclavePdfUrl,
     });
 
     if (nextListingStatus === 'pending_review') {
