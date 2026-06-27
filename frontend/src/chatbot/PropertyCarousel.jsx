@@ -37,7 +37,7 @@ const PropertyCarousel = ({ properties, onAfterPropertyNavigate }) => {
     };
   }, [properties, syncScrollState]);
 
-  useNaturalHorizontalScroll(scrollerRef, [properties?.length]);
+  useNaturalHorizontalScroll(scrollerRef, scrollerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;

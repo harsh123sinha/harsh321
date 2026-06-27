@@ -11,8 +11,9 @@ import {
 
 /**
  * Call row: logged-in → `tel:` link; guest → masked digits + sweep + “Get number”, tap → login.
+ * @param {boolean} dense — smaller layout for vendor cards on mobile (same structure as desktop).
  */
-const MaskedPhoneActionButton = ({ phoneRaw, className = '' }) => {
+const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) => {
   const { token, loading } = useAuth();
   const navigate = useNavigate();
   const ten = useMemo(() => toTenDigitIndianMobile(phoneRaw), [phoneRaw]);
@@ -28,13 +29,19 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '' }) => {
     navigate(`/login?${q.toString()}`);
   };
 
+  const sizeClass = dense
+    ? 'min-h-[40px] p-1.5 gap-1'
+    : 'min-h-[52px] p-3 lg:min-h-[56px] lg:p-4';
+  const iconClass = dense ? 'h-3.5 w-3.5' : 'h-5 w-5 lg:h-6 lg:w-6';
+  const textClass = dense ? 'text-[10px] leading-tight' : 'text-sm lg:text-base';
+
   if (loading) {
     return (
       <div
-        className={`flex min-h-[52px] items-center space-x-2 rounded-lg bg-navy/60 p-3 lg:min-h-[56px] lg:space-x-3 lg:p-4 ${className}`}
+        className={`flex items-center space-x-1.5 rounded-lg bg-navy/60 ${sizeClass} ${className}`}
       >
-        <Phone className="h-5 w-5 flex-shrink-0 text-gold/50 lg:h-6 lg:w-6" aria-hidden />
-        <span className="text-sm font-semibold text-white/50 lg:text-base">Loading…</span>
+        <Phone className={`${iconClass} shrink-0 text-gold/50`} aria-hidden />
+        <span className={`font-semibold text-white/50 ${textClass}`}>…</span>
       </div>
     );
   }
@@ -43,10 +50,10 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '' }) => {
     return (
       <a
         href={toTelHref(ten)}
-        className={`flex min-h-[52px] items-center space-x-2 rounded-lg bg-navy p-3 transition-colors hover:bg-navy-light touch-target lg:min-h-[56px] lg:space-x-3 lg:p-4 ${className}`}
+        className={`flex items-center space-x-1.5 rounded-lg bg-navy transition-colors hover:bg-navy-light touch-target ${sizeClass} ${className}`}
       >
-        <Phone className="h-5 w-5 flex-shrink-0 text-gold lg:h-6 lg:w-6" aria-hidden />
-        <span className="text-sm font-semibold text-white lg:text-base">{displayFull}</span>
+        <Phone className={`${iconClass} shrink-0 text-gold`} aria-hidden />
+        <span className={`font-semibold text-white ${textClass}`}>{displayFull}</span>
       </a>
     );
   }
@@ -55,16 +62,16 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '' }) => {
     <button
       type="button"
       onClick={goLogin}
-      className={`relative flex w-full min-h-[52px] flex-col gap-1.5 overflow-hidden rounded-lg bg-navy p-3 text-left ring-1 ring-white/10 touch-target lg:min-h-[56px] lg:gap-2 lg:p-4 ${className}`}
+      className={`relative flex w-full flex-col overflow-hidden rounded-lg bg-navy text-left ring-1 ring-white/10 touch-target ${dense ? 'min-h-[40px] gap-0.5 p-1.5' : 'min-h-[52px] gap-1.5 p-3 lg:min-h-[56px] lg:gap-2 lg:p-4'} ${className}`}
       aria-label="Get number — sign in to view full phone number"
     >
-      <div className="relative z-10 flex items-center gap-2 lg:gap-3">
-        <Phone className="h-5 w-5 flex-shrink-0 text-gold lg:h-6 lg:w-6" aria-hidden />
-        <span className="font-mono text-sm font-semibold tracking-wide text-white/90 lg:text-base">{masked}</span>
+      <div className="relative z-10 flex items-center gap-1 sm:gap-2">
+        <Phone className={`${iconClass} shrink-0 text-gold`} aria-hidden />
+        <span className={`font-mono font-semibold tracking-wide text-white/90 ${textClass}`}>{masked}</span>
       </div>
 
-      <div className="relative z-10 flex min-h-[1.5rem] items-center justify-center overflow-hidden rounded-md bg-navy-light/40 py-1">
-        <span className="relative z-20 text-xs font-bold uppercase tracking-widest text-gold/90 lg:text-sm">
+      <div className={`relative z-10 flex items-center justify-center overflow-hidden rounded-md bg-navy-light/40 ${dense ? 'min-h-[1rem] py-0.5' : 'min-h-[1.5rem] py-1'}`}>
+        <span className={`relative z-20 font-bold uppercase tracking-wider text-gold/90 ${dense ? 'text-[8px]' : 'text-xs lg:text-sm'}`}>
           Get number
         </span>
         <div

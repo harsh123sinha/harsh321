@@ -2,10 +2,19 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
+import {
+  CAROUSEL_WIDTH_SHELL,
+  CAROUSEL_ARROW_LEFT,
+  CAROUSEL_ARROW_RIGHT,
+  CAROUSEL_SCROLLER,
+  CAROUSEL_SCROLLER_PAD,
+  CAROUSEL_SCROLL_HINT,
+} from '../../constants/carouselLayout';
 
-/** Horizontal carousel for featured projects — mobile swipe + desktop arrows. */
+/** Full-width featured projects carousel — touchpad swipe + arrow buttons. */
 export default function FeaturedProjectsCarousel({ projects }) {
   const scrollerRef = useRef(null);
+  const containerRef = useRef(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [scrollable, setScrollable] = useState(false);
@@ -21,7 +30,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
 
   useEffect(() => {
     const el = scrollerRef.current;
-    if (!el) return;
+    if (!el) return undefined;
     syncScrollState();
     el.addEventListener('scroll', syncScrollState, { passive: true });
     const ro = new ResizeObserver(syncScrollState);
@@ -32,7 +41,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
     };
   }, [projects, syncScrollState]);
 
-  useNaturalHorizontalScroll(scrollerRef, [projects?.length]);
+  useNaturalHorizontalScroll(scrollerRef, containerRef, [projects?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;
@@ -44,7 +53,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
   if (!projects?.length) return null;
 
   return (
-    <div className="relative px-1 sm:px-10 md:px-12">
+    <div ref={containerRef} className={CAROUSEL_WIDTH_SHELL}>
       {scrollable && (
         <>
           <button
@@ -52,24 +61,24 @@ export default function FeaturedProjectsCarousel({ projects }) {
             aria-label="Previous projects"
             disabled={atStart}
             onClick={() => scrollByDir(-1)}
-            className="absolute left-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-stone-200 bg-white p-2.5 text-navy shadow-md transition hover:bg-navy hover:text-white disabled:opacity-30 sm:flex"
+            className={CAROUSEL_ARROW_LEFT}
           >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
           <button
             type="button"
             aria-label="Next projects"
             disabled={atEnd}
             onClick={() => scrollByDir(1)}
-            className="absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-stone-200 bg-white p-2.5 text-navy shadow-md transition hover:bg-navy hover:text-white disabled:opacity-30 sm:flex"
+            className={CAROUSEL_ARROW_RIGHT}
           >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
         </>
       )}
 
       {scrollable && (
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-1 sm:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-2 sm:hidden">
           <button
             type="button"
             aria-label="Previous"
@@ -77,7 +86,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
             onClick={() => scrollByDir(-1)}
             className="pointer-events-auto rounded-full border border-stone-200 bg-white/90 p-2 text-navy shadow-md disabled:opacity-30"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
           <button
             type="button"
@@ -86,7 +95,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
             onClick={() => scrollByDir(1)}
             className="pointer-events-auto rounded-full border border-stone-200 bg-white/90 p-2 text-navy shadow-md disabled:opacity-30"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5" aria-hidden />
           </button>
         </div>
       )}
@@ -97,19 +106,32 @@ export default function FeaturedProjectsCarousel({ projects }) {
         role="region"
         aria-roledescription="carousel"
         aria-label="Featured projects"
-        className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] sm:gap-5 md:gap-6 [&::-webkit-scrollbar]:hidden"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            scrollByDir(-1);
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            scrollByDir(1);
+          }
+        }}
+        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD} select-none`}
       >
         {projects.map((project) => (
           <div
             key={project.id}
-            className="w-[min(92vw,22rem)] shrink-0 snap-start sm:w-[26rem] md:w-[28rem] lg:w-[30rem]"
+            className="w-[min(100%,22rem)] shrink-0 snap-start sm:w-[26rem] md:w-[28rem] lg:w-[30rem]"
           >
             <ProjectCard project={project} />
           </div>
         ))}
       </div>
 
-      <p className="mt-1 text-center text-[11px] text-stone-500 sm:hidden">Swipe to see more projects</p>
+      {scrollable && (
+        <p className="mt-2 text-center text-[11px] text-stone-500 sm:text-xs">
+          {CAROUSEL_SCROLL_HINT}
+        </p>
+      )}
     </div>
   );
 }

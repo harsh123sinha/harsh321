@@ -7,6 +7,7 @@ import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCateg
 import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../../constants/propertyForm';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
 import BrandLoader from '../ui/BrandLoader';
+import ImageCaptureInput from '../common/ImageCaptureInput';
 
 function parseImages(imageUrl) {
   if (!imageUrl) return [];
@@ -833,18 +834,17 @@ export default function ManageProperties({ variant }) {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-navy mb-1">
-                  {modal === 'add' ? 'Photos' : 'Add more photos'}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="w-full text-sm"
-                  onChange={(e) => setNewFiles(Array.from(e.target.files || []))}
-                />
-              </div>
+              <ImageCaptureInput
+                label={modal === 'add' ? 'Photos' : 'Add more photos'}
+                multiple
+                captureFacing="environment"
+                onChange={(files) => setNewFiles((prev) => [...prev, ...files])}
+                hint={
+                  newFiles.length
+                    ? `${newFiles.length} new photo(s) selected.`
+                    : 'Take photos with camera or choose from gallery.'
+                }
+              />
 
               <div className="flex gap-2 pt-2">
                 <button type="submit" className="flex-1 bg-gold text-navy py-2 rounded-lg font-bold">

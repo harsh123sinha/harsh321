@@ -308,6 +308,53 @@ export const getPropertyWhatsAppHref = (property, listingUrl, recipientOverride)
   return `https://wa.me/${to}?text=${encodeURIComponent(text)}`;
 };
 
+/** Employee reference shown on Our Services cards (matches backend HTLS-EMP-000001). */
+export const formatEmployeeId = (workerId) => {
+  const n = Number(workerId);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  return `HTLS-EMP-${String(Math.trunc(n)).padStart(6, '0')}`;
+};
+
+export const getContactOfficePhones = () => {
+  const p1 = import.meta.env.VITE_CONTACT_OFFICE_1 || DEFAULT_SITE_INQUIRY_PHONE;
+  const p2 = import.meta.env.VITE_CONTACT_OFFICE_2 || DEFAULT_SITE_INQUIRY_PHONE;
+  return [p1, p2].filter((p, i, arr) => p && arr.indexOf(p) === i);
+};
+
+export const getWhatsAppRecipientForVendor = () => getWhatsAppRecipientForProperty(null);
+
+export const buildVendorWhatsAppMessage = (vendor, { listing = null, categoryLabel = '' } = {}) => {
+  if (!vendor) return '';
+  const employeeId = vendor.employee_id || formatEmployeeId(vendor.id);
+  const lines = [
+    'Hi, I am interested in this service on HarshToLetServices:',
+    '',
+    `*Employee ID:* ${employeeId}`,
+    `*Name:* ${vendor.name || ''}`,
+    `*Service:* ${vendor.profession || ''}`,
+  ];
+  if (categoryLabel) lines.push(`*Category:* ${categoryLabel}`);
+  if (vendor.description) {
+    lines.push('', '*About:*', vendor.description.slice(0, 500));
+  }
+  if (listing) {
+    lines.push('', '*Listing:*', listing.title || listing.material_type || 'Service listing');
+    if (listing.id) lines.push(`*Listing ID:* ${listing.id}`);
+    if (listing.rate_amount != null) {
+      lines.push(`*Rate:* ₹${Number(listing.rate_amount).toLocaleString('en-IN')}`);
+    }
+  }
+  lines.push('', 'Please share availability and pricing.');
+  return lines.join('\n');
+};
+
+export const getVendorWhatsAppHref = (vendor, options = {}) => {
+  const to = getWhatsAppRecipientForVendor();
+  if (!to) return '';
+  const text = buildVendorWhatsAppMessage(vendor, options);
+  return `https://wa.me/${to}?text=${encodeURIComponent(text)}`;
+};
+
 export const isProjectListing = (item) => item?.listing_kind === 'project';
 
 export const getProjectTypeLabel = (projectType) => {

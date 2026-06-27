@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff, Briefcase, MapPin, ImagePlus } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff, Briefcase, MapPin } from 'lucide-react';
+import ImageCaptureInput from '../../components/common/ImageCaptureInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { isValidIndianMobile, getSafeInternalReturnPath } from '../../utils/helpers';
 import { buildAuthSwitchUrl } from '../../utils/addListingDraft';
@@ -127,8 +128,8 @@ const Signup = () => {
     }
   };
 
-  const handleAgentPhoto = (e) => {
-    const file = e.target.files?.[0];
+  const handleAgentPhoto = (files) => {
+    const file = files[0];
     if (!file) return;
     if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) {
       toast.error('Please choose a JPEG, PNG, or WebP image');
@@ -187,6 +188,7 @@ const Signup = () => {
       const role = result.user.role;
       if (role === 'owner') navigate('/dashboard/owner');
       else if (role === 'agent') navigate('/dashboard/agent');
+      else if (role === 'worker') navigate('/dashboard/worker');
       else if (role === 'buyer') navigate('/dashboard/buyer');
       else navigate('/');
     } else {
@@ -283,33 +285,14 @@ const Signup = () => {
               <div className="rounded-xl border-2 border-gold/30 bg-gold/5 p-4 space-y-4">
                 <p className="text-sm font-semibold text-navy">Broker profile</p>
 
-                <div>
-                  <label className="block text-sm font-medium text-navy mb-2">
-                    Profile photo <span className="text-gray font-normal">(optional)</span>
-                  </label>
-                  <div className="flex items-center gap-4">
-                    {agentPhotoPreview ? (
-                      <img
-                        src={agentPhotoPreview}
-                        alt=""
-                        className="h-16 w-16 rounded-full object-cover border-2 border-gold/40"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 rounded-full bg-navy/10 flex items-center justify-center">
-                        <ImagePlus className="h-7 w-7 text-navy/50" />
-                      </div>
-                    )}
-                    <label className="cursor-pointer text-sm font-medium text-gold hover:underline">
-                      Upload image
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleAgentPhoto}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
+                <ImageCaptureInput
+                  label="Profile photo (optional)"
+                  captureFacing="user"
+                  previewUrl={agentPhotoPreview}
+                  previewShape="circle"
+                  onChange={handleAgentPhoto}
+                  hint="Take a selfie or choose from gallery."
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-navy mb-2">Area of work *</label>

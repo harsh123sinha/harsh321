@@ -49,9 +49,9 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: 'Invalid Indian mobile number. Must start with 6-9 and be 10 digits.' });
     }
 
-    const validRoles = ['owner', 'agent', 'buyer'];
+    const validRoles = ['owner', 'agent', 'buyer', 'worker'];
     if (!validRoles.includes(roleLower)) {
-      return res.status(400).json({ error: 'Invalid role. Must be owner, agent, or buyer.' });
+      return res.status(400).json({ error: 'Invalid role. Must be owner, agent, buyer, or worker.' });
     }
 
     if (!accept_terms && accept_terms !== 'true' && accept_terms !== true) {

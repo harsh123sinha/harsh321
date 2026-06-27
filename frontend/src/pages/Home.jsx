@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Building2, Shield, Users, Award } from 'lucide-react';
 import api from '../utils/api';
 import SearchBar from '../components/search/SearchBar';
+import ServiceCategoriesMarquee from '../components/home/ServiceCategoriesMarquee';
+import EnquellPartnerBanner from '../components/home/EnquellPartnerBanner';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
@@ -51,7 +53,7 @@ const Home = () => {
   return (
     <div className={`min-h-screen ${canvas}`}>
       {/* Hero — plain dark band + underline search */}
-      <section className="relative flex min-h-[54vh] items-center overflow-hidden bg-[#0a1020] sm:min-h-[60vh] md:min-h-[66vh]">
+      <section className="relative flex min-h-[54vh] flex-col justify-center overflow-hidden bg-[#0a1020] sm:min-h-[60vh] md:min-h-[66vh]">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" aria-hidden />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pb-12 sm:pt-16 md:px-8 md:pb-14 md:pt-20">
@@ -84,11 +86,15 @@ const Home = () => {
             <SearchBar variant="underline" />
           </div>
         </div>
+
+        <div className="htls-hero-fade-up htls-hero-fade-up-4 relative z-10 mt-6 w-full pb-8 sm:mt-8 sm:pb-10 md:pb-12">
+          <ServiceCategoriesMarquee />
+        </div>
       </section>
 
-      {/* Stats — same canvas as rest of page; soft inset panel */}
-      {data?.stats && (
-        <section className={`border-b border-stone-200/80 ${canvas} py-10 sm:py-12`}>
+      {/* Stats + partner */}
+      <section className={`border-b border-stone-200/80 ${canvas} py-10 sm:py-12`}>
+        {data?.stats && (
           <div className={sectionShell}>
             <div className="mx-auto max-w-4xl rounded-2xl border border-stone-200/90 bg-white/90 px-4 py-6 shadow-sm sm:px-8 sm:py-8">
               <div className="grid grid-cols-3 gap-4 sm:gap-6 sm:divide-x sm:divide-stone-200/70">
@@ -119,8 +125,10 @@ const Home = () => {
               </div>
             </div>
           </div>
-        </section>
-      )}
+        )}
+
+        <EnquellPartnerBanner className="mt-6 sm:mt-8" />
+      </section>
 
       {/* Featured Projects — above individual properties */}
       <section className={`border-b border-stone-200/80 ${canvas} py-12 sm:py-16`}>
@@ -143,19 +151,21 @@ const Home = () => {
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
+        </div>
 
-          <div>
-            {isLoading ? (
+        <div className="mt-6 sm:mt-8">
+          {isLoading ? (
+            <div className={sectionShell}>
               <BrandLoader />
-            ) : data?.featuredProjects?.length > 0 ? (
-              <FeaturedProjectsCarousel projects={data.featuredProjects.slice(0, 12)} />
-            ) : (
-              <div className="py-10 text-center">
-                <Building2 className="mx-auto mb-3 h-12 w-12 text-stone-400" />
-                <p className="text-stone-600 text-sm">No projects listed yet</p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : data?.featuredProjects?.length > 0 ? (
+            <FeaturedProjectsCarousel projects={data.featuredProjects.slice(0, 12)} />
+          ) : (
+            <div className={`${sectionShell} py-10 text-center`}>
+              <Building2 className="mx-auto mb-3 h-12 w-12 text-stone-400" />
+              <p className="text-stone-600 text-sm">No projects listed yet</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -165,21 +175,23 @@ const Home = () => {
           <div className={sectionAccent} aria-hidden />
           <h2 className={sectionTitle}>Featured Properties</h2>
           <p className={sectionSubtitle}>Handpicked properties just for you</p>
+        </div>
 
-          <div className="mt-8 sm:mt-10">
-            {isLoading ? (
+        <div className="mt-8 sm:mt-10">
+          {isLoading ? (
+            <div className={sectionShell}>
               <BrandLoader />
-            ) : data?.featuredProperties?.length > 0 ? (
-              <FeaturedPropertiesCarousel
-                properties={data.featuredProperties.slice(0, 20)}
-              />
-            ) : (
-              <div className="py-12 text-center">
-                <Building2 className="mx-auto mb-4 h-16 w-16 text-stone-400" />
-                <p className="text-stone-600">No featured properties available</p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : data?.featuredProperties?.length > 0 ? (
+            <FeaturedPropertiesCarousel
+              properties={data.featuredProperties.slice(0, 20)}
+            />
+          ) : (
+            <div className={`${sectionShell} py-12 text-center`}>
+              <Building2 className="mx-auto mb-4 h-16 w-16 text-stone-400" />
+              <p className="text-stone-600">No featured properties available</p>
+            </div>
+          )}
         </div>
       </section>
 

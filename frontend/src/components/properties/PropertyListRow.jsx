@@ -2,16 +2,22 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
-
-const scrollerClass =
-  'scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-visible scroll-smooth pb-2 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:pb-4 sm:pt-1 md:gap-6 [&::-webkit-scrollbar]:hidden';
+import {
+  CAROUSEL_WIDTH_SHELL,
+  CAROUSEL_ARROW_LEFT,
+  CAROUSEL_ARROW_RIGHT,
+  CAROUSEL_SCROLLER,
+  CAROUSEL_SCROLLER_PAD,
+  CAROUSEL_SCROLL_HINT,
+} from '../../constants/carouselLayout';
 
 const shellClass =
-  'w-[min(86vw,310px)] flex-shrink-0 snap-start sm:w-[300px] md:w-[320px] lg:w-[340px] h-full';
+  'w-[min(100%,320px)] flex-shrink-0 snap-start sm:w-[300px] md:w-[320px] lg:w-[340px] xl:w-[360px] h-full';
 
-/** Horizontal scroll of property cards with prev/next arrows (mobile + desktop). */
+/** 85% width property strip — touchpad swipe, no visible scrollbars. */
 const PropertyListRow = ({ properties, renderCard }) => {
   const scrollerRef = useRef(null);
+  const containerRef = useRef(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [scrollable, setScrollable] = useState(false);
@@ -27,7 +33,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
 
   useEffect(() => {
     const el = scrollerRef.current;
-    if (!el) return;
+    if (!el) return undefined;
     syncScrollState();
     el.addEventListener('scroll', syncScrollState, { passive: true });
     const ro = new ResizeObserver(syncScrollState);
@@ -38,7 +44,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
     };
   }, [properties, syncScrollState]);
 
-  useNaturalHorizontalScroll(scrollerRef, [properties?.length]);
+  useNaturalHorizontalScroll(scrollerRef, containerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
     const el = scrollerRef.current;
@@ -50,7 +56,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
   if (!properties?.length) return null;
 
   return (
-    <div className="relative px-1 sm:px-10 md:px-12">
+    <div ref={containerRef} className={CAROUSEL_WIDTH_SHELL}>
       {scrollable && (
         <>
           <button
@@ -58,7 +64,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
             aria-label="Previous properties"
             disabled={atStart}
             onClick={() => scrollByDir(-1)}
-            className="absolute left-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-stone-200 bg-white p-2.5 text-navy shadow-md ring-1 ring-stone-100/80 transition hover:border-navy hover:bg-navy hover:text-white hover:ring-navy/20 disabled:pointer-events-none disabled:opacity-30 sm:flex sm:left-1 md:left-2"
+            className={CAROUSEL_ARROW_LEFT}
           >
             <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
@@ -67,7 +73,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
             aria-label="Next properties"
             disabled={atEnd}
             onClick={() => scrollByDir(1)}
-            className="absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-stone-200 bg-white p-2.5 text-navy shadow-md ring-1 ring-stone-100/80 transition hover:border-navy hover:bg-navy hover:text-white hover:ring-navy/20 disabled:pointer-events-none disabled:opacity-30 sm:flex sm:right-1 md:right-2"
+            className={CAROUSEL_ARROW_RIGHT}
           >
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
@@ -75,7 +81,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
       )}
 
       {scrollable && (
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-1 sm:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-between px-2 sm:hidden">
           <button
             type="button"
             aria-label="Previous"
@@ -112,7 +118,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
             scrollByDir(1);
           }
         }}
-        className={`${scrollerClass} -mx-4 px-4 sm:mx-0 sm:px-0`}
+        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD} select-none`}
       >
         {properties.map((property) => (
           <div key={property.id} className={`${shellClass} relative`} role="group" aria-roledescription="slide">
@@ -122,8 +128,8 @@ const PropertyListRow = ({ properties, renderCard }) => {
       </div>
 
       {scrollable && (
-        <p className="mt-1 text-center text-[11px] text-stone-500 sm:text-xs md:hidden">
-          Swipe sideways or use arrows to see more
+        <p className="mt-2 text-center text-[11px] text-stone-500 sm:text-xs">
+          {CAROUSEL_SCROLL_HINT}
         </p>
       )}
     </div>

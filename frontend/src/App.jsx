@@ -22,6 +22,8 @@ import SavedProperties from './pages/SavedProperties';
 import BrokerSearch from './pages/broker/BrokerSearch';
 import BrokerProperties from './pages/broker/BrokerProperties';
 import BrokerReviews from './pages/broker/BrokerReviews';
+import JobApply from './pages/JobApply';
+import OurVendors from './pages/OurVendors';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -31,6 +33,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 // Dashboard pages
 import OwnerDashboard from './pages/dashboards/OwnerDashboard';
 import AgentDashboard from './pages/dashboards/AgentDashboard';
+import WorkerDashboard from './pages/dashboards/WorkerDashboard';
 import BuyerDashboard from './pages/dashboards/BuyerDashboard';
 
 // Property management
@@ -105,6 +108,8 @@ function App() {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/add-property" element={<AddProperty />} />
+              <Route path="/job-apply" element={<JobApply />} />
+              <Route path="/our-vendors" element={<OurVendors />} />
             </Route>
 
             {/* Auth routes (no layout) */}
@@ -127,6 +132,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['agent']}>
                     <AgentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/worker"
+                element={
+                  <ProtectedRoute allowedRoles={['worker']}>
+                    <WorkerDashboard />
                   </ProtectedRoute>
                 }
               />

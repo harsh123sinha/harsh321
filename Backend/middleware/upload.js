@@ -82,3 +82,52 @@ export function uploadListingAssets(req, res, next) {
 }
 
 export { IMAGE_MAX_BYTES, PDF_MAX_UPLOAD_BYTES };
+
+const workerImagesMulter = multer({
+  storage,
+  limits: { fileSize: IMAGE_MAX_BYTES },
+  fileFilter,
+}).fields([
+  { name: 'worker_photo', maxCount: 1 },
+  { name: 'aadhar_image', maxCount: 1 },
+  { name: 'hall_photo', maxCount: 1 },
+]);
+
+export function uploadWorkerImages(req, res, next) {
+  workerImagesMulter(req, res, (err) => {
+    if (!err) return next();
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      err.message = `Image is too large. Maximum size is ${formatFileSizeLimit(IMAGE_MAX_BYTES)}.`;
+      err.status = 400;
+    }
+    next(err);
+  });
+}
+
+export function uploadWorkerListingImages(req, res, next) {
+  multer({
+    storage,
+    limits: { fileSize: IMAGE_MAX_BYTES },
+    fileFilter,
+  })
+    .fields([
+      { name: 'listing_images', maxCount: 4 },
+      { name: 'listing_image', maxCount: 1 },
+    ])(req, res, (err) => {
+      if (!err) return next();
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        err.message = `Image is too large. Maximum size is ${formatFileSizeLimit(IMAGE_MAX_BYTES)}.`;
+        err.status = 400;
+      }
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        err.message = 'Up to 4 images allowed per listing.';
+        err.status = 400;
+      }
+      next(err);
+    });
+}
+
+/** @deprecated use uploadWorkerListingImages */
+export function uploadWorkerListingImage(req, res, next) {
+  uploadWorkerListingImages(req, res, next);
+}

@@ -14,6 +14,8 @@ import { ensureAdminSchema } from '../utils/ensureAdminSchema.js';
 import { ensureBrokerSchema } from '../utils/ensureBrokerSchema.js';
 import { ensurePerformanceIndexes } from '../utils/ensurePerformanceIndexes.js';
 import { ensureProjectSchema } from '../utils/ensureProjectSchema.js';
+import { ensureWorkerSchema } from '../utils/ensureWorkerSchema.js';
+import { ensureServiceDetailSchema } from '../utils/ensureServiceDetailSchema.js';
 
 async function main() {
   const name = process.env.DB_NAME || 'realestate';
@@ -26,6 +28,8 @@ async function main() {
   await ensureBrokerSchema();
   await ensurePerformanceIndexes();
   await ensureProjectSchema();
+  await ensureWorkerSchema();
+  await ensureServiceDetailSchema();
 
   console.log('\nDone. You can start the API with: npm run dev');
   await db.end();

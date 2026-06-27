@@ -19,6 +19,7 @@ import {
   getContactFieldError,
   fieldErrorClass,
 } from '../../utils/contactValidation';
+import ImageCaptureInput from '../../components/common/ImageCaptureInput';
 import {
   NO_NUMBERS_FIELDS,
   NO_NUMBERS_MESSAGE,
@@ -269,12 +270,12 @@ const AddProperty = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
+  const handleImagesAdd = (files) => {
+    const next = [...images, ...files];
+    setImages(next);
     setFieldErrors((prev) => ({
       ...prev,
-      images: files.length ? '' : 'At least one property image is required.',
+      images: next.length ? '' : 'At least one property image is required.',
     }));
   };
 
@@ -888,14 +889,17 @@ const AddProperty = () => {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-navy mb-2">Images *</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
+              <ImageCaptureInput
+                label="Images"
                 required
-                className={inputClass(fieldErrors.images)}
+                multiple
+                captureFacing="environment"
+                onChange={handleImagesAdd}
+                hint={
+                  images.length
+                    ? `${images.length} image(s) selected. Take more photos or add from gallery.`
+                    : 'Take photos with your camera or choose from gallery.'
+                }
               />
               <FieldHint error={fieldErrors.images} />
             </div>
@@ -918,14 +922,17 @@ const AddProperty = () => {
             {isProject && (
               <>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-navy mb-2">Project images *</label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
+                  <ImageCaptureInput
+                    label="Project images"
                     required
-                    className={inputClass(fieldErrors.images)}
+                    multiple
+                    captureFacing="environment"
+                    onChange={handleImagesAdd}
+                    hint={
+                      images.length
+                        ? `${images.length} image(s) selected. Take more photos or add from gallery.`
+                        : 'Take photos with your camera or choose from gallery.'
+                    }
                   />
                   <FieldHint error={fieldErrors.images} />
                 </div>

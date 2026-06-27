@@ -88,6 +88,7 @@ const Login = () => {
       const role = result.user.role;
       if (role === 'owner') navigate('/dashboard/owner');
       else if (role === 'agent') navigate('/dashboard/agent');
+      else if (role === 'worker') navigate('/dashboard/worker');
       else if (role === 'buyer') navigate('/dashboard/buyer');
       else navigate('/');
     } else {

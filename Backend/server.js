@@ -7,6 +7,8 @@ import { ensureAdminSchema } from './utils/ensureAdminSchema.js';
 import { ensureBrokerSchema } from './utils/ensureBrokerSchema.js';
 import { ensurePerformanceIndexes } from './utils/ensurePerformanceIndexes.js';
 import { ensureProjectSchema } from './utils/ensureProjectSchema.js';
+import { ensureWorkerSchema } from './utils/ensureWorkerSchema.js';
+import { ensureServiceDetailSchema } from './utils/ensureServiceDetailSchema.js';
 import { isFirebaseConfigured } from './config/firebaseAdmin.js';
 
 // Import routes
@@ -18,6 +20,7 @@ import publicRoutes from './routes/publicRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
 import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './routes/brokerRoutes.js';
+import workerRoutes from './routes/workerRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -71,6 +74,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/saved-properties', savedPropertyRoutes);
 app.use('/api/brokers', brokerRoutes);
 app.use('/api/broker-customer-reviews', brokerCustomerReviewRoutes);
+app.use('/api/workers', workerRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -127,6 +131,18 @@ async function start() {
     await ensureProjectSchema();
   } catch (e) {
     console.error('⚠️ ensureProjectSchema failed:', e.message);
+  }
+
+  try {
+    await ensureWorkerSchema();
+  } catch (e) {
+    console.error('⚠️ ensureWorkerSchema failed:', e.message);
+  }
+
+  try {
+    await ensureServiceDetailSchema();
+  } catch (e) {
+    console.error('⚠️ ensureServiceDetailSchema failed:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {
