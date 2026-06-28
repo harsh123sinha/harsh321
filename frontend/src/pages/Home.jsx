@@ -1,8 +1,10 @@
+import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, Shield, Users, Award } from 'lucide-react';
 import api from '../utils/api';
 import SearchBar from '../components/search/SearchBar';
 import ServiceCategoriesMarquee from '../components/home/ServiceCategoriesMarquee';
+import HeroReachHomeAnimation from '../components/home/HeroReachHomeAnimation';
 import EnquellPartnerBanner from '../components/home/EnquellPartnerBanner';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
@@ -19,6 +21,9 @@ const sectionAccent = 'mx-auto mb-3 h-0.5 w-12 rounded-full bg-gold sm:mb-4 sm:w
 const sectionSubtitle = 'mt-2 text-center text-sm text-stone-600 sm:text-base';
 
 const Home = () => {
+  const heroRef = useRef(null);
+  const servicesGroundRef = useRef(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['homeData'],
     queryFn: async () => {
@@ -53,7 +58,11 @@ const Home = () => {
   return (
     <div className={`min-h-screen ${canvas}`}>
       {/* Hero — plain dark band + underline search */}
-      <section className="relative flex min-h-[54vh] flex-col justify-center overflow-hidden bg-[#0a1020] sm:min-h-[60vh] md:min-h-[66vh]">
+      <section
+        ref={heroRef}
+        className="relative flex min-h-[54vh] flex-col justify-center overflow-x-hidden overflow-y-visible bg-[#0a1020] sm:min-h-[60vh] md:min-h-[66vh]"
+      >
+        <HeroReachHomeAnimation heroRef={heroRef} groundRef={servicesGroundRef} />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" aria-hidden />
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pb-12 sm:pt-16 md:px-8 md:pb-14 md:pt-20">
@@ -88,7 +97,7 @@ const Home = () => {
         </div>
 
         <div className="htls-hero-fade-up htls-hero-fade-up-4 relative z-10 mt-6 w-full pb-8 sm:mt-8 sm:pb-10 md:pb-12">
-          <ServiceCategoriesMarquee />
+          <ServiceCategoriesMarquee panelRef={servicesGroundRef} />
         </div>
       </section>
 

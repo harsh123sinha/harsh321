@@ -25,8 +25,11 @@ function CategoryItem({ cat }) {
 
 /**
  * Our Services panel — heading + infinite category strip on dark navy background.
+ * @param {object} props
+ * @param {string} [props.className]
+ * @param {React.RefObject<HTMLElement>} [props.panelRef] — top border used as hero story ground
  */
-export default function ServiceCategoriesMarquee({ className = '' }) {
+export default function ServiceCategoriesMarquee({ className = '', panelRef }) {
   const scrollerRef = useRef(null);
   const pausedRef = useRef(false);
   const resumeTimerRef = useRef(null);
@@ -82,10 +85,13 @@ export default function ServiceCategoriesMarquee({ className = '' }) {
     <section
       className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:max-w-[88rem] lg:px-6 xl:max-w-[96rem] xl:px-8 2xl:max-w-[104rem] 2xl:px-10 ${className}`}
     >
-      <div className="overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-navy via-[#0c1630] to-navy-light shadow-lg">
+      <div
+        ref={panelRef}
+        className="overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-navy via-[#0c1630] to-navy-light shadow-lg"
+      >
         <div className="relative flex flex-col gap-3 border-b border-white/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
           <div className="min-w-0 text-center sm:text-left">
-            <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl md:text-2xl">
+            <h2 className="htls-services-title-shimmer text-lg font-bold tracking-tight sm:text-xl md:text-2xl">
               Our Services &amp; Vendors
             </h2>
             <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">

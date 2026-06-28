@@ -5,31 +5,38 @@ import { getContactOfficePhones } from '../../utils/helpers';
 
 /**
  * Public vendor contact — office numbers + WhatsApp (never employee personal phone).
- * Same layout on mobile and desktop; mobile uses smaller sizing only.
+ * Compact: full-width stacked actions on mobile, 2-col phones on sm+.
  */
 export default function VendorContactSection({ vendor, listing = null, categoryLabel = '', compact = false }) {
   const phones = getContactOfficePhones();
 
   return (
-    <div className={`space-y-1.5 sm:space-y-2 ${compact ? 'pt-1.5 sm:pt-2 border-t border-stone-100' : 'pt-3'}`}>
+    <div
+      className={
+        compact
+          ? 'w-full space-y-1 pt-1 sm:space-y-2 sm:pt-2 border-t border-stone-100'
+          : 'space-y-1.5 sm:space-y-2 pt-3'
+      }
+    >
       <EmployeeIdBadge
         employeeId={vendor?.employee_id}
         workerId={vendor?.id}
-        className="!text-[9px] sm:!text-[11px] !px-1.5 sm:!px-2"
+        className="!text-[8px] sm:!text-[11px] !px-1 sm:!px-2 !py-px sm:!py-0.5"
       />
-      <p className="text-[9px] sm:text-[11px] text-stone-500 leading-snug">
+      <p className="hidden sm:block text-[9px] sm:text-[11px] text-stone-500 leading-snug">
         Contact Harsh To Let Services — employee numbers stay private.
       </p>
-      <div className="grid grid-cols-2 gap-1 sm:gap-2">
+      <div className={`flex w-full flex-col gap-1 ${compact ? '' : 'sm:grid sm:grid-cols-2 sm:gap-2'}`}>
         {phones.map((phone) => (
-          <MaskedPhoneActionButton key={phone} phoneRaw={phone} dense />
+          <MaskedPhoneActionButton key={phone} phoneRaw={phone} dense className="w-full" />
         ))}
       </div>
       <VendorWhatsAppInquiryButton
         vendor={vendor}
         listing={listing}
         categoryLabel={categoryLabel}
-        className="!min-h-[36px] !py-1.5 !text-[10px] sm:!min-h-[44px] sm:!py-2 sm:!text-sm"
+        compact={compact}
+        className="!w-full !min-h-[26px] !py-0.5 !text-[8px] sm:!min-h-[32px] sm:!py-1 sm:!text-[10px] md:!min-h-[36px] md:!text-xs"
       />
     </div>
   );

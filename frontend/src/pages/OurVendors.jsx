@@ -15,35 +15,39 @@ import {
 } from '../constants/workerProfessions';
 import { formatMaterialListingRate } from '../constants/workerProfileTypes';
 
-const cardShell = 'rounded-xl sm:rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow';
-const cardImg = 'h-28 sm:h-40 w-full object-cover';
-const cardBody = 'p-2 sm:p-4 space-y-1 sm:space-y-2';
-const cardTitle = 'font-bold text-navy text-sm sm:text-base';
-const cardSub = 'text-[10px] sm:text-xs text-stone-500';
-const cardText = 'text-[11px] sm:text-sm text-stone-600';
+const cardShell =
+  'flex h-full flex-col rounded-md sm:rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow';
+const cardImg = 'h-11 sm:h-28 md:h-32 w-full object-cover shrink-0';
+const cardBody = 'flex flex-1 flex-col p-1 sm:p-2 md:p-2.5 space-y-px sm:space-y-1 min-h-0';
+const cardTitle = 'font-bold text-navy text-[9px] leading-tight line-clamp-1 sm:text-xs md:text-sm';
+const cardSub = 'text-[7px] leading-tight line-clamp-1 sm:text-[10px] md:text-xs text-stone-500';
+const cardText = 'hidden md:block text-xs text-stone-600 line-clamp-2';
+const cardPrice = 'text-[8px] sm:text-[10px] md:text-xs font-semibold text-navy leading-tight line-clamp-2';
 
 function MarriageHallCard({ vendor, categoryLabel }) {
   return (
     <div className={cardShell}>
-      <img src={vendor.hall_image_url || vendor.worker_image_url} alt={vendor.name} className={`${cardImg} sm:h-44`} />
+      <img src={vendor.hall_image_url || vendor.worker_image_url} alt={vendor.name} className={cardImg} />
       <div className={cardBody}>
-        <h3 className={`${cardTitle} sm:text-lg`}>{vendor.name}</h3>
-        <p className="text-[10px] sm:text-sm text-gold font-medium">{vendor.profession}</p>
-        <p className={`${cardText} line-clamp-2`}>{vendor.description}</p>
-        <div className="grid grid-cols-2 gap-1 sm:gap-2 text-[9px] sm:text-xs text-stone-600">
-          <span>Area: {Number(vendor.area_sqft).toLocaleString('en-IN')} sq ft</span>
-          <span>Outside: {vendor.outside_caterers_allowed ? 'Yes' : 'No'}</span>
-          <span className="font-semibold text-navy col-span-2">
+        <h3 className={`${cardTitle} md:text-base`}>{vendor.name}</h3>
+        <p className="text-[7px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1">{vendor.profession}</p>
+        <p className={cardText}>{vendor.description}</p>
+        <div className="grid grid-cols-1 gap-px sm:grid-cols-2 sm:gap-2 text-[8px] sm:text-xs text-stone-600 leading-tight">
+          <span className="line-clamp-1">Area: {Number(vendor.area_sqft).toLocaleString('en-IN')} sq ft</span>
+          <span className="line-clamp-1">Outside: {vendor.outside_caterers_allowed ? 'Yes' : 'No'}</span>
+          <span className={`font-semibold text-navy col-span-2 line-clamp-1`}>
             Hall: ₹{Number(vendor.hall_booking_cost).toLocaleString('en-IN')}
           </span>
           {vendor.veg_platter_cost != null && (
-            <span>Veg: ₹{Number(vendor.veg_platter_cost).toLocaleString('en-IN')}/plate</span>
+            <span className="line-clamp-1">Veg: ₹{Number(vendor.veg_platter_cost).toLocaleString('en-IN')}/plate</span>
           )}
           {vendor.nonveg_platter_cost != null && (
-            <span>Non-veg: ₹{Number(vendor.nonveg_platter_cost).toLocaleString('en-IN')}/plate</span>
+            <span className="line-clamp-1">Non-veg: ₹{Number(vendor.nonveg_platter_cost).toLocaleString('en-IN')}/plate</span>
           )}
         </div>
-        <VendorContactSection vendor={vendor} categoryLabel={categoryLabel} compact />
+        <div className="mt-auto">
+          <VendorContactSection vendor={vendor} categoryLabel={categoryLabel} compact />
+        </div>
       </div>
     </div>
   );
@@ -56,17 +60,21 @@ function StandardVendorCard({ vendor, categoryLabel }) {
       {img && <img src={img} alt={vendor.name} className={cardImg} />}
       <div className={cardBody}>
         <h3 className={cardTitle}>{vendor.name}</h3>
-        <p className="text-[10px] sm:text-sm text-gold font-medium">{vendor.profession}</p>
+        <p className="text-[7px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1">{vendor.profession}</p>
         <p className={cardSub}>{getCategoryLabelByProfession(vendor.profession)}</p>
-        <p className={`${cardText} line-clamp-2`}>{vendor.description}</p>
+        <p className={cardText}>{vendor.description}</p>
         {vendor.working_hours_per_day && (
-          <p className={cardSub}>{vendor.working_hours_per_day} hrs/day · Off: {vendor.off_day}</p>
+          <p className={`hidden sm:block ${cardSub}`}>
+            {vendor.working_hours_per_day} hrs/day · Off: {vendor.off_day}
+          </p>
         )}
-        <p className="text-[11px] sm:text-sm font-semibold text-navy flex items-center gap-1">
-          <IndianRupee className="h-3 w-3 sm:h-4 sm:w-4 text-gold shrink-0" />
-          {formatWorkerPrice(vendor) || 'Contact for pricing'}
+        <p className={`${cardPrice} flex items-center gap-0.5 sm:gap-1`}>
+          <IndianRupee className="h-2 w-2 sm:h-3 sm:w-3 text-gold shrink-0" />
+          <span className="line-clamp-2">{formatWorkerPrice(vendor) || 'Contact for pricing'}</span>
         </p>
-        <VendorContactSection vendor={vendor} categoryLabel={categoryLabel} compact />
+        <div className="mt-auto">
+          <VendorContactSection vendor={vendor} categoryLabel={categoryLabel} compact />
+        </div>
       </div>
     </div>
   );
@@ -109,10 +117,12 @@ function ListingItemCard({ listing, vendor, categoryLabel }) {
             {listing.vehicle_type} · {listing.rental_mode?.replace('_', ' ')}
             {listing.model_year ? ` · ${listing.model_year}` : ''}
           </p>
-          <p className="text-[11px] sm:text-sm font-semibold text-navy">{costLabel}</p>
+          <p className={cardPrice}>{costLabel}</p>
           {kmLine && <p className={cardSub}>{kmLine}</p>}
-          {listing.description && <p className={`${cardText} line-clamp-2`}>{listing.description}</p>}
-          <VendorContactSection vendor={vendor} listing={listing} categoryLabel={categoryLabel} compact />
+          {listing.description && <p className={cardText}>{listing.description}</p>}
+          <div className="mt-auto">
+            <VendorContactSection vendor={vendor} listing={listing} categoryLabel={categoryLabel} compact />
+          </div>
         </div>
       </div>
     );
@@ -124,9 +134,11 @@ function ListingItemCard({ listing, vendor, categoryLabel }) {
       <div className={cardBody}>
         <h3 className={cardTitle}>{listing.material_type || listing.title}</h3>
         <p className={cardSub}>{vendor.name} · Building material</p>
-        {listing.description && <p className={`${cardText} line-clamp-2`}>{listing.description}</p>}
-        <p className="text-[11px] sm:text-sm font-semibold text-navy">{formatMaterialListingRate(listing)}</p>
-        <VendorContactSection vendor={vendor} listing={listing} categoryLabel={categoryLabel} compact />
+        {listing.description && <p className={cardText}>{listing.description}</p>}
+        <p className={`${cardPrice} line-clamp-2`}>{formatMaterialListingRate(listing)}</p>
+        <div className="mt-auto">
+          <VendorContactSection vendor={vendor} listing={listing} categoryLabel={categoryLabel} compact />
+        </div>
       </div>
     </div>
   );
@@ -222,42 +234,73 @@ export default function OurVendors() {
         </div>
       </div>
 
-      {/* Same side-by-side layout as desktop — narrower / smaller on mobile */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-6 flex flex-row gap-2 sm:gap-4 min-h-[70vh]">
-        <aside className="w-28 sm:w-44 md:w-52 lg:w-64 shrink-0 bg-white rounded-lg sm:rounded-xl border border-stone-200 overflow-hidden flex flex-col max-h-[75vh] lg:max-h-none">
-          <div className="p-1.5 sm:p-3 border-b border-stone-100">
-            <p className="text-[10px] sm:text-sm font-bold text-navy mb-1 sm:mb-2">Categories</p>
-            <div className="relative">
-              <Search className="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-stone-400" />
-              <input
-                value={categorySearch}
-                onChange={(e) => setCategorySearch(e.target.value)}
-                placeholder="Search…"
-                className="w-full pl-6 sm:pl-8 pr-1.5 sm:pr-3 py-1 sm:py-2 text-[10px] sm:text-sm border border-stone-200 rounded-md sm:rounded-lg focus:outline-none focus:border-gold"
-              />
+      {/* Categories + scrollable 3-column vendor grid */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-6">
+        {/* Mobile / tablet — horizontal category strip (full width for 3-col grid) */}
+        <div className="lg:hidden mb-3 space-y-2">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+            <input
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              placeholder="Search categories…"
+              className="w-full pl-8 pr-3 py-2 text-xs border border-stone-200 rounded-lg bg-white focus:outline-none focus:border-gold"
+            />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-0.5 px-0.5">
+            {filteredCategories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategorySelect(cat.id)}
+                className={`shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium leading-tight transition-colors ${
+                  categoryId === cat.id
+                    ? 'border-gold bg-gold/15 text-navy font-semibold'
+                    : 'border-stone-200 bg-white text-stone-700'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-3 lg:gap-5">
+          {/* Desktop — category sidebar */}
+          <aside className="hidden lg:flex lg:w-48 xl:w-56 shrink-0 bg-white rounded-xl border border-stone-200 overflow-hidden flex-col lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)]">
+            <div className="p-3 border-b border-stone-100">
+              <p className="text-sm font-bold text-navy mb-2">Categories</p>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                <input
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  placeholder="Search…"
+                  className="w-full pl-8 pr-3 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:border-gold"
+                />
+              </div>
             </div>
-          </div>
-          <div className="overflow-y-auto flex-1">
-            {filteredCategories.length === 0 ? (
-              <p className="px-2 sm:px-4 py-4 text-[10px] sm:text-sm text-stone-500 text-center">No match.</p>
-            ) : (
-              filteredCategories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => handleCategorySelect(cat.id)}
-                  className={`w-full text-left px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-sm leading-tight border-b border-stone-50 transition-colors ${
-                    categoryId === cat.id
-                      ? 'bg-gold/10 border-l-4 border-l-gold font-semibold text-navy'
-                      : 'text-stone-700 hover:bg-stone-50'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))
-            )}
-          </div>
-        </aside>
+            <div className="overflow-y-auto flex-1">
+              {filteredCategories.length === 0 ? (
+                <p className="px-4 py-4 text-sm text-stone-500 text-center">No match.</p>
+              ) : (
+                filteredCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleCategorySelect(cat.id)}
+                    className={`w-full text-left px-4 py-2.5 text-sm leading-tight border-b border-stone-50 transition-colors ${
+                      categoryId === cat.id
+                        ? 'bg-gold/10 border-l-4 border-l-gold font-semibold text-navy'
+                        : 'text-stone-700 hover:bg-stone-50'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </aside>
 
         <main className="flex-1 min-w-0">
           {!categoryId && (
@@ -316,7 +359,7 @@ export default function OurVendors() {
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 items-stretch pb-6">
                   {displayCards.map((card) => {
                     if (card.type === 'listing') {
                       return (
@@ -350,6 +393,7 @@ export default function OurVendors() {
             </>
           )}
         </main>
+        </div>
       </div>
     </div>
   );
