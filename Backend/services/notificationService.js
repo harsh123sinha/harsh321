@@ -82,3 +82,24 @@ export async function sendBrokerReviewRequest({ userId, broker, propertyId }) {
     sendPush: true,
   });
 }
+
+export async function sendWorkerReviewRequest({ userId, worker }) {
+  const referenceKey = `worker_review_${worker.id}_${Date.now()}`;
+  return deliverNotification({
+    userId,
+    type: 'worker_review_request',
+    title: 'Review your service provider',
+    body: 'Please share your experience with our vendor.',
+    data: {
+      type: 'worker_review_request',
+      openWorkerReviewModal: true,
+      workerId: worker.id,
+      employeeId: worker.employee_id || null,
+      workerName: worker.name,
+      workerPhoto: worker.worker_image_url || worker.hall_image_url || null,
+      workerProfession: worker.profession || null,
+    },
+    referenceKey,
+    sendPush: true,
+  });
+}

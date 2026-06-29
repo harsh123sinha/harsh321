@@ -20,7 +20,7 @@ import publicRoutes from './routes/publicRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
 import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './routes/brokerRoutes.js';
-import workerRoutes from './routes/workerRoutes.js';
+import workerRoutes, { reviewRouter as workerCustomerReviewRoutes } from './routes/workerRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -75,6 +75,7 @@ app.use('/api/saved-properties', savedPropertyRoutes);
 app.use('/api/brokers', brokerRoutes);
 app.use('/api/broker-customer-reviews', brokerCustomerReviewRoutes);
 app.use('/api/workers', workerRoutes);
+app.use('/api/worker-customer-reviews', workerCustomerReviewRoutes);
 
 // 404 handler
 app.use((req, res) => {

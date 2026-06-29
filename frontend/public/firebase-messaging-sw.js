@@ -42,9 +42,9 @@ messaging.onBackgroundMessage((payload) => {
 
   return self.registration.showNotification(title, {
     body,
-    icon: self.location.origin + '/favicon.svg',
+    icon: self.location.origin + '/favicon-32.png',
     image,
-    badge: self.location.origin + '/favicon.svg',
+    badge: self.location.origin + '/favicon-32.png',
     data: { url: clickUrl },
     tag: payload.data?.propertyId ? `property-${payload.data.propertyId}` : 'harsh-notification',
     renotify: true,

@@ -12,6 +12,13 @@ export const workerModel = {
     return rows[0] || null;
   },
 
+  findByEmployeeId: async (employeeId) => {
+    const id = String(employeeId || '').trim();
+    if (!id) return null;
+    const [rows] = await db.execute('SELECT * FROM worker WHERE employee_id = ? LIMIT 1', [id]);
+    return rows[0] || null;
+  },
+
   create: async (data) => {
     const query = `
       INSERT INTO worker (
@@ -122,5 +129,27 @@ export const workerModel = {
     const employee_id = formatEmployeeId(workerId);
     await db.execute('UPDATE worker SET employee_id = ? WHERE id = ?', [employee_id, workerId]);
     return employee_id;
+  },
+
+  findAllForAdmin: async ({ q = '' } = {}) => {
+    let query = `
+      SELECT w.*, u.name AS user_name, u.email AS user_account_email, u.phone_number AS user_phone
+      FROM worker w
+      JOIN \`user\` u ON u.id = w.user_id
+      WHERE 1=1
+    `;
+    const params = [];
+    const term = String(q || '').trim();
+    if (term) {
+      query += ` AND (
+        w.name LIKE ? OR w.email LIKE ? OR w.phone_number LIKE ? OR w.profession LIKE ?
+        OR w.employee_id LIKE ? OR CAST(w.id AS CHAR) LIKE ?
+      )`;
+      const like = `%${term}%`;
+      params.push(like, like, like, like, like, like);
+    }
+    query += ' ORDER BY w.id DESC LIMIT 500';
+    const [rows] = await db.execute(query, params);
+    return rows;
   },
 };

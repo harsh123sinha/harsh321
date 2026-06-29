@@ -33,7 +33,7 @@ export function showBrowserNotification({ title, body, image, url, tag }) {
   try {
     const n = new Notification(title, {
       body,
-      icon: '/favicon.svg',
+      icon: '/favicon-32.png',
       image: image || DEFAULT_PROPERTY_IMAGE,
       tag: tag || 'harsh-notification',
       data: { url },

@@ -9,6 +9,8 @@ import {
   CAROUSEL_SCROLLER,
   CAROUSEL_SCROLLER_PAD,
   CAROUSEL_SCROLL_HINT,
+  scrollCarouselByDir,
+  CAROUSEL_SLIDE,
 } from '../../constants/carouselLayout';
 
 /** Full-width featured projects carousel — touchpad swipe + arrow buttons. */
@@ -44,10 +46,7 @@ export default function FeaturedProjectsCarousel({ projects }) {
   useNaturalHorizontalScroll(scrollerRef, containerRef, [projects?.length]);
 
   const scrollByDir = (dir) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const step = Math.max(300, Math.round(el.clientWidth * 0.8));
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    scrollCarouselByDir(scrollerRef.current, dir);
   };
 
   if (!projects?.length) return null;
@@ -115,12 +114,13 @@ export default function FeaturedProjectsCarousel({ projects }) {
             scrollByDir(1);
           }
         }}
-        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD} select-none`}
+        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD}`}
       >
         {projects.map((project) => (
           <div
             key={project.id}
-            className="w-[min(100%,22rem)] shrink-0 snap-start sm:w-[26rem] md:w-[28rem] lg:w-[30rem]"
+            data-carousel-slide
+            className={`w-[min(100%,22rem)] sm:w-[26rem] md:w-[28rem] lg:w-[30rem] ${CAROUSEL_SLIDE}`}
           >
             <ProjectCard project={project} />
           </div>

@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck } from 'lucide-react';
 import api from '../utils/api';
 import NotificationItem from '../components/notifications/NotificationItem';
+import BrokerReviewModal from '../components/brokers/BrokerReviewModal';
+import WorkerCustomerReviewModal from '../components/workers/WorkerCustomerReviewModal';
 import { getNotificationPropertyPath } from '../utils/notifications';
 import BrandLoader from '../components/ui/BrandLoader';
 
 const Notifications = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [brokerReviewModal, setBrokerReviewModal] = useState(null);
+  const [workerReviewModal, setWorkerReviewModal] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['notifications', 'list', 'full'],
@@ -28,7 +33,38 @@ const Notifications = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
+  const closeModals = () => {
+    setBrokerReviewModal(null);
+    setWorkerReviewModal(null);
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  };
+
   const handleClick = (n) => {
+    if (n.type === 'broker_review_request' || (n.data?.openReviewModal && n.data?.brokerId)) {
+      if (!n.is_read) markReadMutation.mutate(n.id);
+      setBrokerReviewModal({
+        brokerId: n.data?.brokerId,
+        brokerName: n.data?.brokerName,
+        brokerPhoto: n.data?.brokerPhoto,
+        propertyId: n.data?.propertyId,
+        notificationId: n.id,
+      });
+      return;
+    }
+
+    if (n.type === 'worker_review_request' || n.data?.openWorkerReviewModal) {
+      if (!n.is_read) markReadMutation.mutate(n.id);
+      setWorkerReviewModal({
+        workerId: n.data?.workerId,
+        employeeId: n.data?.employeeId,
+        workerName: n.data?.workerName,
+        workerPhoto: n.data?.workerPhoto,
+        workerProfession: n.data?.workerProfession,
+        notificationId: n.id,
+      });
+      return;
+    }
+
     if (!n.is_read) markReadMutation.mutate(n.id);
     const path = getNotificationPropertyPath(n.data);
     if (path) navigate(path);
@@ -70,6 +106,27 @@ const Notifications = () => {
           )}
         </div>
       </div>
+
+      <BrokerReviewModal
+        open={Boolean(brokerReviewModal)}
+        brokerId={brokerReviewModal?.brokerId}
+        brokerName={brokerReviewModal?.brokerName}
+        brokerPhoto={brokerReviewModal?.brokerPhoto}
+        propertyId={brokerReviewModal?.propertyId}
+        notificationId={brokerReviewModal?.notificationId}
+        onClose={closeModals}
+      />
+
+      <WorkerCustomerReviewModal
+        open={Boolean(workerReviewModal)}
+        workerId={workerReviewModal?.workerId}
+        employeeId={workerReviewModal?.employeeId}
+        workerName={workerReviewModal?.workerName}
+        workerPhoto={workerReviewModal?.workerPhoto}
+        workerProfession={workerReviewModal?.workerProfession}
+        notificationId={workerReviewModal?.notificationId}
+        onClose={closeModals}
+      />
     </div>
   );
 };

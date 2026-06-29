@@ -33,6 +33,11 @@ import {
   resolveListingStatus,
 } from '../utils/propertyListingGuard.js';
 import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
+import { workerModel } from '../models/workerModel.js';
+import { enrichWorkersWithServiceDetails } from '../models/serviceDetailModel.js';
+import { workerCustomerReviewModel } from '../models/workerCustomerReviewModel.js';
+import { formatEmployeeId } from '../utils/employeeId.js';
+import { findCategoryIdByProfession } from '../utils/workerProfessions.js';
 
 // Admin login
 export const adminLogin = async (req, res) => {
@@ -733,6 +738,46 @@ export const deleteSubAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete sub-admin error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/** All workers with full details including phone numbers (admin only) */
+export const adminGetAllWorkers = async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    let workers = await workerModel.findAllForAdmin({ q });
+
+    await Promise.all(workers.map((w) => workerModel.ensureEmployeeId(w.id)));
+    workers = await workerModel.findAllForAdmin({ q });
+    const enriched = await enrichWorkersWithServiceDetails(workers);
+    const workerIds = enriched.map((w) => w.id);
+    const allReviews = await workerCustomerReviewModel.findByWorkerIds(workerIds);
+    const reviewsByWorker = new Map();
+    for (const r of allReviews) {
+      if (!reviewsByWorker.has(r.worker_id)) reviewsByWorker.set(r.worker_id, []);
+      reviewsByWorker.get(r.worker_id).push(r);
+    }
+
+    const rows = enriched.map((w) => ({
+      ...w,
+      employee_id: w.employee_id || formatEmployeeId(w.id),
+      category_id: findCategoryIdByProfession(w.profession),
+      profile_complete: Boolean(w.profile_complete),
+      outside_caterers_allowed:
+        w.outside_caterers_allowed === null || w.outside_caterers_allowed === undefined
+          ? null
+          : Boolean(w.outside_caterers_allowed),
+      harsh_rating_avg: w.harsh_rating_avg != null ? Number(w.harsh_rating_avg) : null,
+      review_count: Number(w.review_count || 0),
+      customer_rating_avg: w.customer_rating_avg != null ? Number(w.customer_rating_avg) : null,
+      customer_review_count: Number(w.customer_review_count || 0),
+      reviews: reviewsByWorker.get(w.id) || [],
+    }));
+
+    res.json({ success: true, workers: rows, total: rows.length });
+  } catch (error) {
+    console.error('adminGetAllWorkers:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

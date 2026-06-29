@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, LogIn, LogOut, User, Building2, Bookmark, Briefcase } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, Bookmark, Briefcase } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
+import BrandMark from '../brand/BrandMark';
+import MobileMenu from './MobileMenu';
 
 const PostPropertyButton = ({ className = '', onClick, compact = false }) => (
   <Link
@@ -11,7 +13,7 @@ const PostPropertyButton = ({ className = '', onClick, compact = false }) => (
     className={
       compact
         ? `inline-flex shrink-0 items-center gap-1 rounded-md bg-gold px-2 py-1 text-[10px] font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 ${className}`
-        : `inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy shadow-sm transition hover:bg-gold/90 ${className}`
+        : `inline-flex flex-row flex-nowrap items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 ${className}`
     }
   >
     {compact ? 'Post' : 'Post Property'}
@@ -41,8 +43,7 @@ const MobileQuickLink = ({ to, onClick, children, highlight = false }) => (
   </Link>
 );
 
-const JOB_APPLY_COLOR =
-  'bg-[rgb(149,0,0)] hover:bg-[rgb(120,0,0)] ring-1 ring-[rgb(149,0,0)]/45';
+const JOB_APPLY_COLOR = 'bg-[rgb(149,0,0)] hover:bg-[rgb(120,0,0)]';
 
 const JobApplyButton = ({ onClick, compact = false }) => (
   <Link
@@ -55,8 +56,8 @@ const JobApplyButton = ({ onClick, compact = false }) => (
         : `htls-job-apply-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold leading-none text-white shadow-sm transition ${JOB_APPLY_COLOR}`
     }
   >
-    <Briefcase className={compact ? 'h-3 w-3 shrink-0' : 'h-4 w-4 shrink-0'} />
-    Job Apply
+    <Briefcase className={`relative z-[2] shrink-0 ${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+    <span className="relative z-[2]">Job Apply</span>
   </Link>
 );
 
@@ -64,8 +65,6 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-
-  const isWorker = isAuthenticated && user?.role === 'worker';
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -75,6 +74,16 @@ const Navbar = () => {
       document.body.style.overflow = prev;
     };
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.matchMedia('(min-width: 1922px)').matches) {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -119,28 +128,7 @@ const Navbar = () => {
     </Link>
   );
 
-  const workerActions = (
-    <>
-      <Link
-        to="/dashboard/worker"
-        onClick={closeMenu}
-        className="text-white hover:text-gold transition-colors duration-200 font-medium inline-flex items-center gap-1.5 text-sm"
-      >
-        <User className="h-4 w-4 shrink-0" />
-        <span>Dashboard</span>
-      </Link>
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="bg-gold text-navy px-4 py-2 rounded-lg font-semibold hover:bg-gold/90 transition-colors duration-200 inline-flex items-center gap-1.5 text-sm"
-      >
-        <LogOut className="h-4 w-4 shrink-0" />
-        <span>Logout</span>
-      </button>
-    </>
-  );
-
-  const authenticatedActions = (
+  const authenticatedLeadingActions = (
     <>
       <NotificationBell />
       <Link
@@ -149,66 +137,68 @@ const Navbar = () => {
         title="Saved properties"
       >
         <Bookmark className="h-4 w-4 shrink-0" />
-        <span className="hidden lg:inline">Saved</span>
+        <span>Saved</span>
       </Link>
       <Link
         to={getDashboardLink()}
         className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-white transition-colors duration-200 hover:text-gold"
       >
         <User className="h-4 w-4 shrink-0" />
-        <span className="hidden lg:inline">Dashboard</span>
+        <span>Dashboard</span>
       </Link>
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="flex items-center gap-1 whitespace-nowrap rounded-lg bg-gold px-3 py-2 text-sm font-semibold text-navy transition-colors duration-200 hover:bg-gold/90 lg:px-5"
-      >
-        <LogOut className="h-4 w-4 shrink-0" />
-        <span className="hidden lg:inline">Logout</span>
-      </button>
     </>
   );
 
-  if (isWorker) {
-    return (
-      <nav className="bg-navy sticky top-0 z-50 shadow-lg">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 md:h-16 gap-3">
-            <Link to="/dashboard/worker" className="flex min-w-0 items-center gap-2 touch-target">
-              <Building2 className="h-7 w-7 md:h-8 md:w-8 shrink-0 text-gold" />
-              <span className="truncate text-sm md:text-xl font-bold text-white">HarshToLetServices</span>
-            </Link>
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-              {workerActions}
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  const logoutButton = (
+    <button
+      type="button"
+      onClick={handleLogout}
+      className="flex items-center gap-1 whitespace-nowrap rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-navy transition-colors duration-200 hover:bg-gold/90"
+    >
+      <LogOut className="h-4 w-4 shrink-0" />
+      <span>Logout</span>
+    </button>
+  );
 
   return (
     <nav className="bg-navy sticky top-0 z-50 shadow-lg">
-      <div className="mx-auto max-w-7xl px-1.5 sm:px-6 lg:max-w-[88rem] lg:px-8 xl:max-w-[96rem]">
-        {/* Mobile header */}
-        <div className="md:hidden relative">
-          <div className="flex items-center justify-between gap-2 py-2 pl-0.5">
-            <Link to="/" className="flex min-w-0 flex-1 items-center gap-1.5 touch-target">
-              <Building2 className="h-6 w-6 shrink-0 text-gold" />
-              <span className="truncate text-sm font-bold text-white">HarshToLetServices</span>
+      <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 nav:max-w-none nav:px-0">
+        {/* Compact header — below desktop nav breakpoint (~1922px) */}
+        <div className="nav:hidden relative">
+          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
+            <Link
+              to="/"
+              className="flex min-w-0 flex-1 items-center touch-target"
+              aria-label="Harsh To Let Services home"
+            >
+              <BrandMark compact />
             </Link>
             <button
               type="button"
               onClick={toggleMenu}
-              className="shrink-0 rounded-md p-1.5 text-white touch-target"
-              aria-label="Toggle menu"
+              className="relative shrink-0 rounded-lg p-2 text-white touch-target transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMenuOpen}
+              aria-controls="mobile-nav-drawer"
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <span className="relative block h-6 w-6">
+                <Menu
+                  className={`absolute inset-0 h-6 w-6 transition-all duration-300 ease-out ${
+                    isMenuOpen ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
+                  }`}
+                  aria-hidden
+                />
+                <X
+                  className={`absolute inset-0 h-6 w-6 transition-all duration-300 ease-out ${
+                    isMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0'
+                  }`}
+                  aria-hidden
+                />
+              </span>
             </button>
           </div>
 
-          <div className="-ml-0.5 flex items-center gap-1.5 overflow-x-auto pb-2 pl-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <PostPropertyButton compact />
             {isAuthenticated ? (
               <MobileQuickLink to={getDashboardLink()}>
@@ -226,100 +216,17 @@ const Navbar = () => {
             </MobileQuickLink>
             <JobApplyButton compact />
           </div>
-
-          {isMenuOpen && (
-            <>
-              <button
-                type="button"
-                className="fixed inset-0 z-40 bg-black/50"
-                aria-label="Close menu"
-                onClick={closeMenu}
-              />
-              <div className="absolute left-0 right-0 top-full z-50 max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-y-contain border-t border-gold/20 bg-navy-light shadow-xl">
-                <div className="space-y-1 px-3 py-3">
-                  <Link
-                    to="/"
-                    onClick={closeMenu}
-                    className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-sm text-white hover:bg-white/5 touch-target"
-                  >
-                    <Home className="h-4 w-4 shrink-0 text-gold" />
-                    <span className="font-medium">Home</span>
-                  </Link>
-
-                  {mainNavLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      onClick={closeMenu}
-                      className="block rounded-lg px-2 py-2.5 text-sm font-medium text-white hover:bg-white/5 touch-target"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-
-                  <Link
-                    to={brokersLink.to}
-                    onClick={closeMenu}
-                    className="inline-block rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm font-semibold text-gold touch-target"
-                  >
-                    {brokersLink.label}
-                  </Link>
-
-                  <Link
-                    to="/job-apply"
-                    onClick={closeMenu}
-                    className={`htls-job-apply-btn mt-2 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-white touch-target ${JOB_APPLY_COLOR}`}
-                  >
-                    <Briefcase className="h-4 w-4" />
-                    Job Apply
-                  </Link>
-
-                  {isAuthenticated && (
-                    <div className="mt-2 space-y-1 border-t border-gold/20 pt-2">
-                      <div className="flex items-center justify-between px-2 py-2">
-                        <span className="text-sm font-medium text-white">Alerts</span>
-                        <NotificationBell />
-                      </div>
-                      <Link
-                        to="/saved"
-                        onClick={closeMenu}
-                        className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-sm text-white hover:bg-white/5 touch-target"
-                      >
-                        <Bookmark className="h-4 w-4 text-gold" />
-                        <span className="font-medium">Saved properties</span>
-                      </Link>
-                      <Link
-                        to={getDashboardLink()}
-                        onClick={closeMenu}
-                        className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-sm text-white hover:bg-white/5 touch-target"
-                      >
-                        <User className="h-4 w-4 text-gold" />
-                        <span className="font-medium">Dashboard</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-gold px-3 py-2.5 text-sm font-semibold text-navy touch-target"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
         </div>
 
-        {/* Desktop — logo left, main links true center, actions right */}
-        <div className="hidden md:grid md:h-16 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-4 lg:gap-6">
-          <Link to="/" className="flex min-w-0 items-center justify-self-start gap-2 touch-target">
-            <Building2 className="h-8 w-8 shrink-0 text-gold" />
-            <span className="truncate text-lg font-bold text-white lg:text-xl">HarshToLetServices</span>
-          </Link>
+        {/* Desktop — unchanged layout at 1922px+ */}
+        <div className="hidden nav:grid nav:min-h-[116px] nav:py-1.5 nav:grid-cols-[1fr_auto_1fr] nav:items-center nav:gap-6">
+          <div className="flex min-w-0 justify-self-start nav:pl-[300px]">
+            <Link to="/" className="flex items-center touch-target" aria-label="Harsh To Let Services home">
+              <BrandMark />
+            </Link>
+          </div>
 
-          <div className="flex items-center justify-center gap-4 lg:gap-6">
+          <div className="flex items-center justify-center gap-6">
             {mainNavLinks.map((link) => (
               <Link key={link.to} to={link.to} className={`whitespace-nowrap text-sm ${linkClass(false)}`}>
                 {link.label}
@@ -327,16 +234,33 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="flex shrink-0 items-center justify-end justify-self-end gap-3 lg:gap-4">
-            {isAuthenticated ? authenticatedActions : loginLink}
-            <Link to={brokersLink.to} className={`whitespace-nowrap text-sm ${linkClass(brokersLink.highlight)}`}>
-              {brokersLink.label}
-            </Link>
-            <JobApplyButton />
-            <PostPropertyButton />
+          <div className="flex min-w-0 items-center justify-end justify-self-end nav:pr-[300px]">
+            {isAuthenticated && (
+              <div className="mr-4 flex shrink-0 items-center gap-3">
+                {authenticatedLeadingActions}
+              </div>
+            )}
+            <div className="flex shrink-0 flex-nowrap items-center gap-4">
+              {isAuthenticated ? logoutButton : loginLink}
+              <Link to={brokersLink.to} className={`whitespace-nowrap text-sm ${linkClass(brokersLink.highlight)}`}>
+                {brokersLink.label}
+              </Link>
+              <JobApplyButton />
+              <PostPropertyButton />
+            </div>
           </div>
         </div>
       </div>
+
+      <MobileMenu
+        isOpen={isMenuOpen}
+        onClose={closeMenu}
+        mainNavLinks={mainNavLinks}
+        brokersLink={brokersLink}
+        isAuthenticated={isAuthenticated}
+        getDashboardLink={getDashboardLink}
+        onLogout={handleLogout}
+      />
     </nav>
   );
 };

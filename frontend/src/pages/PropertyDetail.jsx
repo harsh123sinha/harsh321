@@ -418,14 +418,16 @@ const PropertyDetail = () => {
           </div>
         </div>
 
-        {/* Related Properties */}
-        {relatedProperties.length > 0 && (
-          <div className="mt-12 sm:mt-16">
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-6 sm:mb-8">Recommended For You</h2>
-            <PropertyListRow properties={relatedProperties} />
-          </div>
-        )}
       </div>
+
+      {relatedProperties.length > 0 && (
+        <section className="mt-12 border-t border-stone-200/80 bg-white py-8 sm:mt-16 sm:py-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy">Recommended For You</h2>
+          </div>
+          <PropertyListRow properties={relatedProperties} fullWidth />
+        </section>
+      )}
 
       {/* Lightbox */}
       {showLightbox && images.length > 0 && (

@@ -9,6 +9,8 @@ import {
   CAROUSEL_SCROLLER,
   CAROUSEL_SCROLLER_PAD,
   CAROUSEL_SCROLL_HINT,
+  scrollCarouselByDir,
+  CAROUSEL_SLIDE,
 } from '../../constants/carouselLayout';
 
 /** Full-width featured properties slider — touchpad swipe + arrow buttons. */
@@ -44,10 +46,7 @@ export default function FeaturedPropertiesCarousel({ properties }) {
   useNaturalHorizontalScroll(scrollerRef, containerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const step = Math.max(280, Math.round(el.clientWidth * 0.75));
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    scrollCarouselByDir(scrollerRef.current, dir);
   };
 
   if (!properties?.length) return null;
@@ -115,12 +114,13 @@ export default function FeaturedPropertiesCarousel({ properties }) {
             scrollByDir(1);
           }
         }}
-        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD} select-none`}
+        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD}`}
       >
         {properties.map((property) => (
           <div
             key={property.id}
-            className="w-[min(100%,320px)] shrink-0 snap-start sm:w-80 md:w-[22rem] lg:w-[23rem] h-full"
+            data-carousel-slide
+            className={`w-[min(100%,320px)] sm:w-80 md:w-[22rem] lg:w-[23rem] h-full ${CAROUSEL_SLIDE}`}
             role="group"
             aria-roledescription="slide"
           >

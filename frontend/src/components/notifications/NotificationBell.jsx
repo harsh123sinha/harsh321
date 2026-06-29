@@ -6,13 +6,15 @@ import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationItem from './NotificationItem';
 import BrokerReviewModal from '../brokers/BrokerReviewModal';
+import WorkerCustomerReviewModal from '../workers/WorkerCustomerReviewModal';
 import { getNotificationPropertyPath } from '../../utils/notifications';
 import BrandLoader from '../ui/BrandLoader';
 
 const NotificationBell = () => {
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
-  const [reviewModal, setReviewModal] = useState(null);
+  const [brokerReviewModal, setBrokerReviewModal] = useState(null);
+  const [workerReviewModal, setWorkerReviewModal] = useState(null);
   const panelRef = useRef(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -65,16 +67,32 @@ const NotificationBell = () => {
   const unread = countData?.count ?? 0;
 
   const handleNotificationClick = (n) => {
-    if (n.type === 'broker_review_request' || n.data?.openReviewModal) {
+    if (n.type === 'broker_review_request' || (n.data?.openReviewModal && n.data?.brokerId)) {
       if (!n.is_read) {
         markReadMutation.mutate(n.id);
       }
       setOpen(false);
-      setReviewModal({
+      setBrokerReviewModal({
         brokerId: n.data?.brokerId,
         brokerName: n.data?.brokerName,
         brokerPhoto: n.data?.brokerPhoto,
         propertyId: n.data?.propertyId,
+        notificationId: n.id,
+      });
+      return;
+    }
+
+    if (n.type === 'worker_review_request' || n.data?.openWorkerReviewModal) {
+      if (!n.is_read) {
+        markReadMutation.mutate(n.id);
+      }
+      setOpen(false);
+      setWorkerReviewModal({
+        workerId: n.data?.workerId,
+        employeeId: n.data?.employeeId,
+        workerName: n.data?.workerName,
+        workerPhoto: n.data?.workerPhoto,
+        workerProfession: n.data?.workerProfession,
         notificationId: n.id,
       });
       return;
@@ -90,6 +108,12 @@ const NotificationBell = () => {
     } else {
       navigate('/notifications');
     }
+  };
+
+  const closeModals = () => {
+    setBrokerReviewModal(null);
+    setWorkerReviewModal(null);
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
   };
 
   return (
@@ -159,16 +183,24 @@ const NotificationBell = () => {
       </div>
 
       <BrokerReviewModal
-        open={Boolean(reviewModal)}
-        brokerId={reviewModal?.brokerId}
-        brokerName={reviewModal?.brokerName}
-        brokerPhoto={reviewModal?.brokerPhoto}
-        propertyId={reviewModal?.propertyId}
-        notificationId={reviewModal?.notificationId}
-        onClose={() => {
-          setReviewModal(null);
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        }}
+        open={Boolean(brokerReviewModal)}
+        brokerId={brokerReviewModal?.brokerId}
+        brokerName={brokerReviewModal?.brokerName}
+        brokerPhoto={brokerReviewModal?.brokerPhoto}
+        propertyId={brokerReviewModal?.propertyId}
+        notificationId={brokerReviewModal?.notificationId}
+        onClose={closeModals}
+      />
+
+      <WorkerCustomerReviewModal
+        open={Boolean(workerReviewModal)}
+        workerId={workerReviewModal?.workerId}
+        employeeId={workerReviewModal?.employeeId}
+        workerName={workerReviewModal?.workerName}
+        workerPhoto={workerReviewModal?.workerPhoto}
+        workerProfession={workerReviewModal?.workerProfession}
+        notificationId={workerReviewModal?.notificationId}
+        onClose={closeModals}
       />
     </>
   );

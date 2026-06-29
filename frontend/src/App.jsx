@@ -47,6 +47,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminProperties from './pages/admin/AdminProperties';
 import AdminSubAdmins from './pages/admin/AdminSubAdmins';
+import AdminWorkers from './pages/admin/AdminWorkers';
 
 // Sub-admin pages
 import SubAdminLogin from './pages/subadmin/SubAdminLogin';
@@ -175,6 +176,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/properties" element={<AdminProperties />} />
+            <Route path="/admin/workers" element={<AdminWorkers />} />
             <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
 
             {/* Sub-admin routes (no layout) */}

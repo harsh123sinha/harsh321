@@ -30,10 +30,14 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) =>
   };
 
   const sizeClass = dense
-    ? 'min-h-[28px] w-full px-2 py-1 gap-1.5 sm:min-h-[40px] sm:p-1.5'
+    ? 'min-h-[28px] w-full px-2 py-1 gap-1.5 max-[499px]:min-h-[20px] max-[499px]:px-1 max-[499px]:py-0.5 max-[499px]:gap-0.5 max-[399px]:min-h-[18px] sm:min-h-[40px] sm:p-1.5 lg:min-h-[48px] lg:px-4 lg:py-2.5 lg:gap-2'
     : 'min-h-[52px] p-3 lg:min-h-[56px] lg:p-4';
-  const iconClass = dense ? 'h-3 w-3 sm:h-3.5 sm:w-3.5' : 'h-5 w-5 lg:h-6 lg:w-6';
-  const textClass = dense ? 'text-[9px] sm:text-[10px] leading-none' : 'text-sm lg:text-base';
+  const iconClass = dense
+    ? 'h-3 w-3 max-[499px]:h-2.5 max-[499px]:w-2.5 max-[399px]:h-2 max-[399px]:w-2 sm:h-3.5 sm:w-3.5 lg:h-5 lg:w-5'
+    : 'h-5 w-5 lg:h-6 lg:w-6';
+  const textClass = dense
+    ? 'text-[9px] max-[499px]:text-[7px] max-[399px]:text-[6px] sm:text-[10px] lg:text-sm leading-none'
+    : 'text-sm lg:text-base';
 
   if (loading) {
     return (

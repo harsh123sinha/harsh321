@@ -9,6 +9,8 @@ export default {
       screens: {
         /** Between base and sm — tighter search bar can relax slightly here */
         xs: '380px',
+        /** Desktop navbar — hamburger below this width (fits full link row + actions) */
+        nav: '1922px',
       },
       colors: {
         navy: {
@@ -28,6 +30,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        times: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
       },
     },
   },

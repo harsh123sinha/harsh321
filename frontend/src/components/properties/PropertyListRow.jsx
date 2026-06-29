@@ -4,18 +4,24 @@ import PropertyCard from './PropertyCard';
 import { useNaturalHorizontalScroll } from '../../hooks/useNaturalHorizontalScroll';
 import {
   CAROUSEL_WIDTH_SHELL,
+  CAROUSEL_WIDTH_SHELL_FULL,
   CAROUSEL_ARROW_LEFT,
   CAROUSEL_ARROW_RIGHT,
+  CAROUSEL_ARROW_LEFT_FULL,
+  CAROUSEL_ARROW_RIGHT_FULL,
   CAROUSEL_SCROLLER,
   CAROUSEL_SCROLLER_PAD,
+  CAROUSEL_SCROLLER_PAD_FULL,
   CAROUSEL_SCROLL_HINT,
+  scrollCarouselByDir,
+  CAROUSEL_SLIDE,
 } from '../../constants/carouselLayout';
 
 const shellClass =
-  'w-[min(100%,320px)] flex-shrink-0 snap-start sm:w-[300px] md:w-[320px] lg:w-[340px] xl:w-[360px] h-full';
+  'w-[min(100%,320px)] sm:w-[300px] md:w-[320px] lg:w-[340px] xl:w-[360px] h-full';
 
 /** 85% width property strip — touchpad swipe, no visible scrollbars. */
-const PropertyListRow = ({ properties, renderCard }) => {
+const PropertyListRow = ({ properties, renderCard, fullWidth = false }) => {
   const scrollerRef = useRef(null);
   const containerRef = useRef(null);
   const [atStart, setAtStart] = useState(true);
@@ -47,16 +53,18 @@ const PropertyListRow = ({ properties, renderCard }) => {
   useNaturalHorizontalScroll(scrollerRef, containerRef, [properties?.length]);
 
   const scrollByDir = (dir) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const step = Math.max(280, Math.round(el.clientWidth * 0.75));
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    scrollCarouselByDir(scrollerRef.current, dir);
   };
 
   if (!properties?.length) return null;
 
+  const shellClassName = fullWidth ? CAROUSEL_WIDTH_SHELL_FULL : CAROUSEL_WIDTH_SHELL;
+  const arrowLeftClass = fullWidth ? CAROUSEL_ARROW_LEFT_FULL : CAROUSEL_ARROW_LEFT;
+  const arrowRightClass = fullWidth ? CAROUSEL_ARROW_RIGHT_FULL : CAROUSEL_ARROW_RIGHT;
+  const scrollerPadClass = fullWidth ? CAROUSEL_SCROLLER_PAD_FULL : CAROUSEL_SCROLLER_PAD;
+
   return (
-    <div ref={containerRef} className={CAROUSEL_WIDTH_SHELL}>
+    <div ref={containerRef} className={shellClassName}>
       {scrollable && (
         <>
           <button
@@ -64,7 +72,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
             aria-label="Previous properties"
             disabled={atStart}
             onClick={() => scrollByDir(-1)}
-            className={CAROUSEL_ARROW_LEFT}
+            className={arrowLeftClass}
           >
             <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
@@ -73,7 +81,7 @@ const PropertyListRow = ({ properties, renderCard }) => {
             aria-label="Next properties"
             disabled={atEnd}
             onClick={() => scrollByDir(1)}
-            className={CAROUSEL_ARROW_RIGHT}
+            className={arrowRightClass}
           >
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
           </button>
@@ -118,10 +126,16 @@ const PropertyListRow = ({ properties, renderCard }) => {
             scrollByDir(1);
           }
         }}
-        className={`${CAROUSEL_SCROLLER} ${CAROUSEL_SCROLLER_PAD} select-none`}
+        className={`${CAROUSEL_SCROLLER} ${scrollerPadClass}`}
       >
         {properties.map((property) => (
-          <div key={property.id} className={`${shellClass} relative`} role="group" aria-roledescription="slide">
+          <div
+            key={property.id}
+            data-carousel-slide
+            className={`${shellClass} ${CAROUSEL_SLIDE} relative`}
+            role="group"
+            aria-roledescription="slide"
+          >
             {renderCard ? renderCard(property) : <PropertyCard property={property} />}
           </div>
         ))}

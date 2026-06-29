@@ -27,6 +27,7 @@ import {
   isValidDriverFuelOption,
 } from '../utils/workerProfileTypes.js';
 import { formatEmployeeId } from '../utils/employeeId.js';
+import { workerCustomerReviewModel } from '../models/workerCustomerReviewModel.js';
 import {
   resolveBuildingMaterial,
 } from '../utils/buildingMaterials.js';
@@ -92,6 +93,16 @@ function toPublicVendor(worker) {
     ...rest,
     employee_id,
     category_id: findCategoryIdByProfession(worker.profession),
+    harsh_rating_avg: worker.harsh_rating_avg != null ? Number(worker.harsh_rating_avg) : null,
+    customer_rating_avg: worker.customer_rating_avg != null ? Number(worker.customer_rating_avg) : null,
+    customer_review_count: Number(worker.customer_review_count || 0),
+    reviews: (worker.reviews || []).map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      customerName: r.customer_name,
+      createdAt: r.created_at,
+    })),
   };
 }
 
@@ -574,7 +585,18 @@ export const browsePublicVendors = async (req, res) => {
     }
 
     const workers = await workerModel.searchPublic({ professions, q });
-    const vendors = await enrichWorkersWithServiceDetails(workers);
+    const enriched = await enrichWorkersWithServiceDetails(workers);
+    const workerIds = enriched.map((w) => w.id);
+    const allReviews = await workerCustomerReviewModel.findByWorkerIds(workerIds);
+    const reviewsByWorker = new Map();
+    for (const r of allReviews) {
+      if (!reviewsByWorker.has(r.worker_id)) reviewsByWorker.set(r.worker_id, []);
+      reviewsByWorker.get(r.worker_id).push(r);
+    }
+    const vendors = enriched.map((w) => ({
+      ...w,
+      reviews: reviewsByWorker.get(w.id) || [],
+    }));
 
     res.json({
       success: true,

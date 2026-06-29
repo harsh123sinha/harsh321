@@ -10,6 +10,8 @@ import {
   deleteMyListing,
   browsePublicVendors,
 } from '../controllers/workerController.js';
+import { submitCustomerWorkerReview } from '../controllers/workerReviewController.js';
+import { apiLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -21,4 +23,8 @@ router.post('/me/listings', isAuthenticated, uploadWorkerListingImages, createMy
 router.put('/me/listings/:id', isAuthenticated, uploadWorkerListingImages, updateMyListing);
 router.delete('/me/listings/:id', isAuthenticated, deleteMyListing);
 
+const reviewRouter = express.Router();
+reviewRouter.post('/', apiLimiter, isAuthenticated, submitCustomerWorkerReview);
+
+export { reviewRouter };
 export default router;

@@ -89,6 +89,8 @@ export async function ensureWorkerSchema() {
   await ensureWorkerExtendedColumns();
   await ensureEmployeeIdColumn();
   await ensureWorkerListingsTable();
+  await ensureWorkerReviewSchema();
+  await ensureWorkerNotificationType();
 }
 
 async function ensureEmployeeIdColumn() {
@@ -189,4 +191,104 @@ async function ensureWorkerListingsTable() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
   console.log('✅ DB: created worker_listings table');
+}
+
+async function ensureWorkerReviewSchema() {
+  if (!(await hasTable('worker'))) return;
+
+  if (!(await hasColumn('worker', 'harsh_rating_avg'))) {
+    await db.execute(`ALTER TABLE worker ADD COLUMN harsh_rating_avg DECIMAL(3,2) NULL AFTER profile_complete`);
+    console.log('✅ DB: worker.harsh_rating_avg added');
+  }
+  if (!(await hasColumn('worker', 'review_count'))) {
+    await db.execute(`ALTER TABLE worker ADD COLUMN review_count INT NOT NULL DEFAULT 0 AFTER harsh_rating_avg`);
+    console.log('✅ DB: worker.review_count added');
+  }
+  if (!(await hasColumn('worker', 'customer_rating_avg'))) {
+    await db.execute(`ALTER TABLE worker ADD COLUMN customer_rating_avg DECIMAL(3,2) NULL AFTER review_count`);
+    console.log('✅ DB: worker.customer_rating_avg added');
+  }
+  if (!(await hasColumn('worker', 'customer_review_count'))) {
+    await db.execute(
+      `ALTER TABLE worker ADD COLUMN customer_review_count INT NOT NULL DEFAULT 0 AFTER customer_rating_avg`
+    );
+    console.log('✅ DB: worker.customer_review_count added');
+  }
+
+  if (!(await hasTable('worker_internal_reviews'))) {
+    await db.execute(`
+    CREATE TABLE worker_internal_reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      worker_id INT NOT NULL,
+      rating DECIMAL(3,2) NOT NULL,
+      comment TEXT NULL,
+      given_by_staff_type ENUM('admin','subadmin') NOT NULL,
+      given_by_staff_id INT NOT NULL,
+      customer_user_id INT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_worker_reviews_worker (worker_id, created_at),
+      CONSTRAINT fk_worker_reviews_worker FOREIGN KEY (worker_id) REFERENCES worker(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+    console.log('✅ DB: created worker_internal_reviews table');
+  } else {
+    if (!(await hasColumn('worker_internal_reviews', 'customer_user_id'))) {
+      await db.execute(
+        `ALTER TABLE worker_internal_reviews ADD COLUMN customer_user_id INT NULL AFTER given_by_staff_id`
+      );
+      console.log('✅ DB: worker_internal_reviews.customer_user_id added');
+    }
+    try {
+      await db.execute(`ALTER TABLE worker_internal_reviews MODIFY comment TEXT NULL`);
+    } catch (e) {
+      console.warn('ensureWorkerReviewSchema comment nullable:', e.message);
+    }
+  }
+
+  if (await hasTable('worker_customer_reviews')) return;
+
+  await db.execute(`
+    CREATE TABLE worker_customer_reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      worker_id INT NOT NULL,
+      customer_id INT NOT NULL,
+      rating DECIMAL(3,2) NOT NULL,
+      comment TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_worker_customer_reviews_worker (worker_id, created_at),
+      CONSTRAINT fk_worker_customer_reviews_worker FOREIGN KEY (worker_id) REFERENCES worker(id) ON DELETE CASCADE,
+      CONSTRAINT fk_worker_customer_reviews_customer FOREIGN KEY (customer_id) REFERENCES \`user\`(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+  console.log('✅ DB: created worker_customer_reviews table');
+}
+
+const WORKER_NOTIFICATION_TYPES = [
+  'welcome',
+  'search_match',
+  'daily_recommendation',
+  'saved_price_drop',
+  'saved_update',
+  'saved_unavailable',
+  'saved_verified',
+  'broker_review_request',
+  'worker_review_request',
+];
+
+async function ensureWorkerNotificationType() {
+  if (!(await hasTable('notifications'))) return;
+  try {
+    const [rows] = await db.execute(
+      `SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notifications' AND COLUMN_NAME = 'type'`
+    );
+    const colType = String(rows[0]?.COLUMN_TYPE || '');
+    if (!colType.includes('worker_review_request')) {
+      const enumList = WORKER_NOTIFICATION_TYPES.map((t) => `'${t}'`).join(',');
+      await db.execute(`ALTER TABLE notifications MODIFY COLUMN type ENUM(${enumList}) NOT NULL`);
+      console.log('✅ DB: extended notifications.type (worker_review_request)');
+    }
+  } catch (e) {
+    console.warn('ensureWorkerNotificationType:', e.message);
+  }
 }

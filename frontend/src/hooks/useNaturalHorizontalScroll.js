@@ -1,10 +1,19 @@
 import { useEffect } from 'react';
 
-const DRAG_THRESHOLD_PX = 6;
+const DRAG_THRESHOLD_PX = 8;
+const TOUCH_SCROLL_CLICK_GUARD_PX = 6;
+
+function normalizeWheelDelta(value, deltaMode) {
+  if (deltaMode === 1) return value * 16;
+  if (deltaMode === 2) {
+    return value * (typeof window !== 'undefined' ? window.innerHeight : 800);
+  }
+  return value;
+}
 
 /**
- * Horizontal scroll for property carousels (trackpad + drag + shift-wheel).
- * Vertical page scroll is never blocked.
+ * Horizontal scroll for property carousels (trackpad, mouse drag, shift+wheel).
+ * Touch devices use native overflow scrolling (touch-action: pan-x).
  */
 export function useNaturalHorizontalScroll(scrollerRef, containerRef, deps = []) {
   useEffect(() => {
@@ -17,39 +26,72 @@ export function useNaturalHorizontalScroll(scrollerRef, containerRef, deps = [])
     const onWheel = (e) => {
       if (!canScroll()) return;
 
-      const absX = Math.abs(e.deltaX);
-      const absY = Math.abs(e.deltaY);
+      let deltaX = normalizeWheelDelta(e.deltaX, e.deltaMode);
+      let deltaY = normalizeWheelDelta(e.deltaY, e.deltaMode);
 
-      if (e.shiftKey && absY > 0) {
+      if (e.shiftKey && Math.abs(deltaY) > 0.5) {
         e.preventDefault();
-        scroller.scrollLeft += e.deltaY;
+        scroller.scrollLeft += deltaY;
         return;
       }
 
-      if (absX > 0) {
-        e.preventDefault();
-        scroller.scrollLeft += e.deltaX;
-      }
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      if (absX < 0.5) return;
+
+      const horizontalIntent = absX >= absY * 0.55 || absY < 2;
+      if (!horizontalIntent) return;
+
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      const nextScroll = scroller.scrollLeft + deltaX;
+      const atStart = scroller.scrollLeft <= 1;
+      const atEnd = scroller.scrollLeft >= maxScroll - 1;
+
+      if ((deltaX < 0 && atStart) || (deltaX > 0 && atEnd)) return;
+
+      e.preventDefault();
+      scroller.scrollLeft = Math.max(0, Math.min(maxScroll, nextScroll));
     };
 
     let dragStart = null;
     let didDrag = false;
+    let activePointerId = null;
 
     const onPointerDown = (e) => {
       if (e.button !== 0 || !canScroll()) return;
-      dragStart = { x: e.clientX, scrollLeft: scroller.scrollLeft, id: e.pointerId };
+      if (e.pointerType === 'touch') return;
+
+      dragStart = {
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: scroller.scrollLeft,
+        id: e.pointerId,
+      };
       didDrag = false;
-      scroller.setPointerCapture(e.pointerId);
+      activePointerId = e.pointerId;
     };
 
     const onPointerMove = (e) => {
       if (!dragStart || dragStart.id !== e.pointerId) return;
-      const dx = e.clientX - dragStart.x;
-      if (!didDrag && Math.abs(dx) < DRAG_THRESHOLD_PX) return;
 
-      didDrag = true;
-      scroller.classList.add('cursor-grabbing');
-      scroller.classList.remove('cursor-grab');
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+
+      if (!didDrag) {
+        if (Math.abs(dx) < DRAG_THRESHOLD_PX && Math.abs(dy) < DRAG_THRESHOLD_PX) return;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          dragStart = null;
+          activePointerId = null;
+          return;
+        }
+        didDrag = true;
+        scroller.setPointerCapture(e.pointerId);
+        scroller.classList.add('cursor-grabbing');
+        scroller.classList.remove('cursor-grab');
+      }
+
+      e.preventDefault();
       scroller.scrollLeft = dragStart.scrollLeft - dx;
     };
 
@@ -59,15 +101,24 @@ export function useNaturalHorizontalScroll(scrollerRef, containerRef, deps = [])
         scroller.releasePointerCapture(e.pointerId);
       }
       dragStart = null;
+      activePointerId = null;
       scroller.classList.remove('cursor-grabbing');
       if (canScroll()) scroller.classList.add('cursor-grab');
     };
 
+    let touchTracking = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartScrollLeft = 0;
+    let touchIsPanning = false;
+    let suppressNextClick = false;
+
     const onClickCapture = (e) => {
-      if (didDrag) {
+      if (didDrag || suppressNextClick) {
         e.preventDefault();
         e.stopPropagation();
         didDrag = false;
+        suppressNextClick = false;
       }
     };
 
@@ -77,26 +128,84 @@ export function useNaturalHorizontalScroll(scrollerRef, containerRef, deps = [])
 
     const onMouseLeave = () => {
       scroller.classList.remove('cursor-grab', 'cursor-grabbing');
+      if (!didDrag) {
+        dragStart = null;
+        activePointerId = null;
+      }
     };
 
-    container.addEventListener('wheel', onWheel, { passive: false });
-    scroller.addEventListener('pointerdown', onPointerDown);
-    scroller.addEventListener('pointermove', onPointerMove);
+    const onTouchStart = (e) => {
+      if (!canScroll() || e.touches.length !== 1) return;
+      touchTracking = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchStartScrollLeft = scroller.scrollLeft;
+      touchIsPanning = false;
+      suppressNextClick = false;
+    };
+
+    const onTouchMove = (e) => {
+      if (!touchTracking) return;
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dx) > TOUCH_SCROLL_CLICK_GUARD_PX && Math.abs(dx) > Math.abs(dy)) {
+        touchIsPanning = true;
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!touchTracking) return;
+      if (
+        touchIsPanning
+        || Math.abs(scroller.scrollLeft - touchStartScrollLeft) > TOUCH_SCROLL_CLICK_GUARD_PX
+      ) {
+        suppressNextClick = true;
+      }
+      touchTracking = false;
+      touchIsPanning = false;
+    };
+
+    const onDocumentPointerMove = (e) => {
+      if (activePointerId == null || e.pointerId !== activePointerId) return;
+      onPointerMove(e);
+    };
+
+    const onDocumentPointerUp = (e) => {
+      if (activePointerId == null || e.pointerId !== activePointerId) return;
+      endDrag(e);
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false, capture: true });
+
+    scroller.addEventListener('pointerdown', onPointerDown, true);
     scroller.addEventListener('pointerup', endDrag);
     scroller.addEventListener('pointercancel', endDrag);
+    document.addEventListener('pointermove', onDocumentPointerMove);
+    document.addEventListener('pointerup', onDocumentPointerUp);
+    document.addEventListener('pointercancel', onDocumentPointerUp);
     scroller.addEventListener('click', onClickCapture, true);
     scroller.addEventListener('mouseenter', onMouseEnter);
     scroller.addEventListener('mouseleave', onMouseLeave);
+    scroller.addEventListener('touchstart', onTouchStart, { passive: true });
+    scroller.addEventListener('touchmove', onTouchMove, { passive: true });
+    scroller.addEventListener('touchend', onTouchEnd, { passive: true });
+    scroller.addEventListener('touchcancel', onTouchEnd, { passive: true });
 
     return () => {
-      container.removeEventListener('wheel', onWheel);
-      scroller.removeEventListener('pointerdown', onPointerDown);
-      scroller.removeEventListener('pointermove', onPointerMove);
+      container.removeEventListener('wheel', onWheel, true);
+      scroller.removeEventListener('pointerdown', onPointerDown, true);
       scroller.removeEventListener('pointerup', endDrag);
       scroller.removeEventListener('pointercancel', endDrag);
+      document.removeEventListener('pointermove', onDocumentPointerMove);
+      document.removeEventListener('pointerup', onDocumentPointerUp);
+      document.removeEventListener('pointercancel', onDocumentPointerUp);
       scroller.removeEventListener('click', onClickCapture, true);
       scroller.removeEventListener('mouseenter', onMouseEnter);
       scroller.removeEventListener('mouseleave', onMouseLeave);
+      scroller.removeEventListener('touchstart', onTouchStart);
+      scroller.removeEventListener('touchmove', onTouchMove);
+      scroller.removeEventListener('touchend', onTouchEnd);
+      scroller.removeEventListener('touchcancel', onTouchEnd);
     };
   }, [scrollerRef, containerRef, ...deps]);
 }

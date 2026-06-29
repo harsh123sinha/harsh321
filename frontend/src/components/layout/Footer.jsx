@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Building2, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import BrandMark from '../brand/BrandMark';
+import { FOOTER_LOGO_CLASS } from '../brand/BrandLogo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -8,26 +10,40 @@ const Footer = () => {
     <footer className="mt-auto border-t border-gold/25 bg-navy text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <Building2 className="h-8 w-8 text-gold" />
-              <span className="text-xl font-bold">HarshToLetServices</span>
+          {/* Brand — full footer width so name stays on one line */}
+          <div className="col-span-1 space-y-4 sm:col-span-2 lg:col-span-4">
+            <Link to="/" className="block w-full">
+              <BrandMark logoClassName={FOOTER_LOGO_CLASS} footer />
             </Link>
             <p className="text-gray-light text-sm">
               Your trusted partner for buying, renting, and selling properties across Patna.
             </p>
             <div className="flex flex-wrap gap-3 text-sm">
-              <a href="#" className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1" aria-label="Facebook">
+              <a
+                href="https://www.facebook.com/profile.php?id=61575885901043"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1"
+                aria-label="Facebook"
+              >
                 <ExternalLink className="h-4 w-4 shrink-0" /> Facebook
               </a>
-              <a href="#" className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1" aria-label="Twitter">
-                <ExternalLink className="h-4 w-4 shrink-0" /> Twitter
-              </a>
-              <a href="#" className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1" aria-label="Instagram">
+              <a
+                href="https://www.instagram.com/harsh_to_let_service/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1"
+                aria-label="Instagram"
+              >
                 <ExternalLink className="h-4 w-4 shrink-0" /> Instagram
               </a>
-              <a href="#" className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1" aria-label="LinkedIn">
+              <a
+                href="https://www.linkedin.com/in/harsh-tolet-services-796b1741a?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-light hover:text-gold transition-colors touch-target inline-flex items-center gap-1"
+                aria-label="LinkedIn"
+              >
                 <ExternalLink className="h-4 w-4 shrink-0" /> LinkedIn
               </a>
             </div>
@@ -95,16 +111,21 @@ const Footer = () => {
                 <MapPin className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
                 <span>Patna, Bihar</span>
               </li>
-              <li className="flex items-center space-x-2 text-gray-light text-sm">
-                <Phone className="h-5 w-5 text-gold flex-shrink-0" />
-                <a href="tel:+919876543210" className="hover:text-gold transition-colors">
-                  +91 9
-                </a>
+              <li className="flex items-start space-x-2 text-gray-light text-sm">
+                <Phone className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <a href="tel:+919334072476" className="hover:text-gold transition-colors">
+                    +91 9334072476
+                  </a>
+                  <a href="tel:+918210078910" className="hover:text-gold transition-colors">
+                    +91 8210078910
+                  </a>
+                </div>
               </li>
               <li className="flex items-center space-x-2 text-gray-light text-sm">
                 <Mail className="h-5 w-5 text-gold flex-shrink-0" />
-                <a href="mailto:info@realestate.com" className="hover:text-gold transition-colors">
-                  info@realestate.com
+                <a href="mailto:harshtoletservices@gmail.com" className="hover:text-gold transition-colors break-all">
+                  harshtoletservices@gmail.com
                 </a>
               </li>
             </ul>
@@ -114,7 +135,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gold/20 mt-8 pt-6 text-center">
           <p className="text-gray-light text-sm">
-            © {currentYear} HarshToLetServices. All rights reserved.
+            © {currentYear} Harsh To Let Services. All rights reserved.
           </p>
         </div>
       </div>

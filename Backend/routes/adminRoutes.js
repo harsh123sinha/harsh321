@@ -14,9 +14,14 @@ import {
   getAllSubAdmins,
   createSubAdmin,
   updateSubAdmin,
-  deleteSubAdmin
+  deleteSubAdmin,
+  adminGetAllWorkers,
 } from '../controllers/adminController.js';
 import { submitBrokerInternalRating } from '../controllers/brokerAdminController.js';
+import {
+  submitWorkerInternalReview,
+  getWorkerReviewsAdmin,
+} from '../controllers/workerAdminController.js';
 import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
@@ -52,5 +57,10 @@ router.get('/subadmins', getAllSubAdmins);
 router.post('/subadmins', createSubAdmin);
 router.put('/subadmins/:id', updateSubAdmin);
 router.delete('/subadmins/:id', deleteSubAdmin);
+
+// Workers / vendors (full details for admin)
+router.get('/workers', adminGetAllWorkers);
+router.get('/workers/:workerId/reviews', getWorkerReviewsAdmin);
+router.post('/workers/:workerId/reviews', submitWorkerInternalReview);
 
 export default router;

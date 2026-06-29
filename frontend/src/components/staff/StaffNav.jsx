@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, UserCog, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase } from 'lucide-react';
 
 const linkClass = (active) =>
   `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -39,6 +39,12 @@ export default function StaffNav({ variant }) {
               <Building2 className="h-4 w-4" />
               Properties
             </Link>
+            {isAdmin && (
+              <Link to={`${base}/workers`} className={linkClass(active(`${base}/workers`))}>
+                <Briefcase className="h-4 w-4" />
+                Workers
+              </Link>
+            )}
             {isAdmin && (
               <Link to={`${base}/subadmins`} className={linkClass(active(`${base}/subadmins`))}>
                 <UserCog className="h-4 w-4" />
