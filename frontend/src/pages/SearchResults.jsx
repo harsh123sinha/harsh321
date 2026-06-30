@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
 import PropertyListRow from '../components/properties/PropertyListRow';
@@ -80,6 +80,20 @@ const SearchResults = () => {
   );
 
   const recommendedProperties = recommendationData?.properties || [];
+
+  const isShopCatalogOnly =
+    searchParams.get('type') === 'rent' &&
+    searchParams.get('other_type') === 'Shop' &&
+    !searchParams.get('location') &&
+    !searchParams.get('bhk') &&
+    !searchParams.get('shop_sqft_range') &&
+    !searchParams.get('katha') &&
+    !searchParams.get('minPrice') &&
+    !searchParams.get('maxPrice');
+
+  if (isShopCatalogOnly) {
+    return <Navigate to="/shop" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

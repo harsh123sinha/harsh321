@@ -7,7 +7,7 @@ const STATIC_PAGES = [
   { path: '/buy', changefreq: 'daily', priority: '0.9' },
   { path: '/plots', changefreq: 'weekly', priority: '0.85' },
   { path: '/other', changefreq: 'weekly', priority: '0.8' },
-  { path: '/search?type=rent&other_type=Shop', changefreq: 'weekly', priority: '0.85' },
+  { path: '/shop', changefreq: 'weekly', priority: '0.85' },
   { path: '/our-vendors', changefreq: 'weekly', priority: '0.85' },
   { path: '/projects', changefreq: 'weekly', priority: '0.8' },
   { path: '/broker', changefreq: 'weekly', priority: '0.75' },

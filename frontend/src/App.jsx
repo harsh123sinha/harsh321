@@ -15,6 +15,7 @@ import RentProperties from './pages/RentProperties';
 import BuyProperties from './pages/BuyProperties';
 import OtherProperties from './pages/OtherProperties';
 import PlotProperties from './pages/PlotProperties';
+import ShopProperties from './pages/ShopProperties';
 import PropertyDetail from './pages/PropertyDetail';
 import SearchResults from './pages/SearchResults';
 import Notifications from './pages/Notifications';
@@ -83,6 +84,7 @@ function App() {
               <Route path="/buy" element={<BuyProperties />} />
               <Route path="/other" element={<OtherProperties />} />
               <Route path="/plots" element={<PlotProperties />} />
+              <Route path="/shop" element={<ShopProperties />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
               <Route path="/property/:id" element={<PropertyDetail />} />

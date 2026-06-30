@@ -114,7 +114,7 @@ const Navbar = () => {
     { to: '/rent', label: 'Rent' },
     { to: '/buy', label: 'Buy' },
     { to: '/plots', label: 'Plots' },
-    { to: '/search?type=rent&other_type=Shop', label: 'Shop' },
+    { to: '/shop', label: 'Shop' },
     { to: '/other', label: 'Other' },
     { to: '/our-vendors', label: 'Our Services' },
   ];

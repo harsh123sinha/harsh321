@@ -70,6 +70,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/shop" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
+                  Shops for Rent in Patna
+                </Link>
+              </li>
+              <li>
                 <Link to="/other" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
                   Other Properties
                 </Link>

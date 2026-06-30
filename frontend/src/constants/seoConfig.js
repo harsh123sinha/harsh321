@@ -81,7 +81,7 @@ export const SEO_PAGES = {
     title: `Shops for Rent in Patna | Commercial Spaces — ${SITE_NAME}`,
     description:
       'Find shops and commercial spaces for rent in Patna. Browse verified shop listings by area, size and budget on Harsh To Let Services.',
-    path: '/search?type=rent&other_type=Shop',
+    path: '/shop',
     keywords: 'shop for rent Patna, commercial shop Patna, retail space Patna, to let shop Bihar',
   },
   vendors: {
@@ -238,6 +238,7 @@ export function resolveStaticSeo(pathname, search = '') {
   if (pathname === '/rent') return SEO_PAGES.rent;
   if (pathname === '/buy') return SEO_PAGES.buy;
   if (pathname === '/plots') return SEO_PAGES.plots;
+  if (pathname === '/shop') return SEO_PAGES.shop;
   if (pathname === '/other') return SEO_PAGES.other;
   if (pathname === '/our-vendors') return SEO_PAGES.vendors;
   if (pathname === '/projects') return SEO_PAGES.projects;
