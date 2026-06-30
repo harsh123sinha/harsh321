@@ -2,6 +2,7 @@ import {
   RekognitionClient,
   DetectModerationLabelsCommand,
   DetectTextCommand,
+  DetectLabelsCommand,
 } from '@aws-sdk/client-rekognition';
 import { prepareImageBytes } from './imagePrep.js';
 import { scanContactViolations, normalizeContactText } from './contactValidation.js';
@@ -20,6 +21,19 @@ const EXPLICIT_PARENTS = new Set([
 
 const REJECT_CONFIDENCE = 80;
 const PENDING_CONFIDENCE_MIN = 55;
+
+/** Rekognition label names that indicate a person (not a room/building photo). */
+const PERSON_LABELS = new Set([
+  'Person',
+  'Human',
+  'Face',
+  'Head',
+  'Portrait',
+  'Selfie',
+]);
+
+const PERSON_REJECT_CONFIDENCE = 75;
+const PERSON_PENDING_CONFIDENCE_MIN = 60;
 
 let rekognitionClient;
 
@@ -80,8 +94,20 @@ function mergeAdjacentDigitWords(blocks) {
   return merged.join(' ');
 }
 
+function findTopPersonLabel(labels) {
+  let top = null;
+  for (const label of labels || []) {
+    if (!PERSON_LABELS.has(label.Name)) continue;
+    const confidence = label.Confidence || 0;
+    if (!top || confidence > top.confidence) {
+      top = { name: label.Name, confidence };
+    }
+  }
+  return top;
+}
+
 /**
- * AI moderation: explicit content + OCR contact scan.
+ * AI moderation: explicit content + person detection + OCR contact scan.
  */
 export async function moderatePropertyImage(buffer, mimetype) {
   let bytes;
@@ -107,14 +133,23 @@ export async function moderatePropertyImage(buffer, mimetype) {
 
   let moderationLabels = [];
   let textBlocks = [];
+  let sceneLabels = [];
 
   try {
-    const [modRes, textRes] = await Promise.all([
+    const [modRes, textRes, labelsRes] = await Promise.all([
       client.send(new DetectModerationLabelsCommand({ Image: { Bytes: bytes }, MinConfidence: 50 })),
       client.send(new DetectTextCommand({ Image: { Bytes: bytes } })),
+      client.send(
+        new DetectLabelsCommand({
+          Image: { Bytes: bytes },
+          MinConfidence: 50,
+          MaxLabels: 50,
+        })
+      ),
     ]);
     moderationLabels = modRes.ModerationLabels || [];
     textBlocks = textRes.TextDetections || [];
+    sceneLabels = labelsRes.Labels || [];
   } catch (err) {
     if (err.name === 'InvalidImageFormatException' || err.code === 'InvalidImageFormatException') {
       return {
@@ -158,6 +193,20 @@ export async function moderatePropertyImage(buffer, mimetype) {
     };
   }
 
+  const topPerson = findTopPersonLabel(sceneLabels);
+  if (topPerson && topPerson.confidence >= PERSON_REJECT_CONFIDENCE) {
+    return {
+      approved: false,
+      rejected: true,
+      pending: false,
+      confidence: topPerson.confidence,
+      code: 'image_person',
+      userMessage: messageForViolationCode('image_person'),
+      reason: topPerson.name,
+      bytes,
+    };
+  }
+
   const ocrLine = mergeOcrText(textBlocks);
   const ocrMerged = mergeAdjacentDigitWords(textBlocks);
   const ocrCombined = `${ocrLine}\n${ocrMerged}\n${normalizeContactText(ocrLine)}`;
@@ -190,6 +239,19 @@ export async function moderatePropertyImage(buffer, mimetype) {
       code: 'image_pending',
       userMessage: messageForViolationCode('image_pending'),
       reason: topExplicit.name,
+      bytes,
+    };
+  }
+
+  if (topPerson && topPerson.confidence >= PERSON_PENDING_CONFIDENCE_MIN) {
+    return {
+      approved: false,
+      rejected: false,
+      pending: true,
+      confidence: topPerson.confidence,
+      code: 'image_pending',
+      userMessage: messageForViolationCode('image_pending'),
+      reason: topPerson.name,
       bytes,
     };
   }

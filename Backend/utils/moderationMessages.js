@@ -10,6 +10,8 @@ const MESSAGES = {
   social: 'Social media or off-platform contact details are not allowed.',
   contact_phrase: 'Listings containing external contact details cannot be published.',
   image_contact: 'Please remove contact information from images.',
+  image_person:
+    'Property photos must show rooms, buildings, or plots only. Images with people are not allowed.',
   image_explicit: 'This image cannot be published. Please upload appropriate property photos only.',
   image_pending: 'Your listing is under review. We will notify you after admin approval.',
   generic: 'This content cannot be published. Please contact Harsh To Let Services for assistance.',
