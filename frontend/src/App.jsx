@@ -25,6 +25,8 @@ import BrokerProperties from './pages/broker/BrokerProperties';
 import BrokerReviews from './pages/broker/BrokerReviews';
 import JobApply from './pages/JobApply';
 import OurVendors from './pages/OurVendors';
+import PatnaAreasIndex from './pages/PatnaAreasIndex';
+import AreaFlatsForRent from './pages/AreaFlatsForRent';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -113,6 +115,8 @@ function App() {
               <Route path="/add-property" element={<AddProperty />} />
               <Route path="/job-apply" element={<JobApply />} />
               <Route path="/our-vendors" element={<OurVendors />} />
+              <Route path="/patna" element={<PatnaAreasIndex />} />
+              <Route path="/patna/:areaSlug/flats-for-rent" element={<AreaFlatsForRent />} />
             </Route>
 
             {/* Auth routes (no layout) */}

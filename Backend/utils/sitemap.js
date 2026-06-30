@@ -1,3 +1,5 @@
+import { PATNA_AREA_SLUGS } from '../constants/patnaAreas.js';
+
 const SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://www.harshtoletservices.in').replace(/\/$/, '');
 
 /** Public pages included in the XML sitemap (listings added dynamically). */
@@ -8,6 +10,7 @@ const STATIC_PAGES = [
   { path: '/plots', changefreq: 'weekly', priority: '0.85' },
   { path: '/other', changefreq: 'weekly', priority: '0.8' },
   { path: '/shop', changefreq: 'weekly', priority: '0.85' },
+  { path: '/patna', changefreq: 'weekly', priority: '0.85' },
   { path: '/our-vendors', changefreq: 'weekly', priority: '0.85' },
   { path: '/projects', changefreq: 'weekly', priority: '0.8' },
   { path: '/broker', changefreq: 'weekly', priority: '0.75' },
@@ -46,6 +49,15 @@ export function buildSitemapXml(listings = []) {
 
   for (const page of STATIC_PAGES) {
     chunks.push(urlEntry(`${SITE_URL}${page.path}`, page));
+  }
+
+  for (const slug of PATNA_AREA_SLUGS) {
+    chunks.push(
+      urlEntry(`${SITE_URL}/patna/${slug}/flats-for-rent`, {
+        changefreq: 'weekly',
+        priority: '0.8',
+      })
+    );
   }
 
   for (const row of listings) {

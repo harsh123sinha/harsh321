@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 import BrandMark from '../brand/BrandMark';
 import { FOOTER_LOGO_CLASS } from '../brand/BrandLogo';
+import { FEATURED_PATNA_AREAS } from '../../constants/areaPages';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,9 +10,9 @@ const Footer = () => {
   return (
     <footer className="mt-auto border-t border-gold/25 bg-navy text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand — full footer width so name stays on one line */}
-          <div className="col-span-1 space-y-4 sm:col-span-2 lg:col-span-4">
+          <div className="col-span-1 space-y-4 sm:col-span-2 lg:col-span-5">
             <Link to="/" className="block w-full">
               <BrandMark logoClassName={FOOTER_LOGO_CLASS} footer />
             </Link>
@@ -87,6 +88,28 @@ const Footer = () => {
               <li>
                 <Link to="/broker" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
                   Find Brokers
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Patna areas */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gold">Patna Areas</h3>
+            <ul className="space-y-2">
+              {FEATURED_PATNA_AREAS.map((area) => (
+                <li key={area.slug}>
+                  <Link
+                    to={area.path}
+                    className="text-gray-light hover:text-gold transition-colors text-sm block py-1"
+                  >
+                    Rent in {area.name}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link to="/patna" className="text-gold hover:underline text-sm block py-1 font-medium">
+                  All Patna areas →
                 </Link>
               </li>
             </ul>

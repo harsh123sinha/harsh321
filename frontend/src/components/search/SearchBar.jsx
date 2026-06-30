@@ -30,7 +30,7 @@ const darkInput =
 /**
  * Property search — underline hero (design #7) + boxed layout on listing pages.
  */
-const SearchBar = ({ expanded = false, variant, onSearch }) => {
+const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', presetType = '' }) => {
   const resolvedVariant = variant ?? (expanded ? 'boxed' : 'underline');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -47,8 +47,8 @@ const SearchBar = ({ expanded = false, variant, onSearch }) => {
   const [maxPrice, setMaxPrice] = useState('');
 
   useEffect(() => {
-    const loc = searchParams.get('location') || '';
-    const type = searchParams.get('type') || '';
+    const loc = searchParams.get('location') || presetLocation || '';
+    const type = searchParams.get('type') || presetType || '';
     const bhkParam = searchParams.get('bhk') || '';
     const shopSqftParam = searchParams.get('shop_sqft_range') || '';
     const kathaParam = searchParams.get('katha') || '';
@@ -99,7 +99,7 @@ const SearchBar = ({ expanded = false, variant, onSearch }) => {
       setKatha('');
       setKathaCustom('');
     }
-  }, [searchParams]);
+  }, [searchParams, presetLocation, presetType]);
 
   const isPlot = category === 'plot';
   const isShop = category === 'shop';

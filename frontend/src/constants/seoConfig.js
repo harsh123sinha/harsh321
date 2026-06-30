@@ -129,6 +129,13 @@ export const SEO_PAGES = {
     description: 'Privacy policy for Harsh To Let Services — how we handle your data on our Patna real estate platform.',
     path: '/privacy',
   },
+  patnaAreas: {
+    title: `Patna Areas — Flats for Rent by Locality | ${SITE_NAME}`,
+    description:
+      'Browse flats and houses for rent by area in Patna — Boring Road, Kankarbagh, Bailey Road and more. Verified listings on Harsh To Let Services.',
+    path: '/patna',
+    keywords: 'flats for rent Patna areas, rent Boring Road Patna, to let Patna locality',
+  },
 };
 
 export function buildOrganizationJsonLd() {
@@ -246,6 +253,7 @@ export function resolveStaticSeo(pathname, search = '') {
   if (pathname === '/job-apply') return SEO_PAGES.jobApply;
   if (pathname === '/terms') return SEO_PAGES.terms;
   if (pathname === '/privacy') return SEO_PAGES.privacy;
+  if (pathname === '/patna') return SEO_PAGES.patnaAreas;
   if (pathname === '/search') {
     const params = new URLSearchParams(search);
     if (params.get('other_type') === 'Shop') return SEO_PAGES.shop;

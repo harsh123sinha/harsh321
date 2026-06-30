@@ -8,7 +8,7 @@ import {
 } from '../../constants/seoConfig';
 import { applyPageSeo, upsertJsonLd } from '../../utils/seoHead';
 
-const SKIP_PREFIXES = ['/property/', '/projects/'];
+const SKIP_PREFIXES = ['/property/', '/projects/', '/patna/'];
 
 /**
  * Applies SEO for static public routes. Dynamic pages set their own tags.
