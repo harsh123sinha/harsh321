@@ -20,7 +20,7 @@ cd "$APP_DIR"
 echo "==> git fetch && pull"
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
-git pull origin "$BRANCH"
+git reset --hard "origin/$BRANCH"
 
 if [[ -f "$DEPLOY_DIR/frontend.env.production" ]]; then
   echo "==> Sync frontend production env"
@@ -41,6 +41,7 @@ npm run build
 if [[ -f "$DEPLOY_DIR/nginx-harshtoletservices.conf" ]]; then
   echo "==> Reload nginx (if config changed)"
   cp "$DEPLOY_DIR/nginx-harshtoletservices.conf" /etc/nginx/sites-available/harshtoletservices
+  ln -sf /etc/nginx/sites-available/harshtoletservices /etc/nginx/sites-enabled/harshtoletservices
   nginx -t
   systemctl reload nginx
 fi

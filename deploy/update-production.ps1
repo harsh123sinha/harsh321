@@ -22,6 +22,7 @@ if (-not $SkipPush) {
 Write-Host "==> Uploading deploy scripts to VPS ..."
 scp "$PSScriptRoot\update-production.sh" "${Server}:/root/deploy/update-production.sh"
 scp "$PSScriptRoot\frontend.env.production" "${Server}:/root/deploy/frontend.env.production"
+scp "$PSScriptRoot\nginx-harshtoletservices.conf" "${Server}:/root/deploy/nginx-harshtoletservices.conf"
 
 Write-Host "==> Running deploy on VPS ..."
 ssh $Server "sed -i 's/\r$//' /root/deploy/update-production.sh && chmod +x /root/deploy/update-production.sh && bash /root/deploy/update-production.sh $Branch"

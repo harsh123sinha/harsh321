@@ -19,10 +19,9 @@ export const CAROUSEL_SCROLLER_PAD = 'px-1 sm:px-2';
 export const CAROUSEL_SCROLLER_PAD_FULL = 'px-3 sm:px-5 md:px-8 lg:px-10';
 /** Hidden scrollbars — touch swipe + trackpad + mouse drag */
 export const CAROUSEL_SCROLLER =
-  'scrollbar-hide flex snap-x snap-proximity gap-3 overflow-x-auto overflow-y-visible overscroll-x-contain scroll-smooth scroll-pl-1 pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:scroll-pl-2 sm:pb-4 sm:pt-1 md:gap-6';
+  'scrollbar-hide flex snap-x snap-proximity gap-3 overflow-x-auto overflow-y-visible overscroll-x-contain scroll-smooth scroll-pl-1 pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 sm:gap-5 sm:scroll-pl-2 sm:pb-4 sm:pt-1 md:gap-6';
 
-export const CAROUSEL_SLIDE =
-  'shrink-0 snap-start [touch-action:pan-x]';
+export const CAROUSEL_SLIDE = 'shrink-0 snap-start';
 
 export const CAROUSEL_SCROLL_HINT =
   'Swipe left or right, drag with mouse, or use the arrows';

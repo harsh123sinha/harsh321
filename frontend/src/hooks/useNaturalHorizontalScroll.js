@@ -13,7 +13,7 @@ function normalizeWheelDelta(value, deltaMode) {
 
 /**
  * Horizontal scroll for property carousels (trackpad, mouse drag, shift+wheel).
- * Touch devices use native overflow scrolling (touch-action: pan-x).
+ * Touch devices use native overflow scrolling (vertical page scroll allowed on cards).
  */
 export function useNaturalHorizontalScroll(scrollerRef, containerRef, deps = []) {
   useEffect(() => {
