@@ -15,6 +15,7 @@ import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionB
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
 import { usePageSeo } from '../hooks/usePageSeo';
+import { useScrollToContactOnAuth } from '../hooks/useScrollToContactOnAuth';
 import { buildProjectJsonLd } from '../constants/seoConfig';
 
 const CONTACT_PHONE =
@@ -56,6 +57,8 @@ const ProjectDetail = () => {
         }
       : null
   );
+
+  useScrollToContactOnAuth('project-contact', !isLoading && Boolean(project));
 
   if (isLoading) {
     return <BrandLoader fullScreen />;
@@ -206,7 +209,7 @@ const ProjectDetail = () => {
           </p>
         </div>
 
-        <div className="rounded-xl bg-white p-5 sm:p-6 shadow-sm border border-stone-100">
+        <div id="project-contact" className="rounded-xl bg-white p-5 sm:p-6 shadow-sm border border-stone-100 scroll-mt-24">
           <h2 className="text-lg font-bold text-navy mb-2">Contact Harsh To Let Services</h2>
           <p className="text-sm text-stone-600 mb-4">
             Speak with our team about this project — not the builder directly.

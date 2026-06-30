@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff, Briefcase, MapPin } from 'lucide-react';
 import ImageCaptureInput from '../../components/common/ImageCaptureInput';
 import { useAuth } from '../../contexts/AuthContext';
-import { isValidIndianMobile, getSafeInternalReturnPath } from '../../utils/helpers';
+import { isValidIndianMobile } from '../../utils/helpers';
+import { consumeAuthReturnPath, stashAuthReturnPath } from '../../utils/authReturn';
 import { buildAuthSwitchUrl } from '../../utils/addListingDraft';
 import toast from 'react-hot-toast';
 import ScrollableLegalModal from '../../components/legal/ScrollableLegalModal';
@@ -69,7 +70,23 @@ const Signup = () => {
   const [searchParams] = useSearchParams();
   const draftHydrated = useRef(false);
   const listingHintShown = useRef(false);
+  const contactHintShown = useRef(false);
   const fromListing = searchParams.get('from') === 'listing';
+  const fromContact = searchParams.get('from') === 'contact';
+
+  useEffect(() => {
+    const next = searchParams.get('next');
+    if (next) stashAuthReturnPath(next);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!fromContact || contactHintShown.current) return;
+    contactHintShown.current = true;
+    toast('Sign in or create an account to view phone numbers and use WhatsApp for this listing.', {
+      duration: 6000,
+      id: 'signup-contact-hint',
+    });
+  }, [fromContact]);
 
   useEffect(() => {
     const draft = loadSignupDraft();
@@ -179,7 +196,7 @@ const Signup = () => {
         /* ignore */
       }
       toast.success('Account created successfully!');
-      const next = getSafeInternalReturnPath(searchParams.get('next'));
+      const next = consumeAuthReturnPath(searchParams.get('next'));
       if (next) {
         navigate(next, { replace: true });
         setLoading(false);
@@ -212,6 +229,12 @@ const Signup = () => {
               <p className="mt-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2.5 text-left text-sm leading-snug text-navy">
                 Create an owner or agent account to publish your listing. You&apos;ll return to the form with your
                 details already filled in.
+              </p>
+            ) : null}
+            {fromContact ? (
+              <p className="mt-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2.5 text-left text-sm leading-snug text-navy">
+                After sign-up you&apos;ll return to the same property so you can view the phone number or open
+                WhatsApp.
               </p>
             ) : null}
           </div>

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { getVendorWhatsAppHref, getSafeInternalReturnPath } from '../../utils/helpers';
+import { getVendorWhatsAppHref } from '../../utils/helpers';
+import { buildContactLoginUrl } from '../../utils/authReturn';
 import { useAuth } from '../../contexts/AuthContext';
 
 const VendorWhatsAppInquiryButton = ({ vendor, listing = null, categoryLabel = '', compact = false, className = '' }) => {
@@ -12,12 +13,7 @@ const VendorWhatsAppInquiryButton = ({ vendor, listing = null, categoryLabel = '
   const baseClass = `inline-flex w-full items-center justify-center gap-0.5 rounded-md font-semibold min-h-[28px] max-[499px]:min-h-[20px] max-[399px]:min-h-[18px] px-2 py-1 max-[499px]:px-1 max-[499px]:py-0.5 text-[9px] max-[499px]:text-[7px] max-[399px]:text-[6px] sm:min-h-[44px] sm:rounded-lg sm:gap-1.5 sm:px-3 sm:py-2 sm:text-sm lg:min-h-[48px] lg:rounded-xl lg:px-4 lg:py-2.5 lg:text-base text-white shadow-sm transition-colors ${className}`;
 
   const goLogin = () => {
-    const next = getSafeInternalReturnPath(
-      `${window.location.pathname}${window.location.search || ''}`
-    );
-    const q = new URLSearchParams({ from: 'contact' });
-    if (next) q.set('next', next);
-    navigate(`/login?${q.toString()}`);
+    navigate(buildContactLoginUrl());
   };
 
   const whatsAppIcon = (

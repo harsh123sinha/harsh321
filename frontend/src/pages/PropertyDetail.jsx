@@ -24,6 +24,7 @@ import BookmarkButton from '../components/properties/BookmarkButton';
 import AgentListingInfo, { getAgentListingInfo } from '../components/properties/AgentListingInfo';
 import BrandLoader from '../components/ui/BrandLoader';
 import { usePageSeo } from '../hooks/usePageSeo';
+import { useScrollToContactOnAuth } from '../hooks/useScrollToContactOnAuth';
 import { buildPropertyJsonLd } from '../constants/seoConfig';
 
 const PropertyDetail = () => {
@@ -70,6 +71,8 @@ const PropertyDetail = () => {
         }
       : null
   );
+
+  useScrollToContactOnAuth('property-contact', !isLoading && Boolean(property));
 
   if (isLoading) {
     return <BrandLoader fullScreen />;
@@ -420,7 +423,7 @@ const PropertyDetail = () => {
                 )}
               </div>
 
-              <div className="space-y-3 lg:space-y-4">
+              <div id="property-contact" className="space-y-3 lg:space-y-4 scroll-mt-24">
                 <div className="space-y-1.5 lg:space-y-2">
                   <p className="text-xs font-semibold text-navy lg:text-sm">Reach Harsh To Let Services</p>
                   <MaskedPhoneActionButton phoneRaw={CONTACT_OFFICE_PHONE_1} />

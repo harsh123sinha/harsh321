@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getSafeInternalReturnPath } from '../../utils/helpers';
+import { consumeAuthReturnPath, stashAuthReturnPath } from '../../utils/authReturn';
 import { buildAuthSwitchUrl } from '../../utils/addListingDraft';
 import toast from 'react-hot-toast';
 
@@ -18,6 +18,11 @@ const Login = () => {
   const emailDraftLoaded = useRef(false);
   const contactHintShown = useRef(false);
   const listingHintShown = useRef(false);
+
+  useEffect(() => {
+    const next = searchParams.get('next');
+    if (next) stashAuthReturnPath(next);
+  }, [searchParams]);
 
   useEffect(() => {
     if (searchParams.get('from') !== 'contact' || contactHintShown.current) return;
@@ -79,7 +84,7 @@ const Login = () => {
         /* ignore */
       }
       toast.success('Login successful!');
-      const next = getSafeInternalReturnPath(searchParams.get('next'));
+      const next = consumeAuthReturnPath(searchParams.get('next'));
       if (next) {
         navigate(next, { replace: true });
         setLoading(false);

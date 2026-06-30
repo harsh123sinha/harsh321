@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { getPropertyWhatsAppHref, getPropertyListingUrl, getSafeInternalReturnPath } from '../../utils/helpers';
+import { getPropertyWhatsAppHref, getPropertyListingUrl } from '../../utils/helpers';
+import { buildContactLoginUrl } from '../../utils/authReturn';
 import { useAuth } from '../../contexts/AuthContext';
 
 /**
@@ -18,12 +19,7 @@ const WhatsAppInquiryButton = ({ property, className = '', recipientOverride }) 
   const baseClass = `inline-flex w-full items-center justify-center gap-1.5 rounded-lg sm:rounded-xl font-semibold touch-target min-h-[36px] px-3 py-2 text-xs sm:min-h-[48px] sm:gap-2 sm:px-4 sm:py-3 sm:text-sm text-white shadow-sm transition-colors ${className}`;
 
   const goLogin = () => {
-    const next = getSafeInternalReturnPath(
-      `${window.location.pathname}${window.location.search || ''}`
-    );
-    const q = new URLSearchParams({ from: 'contact' });
-    if (next) q.set('next', next);
-    navigate(`/login?${q.toString()}`);
+    navigate(buildContactLoginUrl());
   };
 
   const whatsAppIcon = (

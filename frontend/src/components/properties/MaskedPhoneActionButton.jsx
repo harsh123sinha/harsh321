@@ -4,10 +4,10 @@ import { Phone } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   formatPhoneMaskedDisplay,
-  getSafeInternalReturnPath,
   toTelHref,
   toTenDigitIndianMobile,
 } from '../../utils/helpers';
+import { buildContactLoginUrl } from '../../utils/authReturn';
 
 /**
  * Call row: logged-in → `tel:` link; guest → masked digits + sweep + “Get number”, tap → login.
@@ -21,12 +21,7 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) =>
   const displayFull = ten ? `+91 ${ten}` : '';
 
   const goLogin = () => {
-    const next = getSafeInternalReturnPath(
-      `${window.location.pathname}${window.location.search || ''}`
-    );
-    const q = new URLSearchParams({ from: 'contact' });
-    if (next) q.set('next', next);
-    navigate(`/login?${q.toString()}`);
+    navigate(buildContactLoginUrl());
   };
 
   const sizeClass = dense
