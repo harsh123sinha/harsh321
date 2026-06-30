@@ -1,5 +1,12 @@
 import db from '../config/database.js';
 
+/** MySQL 8 prepared statements reject `LIMIT ?` — use a sanitized integer in SQL. */
+function sqlLimit(limit, fallback = 50, max = 500) {
+  const n = Number.parseInt(String(limit), 10);
+  const safe = Number.isFinite(n) && n > 0 ? n : fallback;
+  return Math.min(safe, max);
+}
+
 /**
  * Plot listings: explicit types, plus rows where an older DB used
  * `ENUM('rent','buy','other','plot')` without `plot_lease` / `plot_buy`.
@@ -175,9 +182,9 @@ export const propertyModel = {
       ${SQL_PUBLIC_ACTIVE}
       ${SQL_PROPERTIES_ONLY}
       ORDER BY RAND()
-      LIMIT ?
+      LIMIT ${sqlLimit(limit, 50)}
     `;
-    const [rows] = await db.execute(query, [limit]);
+    const [rows] = await db.execute(query);
     return rows;
   },
 
@@ -191,9 +198,9 @@ export const propertyModel = {
       ${SQL_PUBLIC_ACTIVE}
       ${SQL_PROJECTS_ONLY}
       ORDER BY p.id DESC
-      LIMIT ?
+      LIMIT ${sqlLimit(limit, 12)}
     `;
-    const [rows] = await db.execute(query, [limit]);
+    const [rows] = await db.execute(query);
     return rows;
   },
 
@@ -207,9 +214,9 @@ export const propertyModel = {
       ${SQL_PUBLIC_ACTIVE}
       ${SQL_PROJECTS_ONLY}
       ORDER BY p.featured DESC, p.id DESC
-      LIMIT ?
+      LIMIT ${sqlLimit(limit, 12)}
     `;
-    const [rows] = await db.execute(query, [limit]);
+    const [rows] = await db.execute(query);
     return rows;
   },
 
@@ -322,8 +329,7 @@ export const propertyModel = {
     }
 
     query += ` AND (${orParts.join(' OR ')})`;
-    query += ' ORDER BY p.id DESC LIMIT ?';
-    params.push(Math.min(Math.max(candidateLimit, 1), 200));
+    query += ` ORDER BY p.id DESC LIMIT ${sqlLimit(candidateLimit, 120, 200)}`;
 
     const [rows] = await db.execute(query, params);
     return rows;
@@ -355,8 +361,7 @@ export const propertyModel = {
       query += ' AND p.id != ?';
       params.push(excludeId);
     }
-    query += ' ORDER BY p.id DESC LIMIT ?';
-    params.push(limit);
+    query += ` ORDER BY p.id DESC LIMIT ${sqlLimit(limit, 8)}`;
     const [rows] = await db.execute(query, params);
     return rows;
   },
@@ -375,9 +380,9 @@ export const propertyModel = {
       query += ` WHERE 1=1 ${SQL_PUBLIC_ACTIVE} ${SQL_PROPERTIES_ONLY}`;
     }
     
-    query += ` ORDER BY RAND() LIMIT ?`;
-    
-    const params = excludeId ? [excludeId, limit] : [limit];
+    query += ` ORDER BY RAND() LIMIT ${sqlLimit(limit, 12)}`;
+
+    const params = excludeId ? [excludeId] : [];
     const [rows] = await db.execute(query, params);
     return rows;
   },

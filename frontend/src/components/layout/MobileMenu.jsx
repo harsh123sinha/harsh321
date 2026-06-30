@@ -53,7 +53,7 @@ export default function MobileMenu({
   if (!isRendered) return null;
 
   return (
-    <div className="nav:hidden fixed inset-0 z-[60]" role="presentation">
+    <div className="xl:hidden fixed inset-0 z-[60]" role="presentation">
       <button
         type="button"
         className={`htls-mobile-menu-overlay absolute inset-0 bg-black/55 transition-opacity duration-300 ease-out ${

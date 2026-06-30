@@ -4,6 +4,9 @@ const LOGO_SRC = '/logo.png';
 export const NAVBAR_LOGO_CLASS =
   'h-14 w-14 xs:h-16 xs:w-16 sm:h-[68px] sm:w-[68px] md:h-[88px] md:w-[88px] lg:h-[100px] lg:w-[100px]';
 
+/** Compact emblem for desktop navbar row */
+export const NAVBAR_DESKTOP_LOGO_CLASS = 'h-10 w-10 shrink-0 xl:h-11 xl:w-11 2xl:h-12 2xl:w-12';
+
 /** Footer — circular, slightly smaller than navbar */
 export const FOOTER_LOGO_CLASS =
   'h-14 w-14 sm:h-16 sm:w-16 md:h-[68px] md:w-[68px]';

@@ -10,7 +10,7 @@ import WorkerCustomerReviewModal from '../workers/WorkerCustomerReviewModal';
 import { getNotificationPropertyPath } from '../../utils/notifications';
 import BrandLoader from '../ui/BrandLoader';
 
-const NotificationBell = () => {
+const NotificationBell = ({ compact = false, small = false }) => {
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [brokerReviewModal, setBrokerReviewModal] = useState(null);
@@ -122,12 +122,22 @@ const NotificationBell = () => {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="relative text-white hover:text-gold transition-colors p-2 touch-target"
+          className={`relative text-white hover:text-gold transition-colors touch-target ${compact ? 'p-1' : 'p-2'}`}
           aria-label="Notifications"
         >
-          <Bell className="h-5 w-5" />
+          <Bell
+            className={
+              small ? 'h-3 w-3' : compact ? 'h-4 w-4 2xl:h-5 2xl:w-5' : 'h-5 w-5'
+            }
+          />
           {unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-gold text-navy text-[10px] font-bold">
+            <span
+              className={`absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-gold font-bold text-navy ${
+                small
+                  ? 'h-3.5 min-w-[14px] px-0.5 text-[8px]'
+                  : 'h-[18px] min-w-[18px] px-1 text-[10px]'
+              }`}
+            >
               {unread > 99 ? '99+' : unread}
             </span>
           )}

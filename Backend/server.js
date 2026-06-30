@@ -59,9 +59,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Health check (direct + via Nginx /api proxy)
+const healthPayload = { status: 'ok', message: 'Real Estate API is running' };
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Real Estate API is running' });
+  res.json(healthPayload);
+});
+app.get('/api/health', (req, res) => {
+  res.json(healthPayload);
 });
 
 // API Routes

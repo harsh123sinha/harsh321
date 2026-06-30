@@ -6,14 +6,26 @@ import NotificationBell from '../notifications/NotificationBell';
 import BrandMark from '../brand/BrandMark';
 import MobileMenu from './MobileMenu';
 
-const PostPropertyButton = ({ className = '', onClick, compact = false }) => (
+const DESKTOP_NAV_MIN_PX = 1280;
+
+const DESKTOP_NAV_GAP = 'gap-2.5 2xl:gap-4';
+const DESKTOP_ICON = 'h-3.5 w-3.5 shrink-0 2xl:h-4 2xl:w-4';
+const DESKTOP_TEXT = 'text-xs xl:text-sm 2xl:text-base';
+
+const AUTH_CENTER_GAP = 'gap-3 2xl:gap-4';
+const AUTH_CENTER_TEXT = 'text-xs xl:text-sm 2xl:text-base font-medium';
+const AUTH_CENTER_ICON = 'h-3.5 w-3.5 shrink-0 2xl:h-4 2xl:w-4';
+
+const PostPropertyButton = ({ className = '', onClick, compact = false, desktop = false }) => (
   <Link
     to="/add-property"
     onClick={onClick}
     className={
       compact
         ? `inline-flex shrink-0 items-center gap-1 rounded-md bg-gold px-2 py-1 text-[10px] font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 ${className}`
-        : `inline-flex flex-row flex-nowrap items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 ${className}`
+        : desktop
+          ? `inline-flex shrink-0 items-center gap-1 rounded-md bg-gold px-2.5 py-1 text-xs font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 2xl:gap-1.5 2xl:px-3 2xl:py-1.5 2xl:text-sm ${className}`
+          : `inline-flex flex-row flex-nowrap items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold leading-none text-navy shadow-sm transition hover:bg-gold/90 ${className}`
     }
   >
     {compact ? 'Post' : 'Post Property'}
@@ -21,7 +33,9 @@ const PostPropertyButton = ({ className = '', onClick, compact = false }) => (
       className={
         compact
           ? 'rounded bg-red-600 px-1 py-px text-[8px] font-extrabold uppercase leading-none text-white'
-          : 'rounded bg-red-600 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white'
+          : desktop
+            ? 'rounded bg-red-600 px-1 py-px text-[8px] font-extrabold uppercase leading-none text-white 2xl:px-1.5 2xl:text-[9px]'
+            : 'rounded bg-red-600 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white'
       }
     >
       Free
@@ -45,7 +59,7 @@ const MobileQuickLink = ({ to, onClick, children, highlight = false }) => (
 
 const JOB_APPLY_COLOR = 'bg-[rgb(149,0,0)] hover:bg-[rgb(120,0,0)]';
 
-const JobApplyButton = ({ onClick, compact = false }) => (
+const JobApplyButton = ({ onClick, compact = false, desktop = false }) => (
   <Link
     to="/job-apply"
     onClick={onClick}
@@ -53,10 +67,12 @@ const JobApplyButton = ({ onClick, compact = false }) => (
     className={
       compact
         ? `htls-job-apply-btn inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-bold leading-none text-white shadow-sm transition ${JOB_APPLY_COLOR}`
-        : `htls-job-apply-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold leading-none text-white shadow-sm transition ${JOB_APPLY_COLOR}`
+        : desktop
+          ? `htls-job-apply-btn inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-bold leading-none text-white shadow-sm transition 2xl:gap-1.5 2xl:px-3 2xl:py-1.5 2xl:text-sm ${JOB_APPLY_COLOR}`
+          : `htls-job-apply-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold leading-none text-white shadow-sm transition ${JOB_APPLY_COLOR}`
     }
   >
-    <Briefcase className={`relative z-[2] shrink-0 ${compact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+    <Briefcase className={`relative z-[2] shrink-0 ${compact || desktop ? 'h-3 w-3 2xl:h-4 2xl:w-4' : 'h-4 w-4'}`} />
     <span className="relative z-[2]">Job Apply</span>
   </Link>
 );
@@ -76,13 +92,13 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    const onResize = () => {
-      if (window.matchMedia('(min-width: 1922px)').matches) {
-        setIsMenuOpen(false);
-      }
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_NAV_MIN_PX}px)`);
+    const onChange = () => {
+      if (mq.matches) setIsMenuOpen(false);
     };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
 
   const handleLogout = () => {
@@ -107,8 +123,10 @@ const Navbar = () => {
 
   const linkClass = (highlight) =>
     highlight
-      ? 'border-2 border-gold bg-gold/15 text-gold px-3 py-1 rounded-lg font-semibold hover:bg-gold/25 hover:text-gold-light transition-colors duration-200 shadow-sm shadow-gold/10'
-      : 'text-white hover:text-gold transition-colors duration-200 font-medium';
+      ? `border border-gold bg-gold/15 text-gold px-2 py-0.5 rounded-md font-semibold hover:bg-gold/25 hover:text-gold-light transition-colors duration-200 2xl:px-2.5 2xl:py-1 ${DESKTOP_TEXT}`
+      : `text-white hover:text-gold transition-colors duration-200 font-medium ${DESKTOP_TEXT}`;
+
+  const iconActionClass = `flex items-center gap-1 whitespace-nowrap font-medium text-white transition-colors duration-200 hover:text-gold ${DESKTOP_TEXT}`;
 
   const getDashboardLink = () => {
     if (user?.role === 'owner') return '/dashboard/owner';
@@ -119,31 +137,28 @@ const Navbar = () => {
   };
 
   const loginLink = (
-    <Link
-      to="/login"
-      className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-white transition-colors duration-200 hover:text-gold"
-    >
-      <LogIn className="h-4 w-4 shrink-0" />
+    <Link to="/login" className={iconActionClass}>
+      <LogIn className={DESKTOP_ICON} />
       <span>Login</span>
     </Link>
   );
 
-  const authenticatedLeadingActions = (
+  const authSavedDashboardLinks = (
     <>
-      <NotificationBell />
       <Link
         to="/saved"
-        className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-white transition-colors duration-200 hover:text-gold"
+        className={`flex shrink-0 items-center gap-1 whitespace-nowrap text-white transition-colors hover:text-gold ${AUTH_CENTER_TEXT}`}
         title="Saved properties"
       >
-        <Bookmark className="h-4 w-4 shrink-0" />
+        <Bookmark className={AUTH_CENTER_ICON} />
         <span>Saved</span>
       </Link>
       <Link
         to={getDashboardLink()}
-        className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-white transition-colors duration-200 hover:text-gold"
+        className={`flex shrink-0 items-center gap-1 whitespace-nowrap text-white transition-colors hover:text-gold ${AUTH_CENTER_TEXT}`}
+        title="Dashboard"
       >
-        <User className="h-4 w-4 shrink-0" />
+        <User className={AUTH_CENTER_ICON} />
         <span>Dashboard</span>
       </Link>
     </>
@@ -153,18 +168,64 @@ const Navbar = () => {
     <button
       type="button"
       onClick={handleLogout}
-      className="flex items-center gap-1 whitespace-nowrap rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-navy transition-colors duration-200 hover:bg-gold/90"
+      className={`flex items-center gap-1 whitespace-nowrap rounded-md bg-gold px-2.5 py-1 font-semibold text-navy transition-colors duration-200 hover:bg-gold/90 2xl:px-3 2xl:py-1.5 ${DESKTOP_TEXT}`}
     >
-      <LogOut className="h-4 w-4 shrink-0" />
+      <LogOut className={DESKTOP_ICON} />
       <span>Logout</span>
     </button>
   );
 
+  const authenticatedRightActions = (
+    <>
+      {logoutButton}
+      <Link to={brokersLink.to} className={`whitespace-nowrap ${linkClass(brokersLink.highlight)}`}>
+        {brokersLink.label}
+      </Link>
+      <JobApplyButton desktop />
+      <PostPropertyButton desktop />
+    </>
+  );
+
+  const desktopBrandOffset = 'xl:pl-6 2xl:pl-8';
+  const desktopActionsOffset = 'xl:pr-6 2xl:pr-8';
+
+  const mainNavLinkItems = mainNavLinks.map((link) => (
+    <Link key={link.to} to={link.to} className={`whitespace-nowrap ${linkClass(false)}`}>
+      {link.label}
+    </Link>
+  ));
+
+  const authMainNavLinkItems = mainNavLinks.map((link) => (
+    <Link
+      key={link.to}
+      to={link.to}
+      className={`shrink-0 whitespace-nowrap text-white transition-colors hover:text-gold ${AUTH_CENTER_TEXT}`}
+    >
+      {link.label}
+    </Link>
+  ));
+
+  const authenticatedCenterNav = (
+    <div
+      className={`flex shrink-0 flex-nowrap items-center ${AUTH_CENTER_GAP} xl:-translate-x-10 2xl:-translate-x-14`}
+    >
+      {authMainNavLinkItems}
+      <span className="shrink-0">
+        <NotificationBell compact />
+      </span>
+      {authSavedDashboardLinks}
+    </div>
+  );
+
+  const guestCenterNav = (
+    <div className={`flex items-center justify-center ${DESKTOP_NAV_GAP}`}>{mainNavLinkItems}</div>
+  );
+
   return (
     <nav className="bg-navy sticky top-0 z-50 shadow-lg">
-      <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 nav:max-w-none nav:px-0">
-        {/* Compact header — below desktop nav breakpoint (~1922px) */}
-        <div className="nav:hidden relative">
+      <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 xl:max-w-none xl:px-4 2xl:px-6">
+        {/* Phone + tablet — hamburger (below 1280px) */}
+        <div className="xl:hidden relative">
           <div className="flex min-h-16 items-center justify-between gap-3 py-2">
             <Link
               to="/"
@@ -218,38 +279,43 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Desktop — unchanged layout at 1922px+ */}
-        <div className="hidden nav:grid nav:min-h-[116px] nav:py-1.5 nav:grid-cols-[1fr_auto_1fr] nav:items-center nav:gap-6">
-          <div className="flex min-w-0 justify-self-start nav:pl-[300px]">
-            <Link to="/" className="flex items-center touch-target" aria-label="Harsh To Let Services home">
-              <BrandMark />
-            </Link>
-          </div>
-
-          <div className="flex items-center justify-center gap-6">
-            {mainNavLinks.map((link) => (
-              <Link key={link.to} to={link.to} className={`whitespace-nowrap text-sm ${linkClass(false)}`}>
-                {link.label}
+        {/* Desktop navbar (1280px+) */}
+        {isAuthenticated ? (
+          <div className="hidden xl:flex xl:min-h-[4.5rem] xl:w-full xl:items-center xl:justify-between xl:py-2 2xl:min-h-20">
+            <div className={`flex shrink-0 items-center ${desktopBrandOffset}`}>
+              <Link to="/" className="flex items-center touch-target" aria-label="Harsh To Let Services home">
+                <BrandMark desktop />
               </Link>
-            ))}
-          </div>
+            </div>
 
-          <div className="flex min-w-0 items-center justify-end justify-self-end nav:pr-[300px]">
-            {isAuthenticated && (
-              <div className="mr-4 flex shrink-0 items-center gap-3">
-                {authenticatedLeadingActions}
-              </div>
-            )}
-            <div className="flex shrink-0 flex-nowrap items-center gap-4">
-              {isAuthenticated ? logoutButton : loginLink}
-              <Link to={brokersLink.to} className={`whitespace-nowrap text-sm ${linkClass(brokersLink.highlight)}`}>
-                {brokersLink.label}
-              </Link>
-              <JobApplyButton />
-              <PostPropertyButton />
+            <div className="flex min-w-0 flex-1 justify-center overflow-visible px-2">
+              {authenticatedCenterNav}
+            </div>
+
+            <div className={`flex shrink-0 items-center ${DESKTOP_NAV_GAP} ${desktopActionsOffset}`}>
+              {authenticatedRightActions}
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="hidden xl:grid xl:min-h-[4.5rem] xl:grid-cols-[1fr_auto_1fr] xl:items-center xl:py-2 2xl:min-h-20">
+            <div className={`flex min-w-0 items-center justify-self-start ${desktopBrandOffset}`}>
+              <Link to="/" className="flex items-center touch-target" aria-label="Harsh To Let Services home">
+                <BrandMark desktop />
+              </Link>
+            </div>
+
+            {guestCenterNav}
+
+            <div className={`flex min-w-0 items-center justify-end justify-self-end ${DESKTOP_NAV_GAP} ${desktopActionsOffset}`}>
+              {loginLink}
+              <Link to={brokersLink.to} className={`whitespace-nowrap ${linkClass(brokersLink.highlight)}`}>
+                {brokersLink.label}
+              </Link>
+              <JobApplyButton desktop />
+              <PostPropertyButton desktop />
+            </div>
+          </div>
+        )}
       </div>
 
       <MobileMenu
