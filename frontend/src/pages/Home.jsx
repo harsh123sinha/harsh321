@@ -73,6 +73,7 @@ const Home = () => {
             </span>
 
             <h1 className="flex flex-col items-center gap-2 text-balance sm:gap-2.5 md:gap-3">
+              <span className="sr-only">Real Estate and To Let Services in Patna — </span>
               <span className="htls-shimmer-text htls-hero-fade-up htls-hero-fade-up-2 block px-1 text-3xl font-extrabold leading-[1.05] tracking-tight xs:text-4xl sm:text-6xl sm:leading-none md:text-7xl lg:text-8xl">
                 HarshToLetServices
               </span>

@@ -21,7 +21,7 @@ const RentProperties = () => {
       <div className="bg-[#0a1020] text-white pb-8 pt-8 sm:pb-10 sm:pt-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
-            Properties for Rent
+            Properties for Rent in Patna
           </h1>
           <p className="text-base sm:text-lg text-white/75">
             Find your perfect rental property across Patna

@@ -1,0 +1,16 @@
+# https://www.harshtoletservices.in
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /subadmin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /add-property
+Disallow: /edit-property
+Disallow: /my-properties
+Disallow: /notifications
+Disallow: /saved
+
+Sitemap: https://www.harshtoletservices.in/sitemap.xml

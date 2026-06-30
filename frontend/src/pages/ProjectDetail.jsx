@@ -14,6 +14,8 @@ import {
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
+import { usePageSeo } from '../hooks/usePageSeo';
+import { buildProjectJsonLd } from '../constants/seoConfig';
 
 const CONTACT_PHONE =
   import.meta.env.VITE_CONTACT_OFFICE_1 || DEFAULT_SITE_INQUIRY_PHONE;
@@ -36,11 +38,29 @@ const ProjectDetail = () => {
     },
   });
 
+  const project = data?.project;
+  const images = project ? parseImageUrls(project.image_url) : [];
+  const mainImage = images[0] || null;
+  const cityLabel = project?.city || 'Patna';
+
+  usePageSeo(
+    project
+      ? {
+          title: `${project.title} — New Project in ${cityLabel} | Harsh To Let Services`,
+          description: `${project.title} in ${cityLabel} — ${getProjectTypeLabel(project.project_type)}. ${(project.description || '').slice(0, 140)}…`,
+          path: `/projects/${id}`,
+          image: mainImage ? getImageUrl(mainImage) : undefined,
+          keywords: `new project Patna, ${cityLabel} apartment, real estate project Bihar, enclave Patna`,
+          jsonLd: buildProjectJsonLd(project, `/projects/${id}`),
+          jsonLdId: 'seo-jsonld-page',
+        }
+      : null
+  );
+
   if (isLoading) {
     return <BrandLoader fullScreen />;
   }
 
-  const project = data?.project;
   const relatedProjects = data?.relatedProjects || [];
 
   if (!project) {
@@ -56,7 +76,6 @@ const ProjectDetail = () => {
     );
   }
 
-  const images = parseImageUrls(project.image_url);
   const bhkLabel = formatBhkOptions(project.bhk_options);
   const sqftLabel = formatSqftRange(project.sqft_from, project.sqft_to);
   const pdfUrl = project.enclave_pdf_url?.trim() || '';

@@ -23,6 +23,8 @@ import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionB
 import BookmarkButton from '../components/properties/BookmarkButton';
 import AgentListingInfo, { getAgentListingInfo } from '../components/properties/AgentListingInfo';
 import BrandLoader from '../components/ui/BrandLoader';
+import { usePageSeo } from '../hooks/usePageSeo';
+import { buildPropertyJsonLd } from '../constants/seoConfig';
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -49,11 +51,30 @@ const PropertyDetail = () => {
     }
   }, [data, id, navigate]);
 
+  const property = data?.property;
+  const images = property ? parseImageUrls(property.image_url) : [];
+  const mainImage = images[0] || null;
+  const cityLabel = property?.city || 'Patna';
+  const typeLabel = property?.type === 'rent' ? 'for rent' : property?.type === 'buy' ? 'for sale' : '';
+
+  usePageSeo(
+    property
+      ? {
+          title: `${property.title} in ${cityLabel} ${typeLabel} | Harsh To Let Services`,
+          description: `${property.title} in ${cityLabel} — ${formatIndianPrice(property.price)}. ${(property.description || '').slice(0, 140)}…`,
+          path: `/property/${id}`,
+          image: mainImage ? getImageUrl(mainImage) : undefined,
+          keywords: `${property.type} property Patna, ${cityLabel} real estate, to let Patna`,
+          jsonLd: buildPropertyJsonLd(property, `/property/${id}`),
+          jsonLdId: 'seo-jsonld-page',
+        }
+      : null
+  );
+
   if (isLoading) {
     return <BrandLoader fullScreen />;
   }
 
-  const property = data?.property;
   const relatedProperties = data?.relatedProperties || [];
 
   if (!property) {
@@ -67,7 +88,6 @@ const PropertyDetail = () => {
     );
   }
 
-  const images = parseImageUrls(property.image_url);
   const badge = getPropertyTypeBadge(property.type);
   const listingParty = getListingParty(property.owner_role);
   const agentInfo = getAgentListingInfo(property);

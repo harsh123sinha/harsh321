@@ -1,5 +1,6 @@
 import { propertyModel } from '../models/propertyModel.js';
 import { userModel } from '../models/userModel.js';
+import { buildSitemapXml } from '../utils/sitemap.js';
 
 // Get homepage data (featured properties + stats)
 export const getHomeData = async (req, res) => {
@@ -95,5 +96,19 @@ export const getStats = async (req, res) => {
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/** XML sitemap for search engines (static pages + active listings). */
+export const getSitemap = async (req, res) => {
+  try {
+    const listings = await propertyModel.getSitemapListings();
+    const xml = buildSitemapXml(listings);
+    res.set('Content-Type', 'application/xml; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (error) {
+    console.error('Get sitemap error:', error);
+    res.status(500).send('Sitemap unavailable');
   }
 };

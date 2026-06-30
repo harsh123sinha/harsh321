@@ -16,7 +16,8 @@ const Footer = () => {
               <BrandMark logoClassName={FOOTER_LOGO_CLASS} footer />
             </Link>
             <p className="text-gray-light text-sm">
-              Your trusted partner for buying, renting, and selling properties across Patna.
+              Patna&apos;s trusted real estate and to-let platform — buy, rent, or sell flats, houses,
+              plots and shops across Bihar with verified listings and local home services.
             </p>
             <div className="flex flex-wrap gap-3 text-sm">
               <a
@@ -55,22 +56,32 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link to="/rent" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
-                  Properties for Rent
+                  Properties for Rent in Patna
                 </Link>
               </li>
               <li>
                 <Link to="/buy" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
-                  Properties for Sale
+                  Properties for Sale in Patna
                 </Link>
               </li>
               <li>
                 <Link to="/plots" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
-                  Plots
+                  Plots in Patna
                 </Link>
               </li>
               <li>
                 <Link to="/other" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
                   Other Properties
+                </Link>
+              </li>
+              <li>
+                <Link to="/our-vendors" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
+                  Home Services &amp; Vendors
+                </Link>
+              </li>
+              <li>
+                <Link to="/broker" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
+                  Find Brokers
                 </Link>
               </li>
             </ul>

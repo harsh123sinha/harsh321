@@ -620,4 +620,17 @@ export const propertyModel = {
     const [rows] = await db.execute(query);
     return rows[0].count;
   },
+
+  /** Active public listings for XML sitemap (properties + projects). */
+  getSitemapListings: async () => {
+    const query = `
+      SELECT p.id, p.listing_kind
+      FROM properties p
+      WHERE 1=1
+      ${SQL_PUBLIC_ACTIVE}
+      ORDER BY p.id DESC
+    `;
+    const [rows] = await db.execute(query);
+    return rows;
+  },
 };
