@@ -13,7 +13,7 @@ import { buildContactLoginUrl } from '../../utils/authReturn';
  * Call row: logged-in → `tel:` link; guest → masked digits + sweep + “Get number”, tap → login.
  * @param {boolean} dense — compact full-width row for vendor cards on mobile.
  */
-const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) => {
+const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false, iconOnly = false, compact = false }) => {
   const { token, loading } = useAuth();
   const navigate = useNavigate();
   const ten = useMemo(() => toTenDigitIndianMobile(phoneRaw), [phoneRaw]);
@@ -24,12 +24,20 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) =>
     navigate(buildContactLoginUrl());
   };
 
-  const sizeClass = dense
-    ? 'min-h-[28px] w-full px-2 py-1 gap-1.5 max-[499px]:min-h-[20px] max-[499px]:px-1 max-[499px]:py-0.5 max-[499px]:gap-0.5 max-[399px]:min-h-[18px] sm:min-h-[40px] sm:p-1.5 lg:min-h-[48px] lg:px-4 lg:py-2.5 lg:gap-2'
-    : 'min-h-[52px] p-3 lg:min-h-[56px] lg:p-4';
-  const iconClass = dense
-    ? 'h-3 w-3 max-[499px]:h-2.5 max-[499px]:w-2.5 max-[399px]:h-2 max-[399px]:w-2 sm:h-3.5 sm:w-3.5 lg:h-5 lg:w-5'
-    : 'h-5 w-5 lg:h-6 lg:w-6';
+  const sizeClass = iconOnly
+    ? compact
+      ? 'h-7 w-full justify-center p-0'
+      : 'h-9 w-full justify-center p-0'
+    : dense
+      ? 'min-h-[28px] w-full px-2 py-1 gap-1.5 max-[499px]:min-h-[20px] max-[499px]:px-1 max-[499px]:py-0.5 max-[499px]:gap-0.5 max-[399px]:min-h-[18px] sm:min-h-[40px] sm:p-1.5 lg:min-h-[48px] lg:px-4 lg:py-2.5 lg:gap-2'
+      : 'min-h-[52px] p-3 lg:min-h-[56px] lg:p-4';
+  const iconClass = compact
+    ? 'h-3.5 w-3.5'
+    : iconOnly
+      ? 'h-[18px] w-[18px]'
+      : dense
+        ? 'h-3 w-3 max-[499px]:h-2.5 max-[499px]:w-2.5 max-[399px]:h-2 max-[399px]:w-2 sm:h-3.5 sm:w-3.5 lg:h-5 lg:w-5'
+        : 'h-5 w-5 lg:h-6 lg:w-6';
   const textClass = dense
     ? 'text-[9px] max-[499px]:text-[7px] max-[399px]:text-[6px] sm:text-[10px] lg:text-sm leading-none'
     : 'text-sm lg:text-base';
@@ -47,11 +55,31 @@ const MaskedPhoneActionButton = ({ phoneRaw, className = '', dense = false }) =>
     return (
       <a
         href={toTelHref(ten)}
-        className={`flex w-full items-center rounded-md bg-navy transition-colors hover:bg-navy-light ${sizeClass} ${className}`}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Call"
+        className={`flex items-center rounded-lg bg-[#0a1020] transition-colors hover:bg-navy-light ${sizeClass} ${className}`}
       >
         <Phone className={`${iconClass} shrink-0 text-gold`} aria-hidden />
-        <span className={`min-w-0 flex-1 truncate font-semibold text-white ${textClass}`}>{displayFull}</span>
+        {!iconOnly && (
+          <span className={`min-w-0 flex-1 truncate font-semibold text-white ${textClass}`}>{displayFull}</span>
+        )}
       </a>
+    );
+  }
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          goLogin();
+        }}
+        aria-label="Call — sign in"
+        className={`flex items-center rounded-lg bg-[#0a1020] transition-colors hover:bg-navy-light ${sizeClass} ${className}`}
+      >
+        <Phone className={`${iconClass} shrink-0 text-gold`} aria-hidden />
+      </button>
     );
   }
 

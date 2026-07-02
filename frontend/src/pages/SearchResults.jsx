@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
-import PropertyListRow from '../components/properties/PropertyListRow';
+import PropertyListGrid from '../components/properties/PropertyListGrid';
 import SearchBar from '../components/search/SearchBar';
 import { Building2 } from 'lucide-react';
 import BrandLoader from '../components/ui/BrandLoader';
@@ -125,7 +125,7 @@ const SearchResults = () => {
                 {filters.location && <span> in <span className="font-semibold">{filters.location}</span></span>}
               </p>
             </div>
-            <PropertyListRow properties={data.properties} />
+            <PropertyListGrid properties={data.properties} />
           </>
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
@@ -145,7 +145,7 @@ const SearchResults = () => {
                 <BrandLoader />
               </div>
             ) : recommendedProperties.length > 0 ? (
-              <PropertyListRow properties={recommendedProperties} />
+              <PropertyListGrid properties={recommendedProperties} />
             ) : (
               <p className="max-w-7xl mx-auto px-4 text-gray sm:px-6 lg:px-8">
                 No close matches yet. Try widening your budget or location.

@@ -54,7 +54,7 @@ export const propertyModel = {
     const {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status,
+      shop_road_distance, shop_token_amount, furnishing_status, facing,
       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured,
       listing_status,
       listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to,
@@ -65,11 +65,11 @@ export const propertyModel = {
       INSERT INTO properties
       (title, description, price, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-       shop_road_distance, shop_token_amount, furnishing_status,
+       shop_road_distance, shop_token_amount, furnishing_status, facing,
        location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status,
        listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-              ?, ?, ?, ?, ?, ?, ?, ?)
+              ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.execute(query, [
@@ -86,6 +86,7 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
+      facing || null,
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,
@@ -568,7 +569,7 @@ export const propertyModel = {
       SET title = ?, description = ?, price = ?, type = ?, bhk = ?, katha = ?,
           balconies = ?, bathrooms = ?, garden = ?, car_parking = ?, floor_no = ?,
           bike_parking = ?, shop_sqft_range = ?,
-          shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?,
+          shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, facing = ?,
           location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
           image_url = ?, other_type = ?, featured = ?, owner_id = ?,
           listing_status = COALESCE(?, listing_status),
@@ -590,6 +591,7 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
+      facing || null,
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,

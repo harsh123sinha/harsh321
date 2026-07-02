@@ -2,7 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, MapPin } from 'lucide-react';
 import api from '../utils/api';
-import PropertyListRow from '../components/properties/PropertyListRow';
+import PropertyListGrid from '../components/properties/PropertyListGrid';
 import SearchBar from '../components/search/SearchBar';
 import BrandLoader from '../components/ui/BrandLoader';
 import { usePageSeo } from '../hooks/usePageSeo';
@@ -96,7 +96,7 @@ const AreaFlatsForRent = () => {
                 for rent in {area.name}, Patna
               </p>
             </div>
-            <PropertyListRow properties={data.properties} />
+            <PropertyListGrid properties={data.properties} />
           </>
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-16">

@@ -115,6 +115,12 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.furnishing_status`);
   }
+  if (!(await hasColumn(t, 'facing'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN facing VARCHAR(8) NULL DEFAULT NULL AFTER furnishing_status`
+    );
+    console.log(`✅ DB: added ${t}.facing`);
+  }
   if (!(await hasColumn(t, 'road_no'))) {
     await db.execute(
       `ALTER TABLE \`${t}\` ADD COLUMN road_no SMALLINT UNSIGNED NULL DEFAULT NULL AFTER location`

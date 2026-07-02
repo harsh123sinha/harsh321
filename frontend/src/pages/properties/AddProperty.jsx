@@ -13,7 +13,7 @@ import {
   ADD_PROPERTY_CATEGORIES,
   mapAddPropertyToApiType,
 } from '../../utils/propertyListingMap';
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, ROAD_NO_SUGGESTIONS } from '../../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, FACING_OPTIONS, ROAD_NO_SUGGESTIONS } from '../../constants/propertyForm';
 import {
   CONTACT_VALIDATED_FIELDS,
   getContactFieldError,
@@ -70,6 +70,7 @@ const AddProperty = () => {
     shopRoadDistance: '',
     shopTokenAmount: '',
     furnishing: '',
+    facing: '',
     featured: false,
   });
   const [kathaPreset, setKathaPreset] = useState('1');
@@ -455,6 +456,7 @@ const AddProperty = () => {
     }
 
     data.append('furnishing_status', showFurnishing ? formData.furnishing : '');
+    data.append('facing', formData.facing || '');
     images.forEach((img) => data.append('images', img));
 
     try {
@@ -771,6 +773,21 @@ const AddProperty = () => {
                   />
                 )}
                 <FieldHint error={fieldErrors.katha} />
+                <div>
+                  <label className="block text-sm font-medium text-navy mb-1">Facing</label>
+                  <select
+                    name="facing"
+                    value={formData.facing}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none md:max-w-xs ${fieldErrorClass(fieldErrors.facing)}`}
+                  >
+                    {FACING_OPTIONS.map((o) => (
+                      <option key={o.value || 'none'} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
@@ -818,6 +835,22 @@ const AddProperty = () => {
                       className={inputClass(fieldErrors.floor_no)}
                     />
                     <FieldHint error={fieldErrors.floor_no} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-navy mb-1">Facing</label>
+                    <select
+                      name="facing"
+                      value={formData.facing}
+                      onChange={handleChange}
+                      className={inputClass(fieldErrors.facing)}
+                    >
+                      {FACING_OPTIONS.map((o) => (
+                        <option key={o.value || 'none'} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    <FieldHint error={fieldErrors.facing} />
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center pt-2">
                     <label className="inline-flex items-center gap-2 cursor-pointer">

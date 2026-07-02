@@ -388,3 +388,42 @@ export const formatProjectPriceFrom = (price) => {
   const formatted = formatIndianPrice(price);
   return `${formatted} onwards`;
 };
+
+const FACING_LABELS = {
+  N: 'North',
+  E: 'East',
+  S: 'South',
+  W: 'West',
+  NE: 'North-East',
+  NW: 'North-West',
+  SE: 'South-East',
+  SW: 'South-West',
+};
+
+export const getFacingLabel = (value) => {
+  const v = String(value ?? '').trim();
+  if (!v) return '';
+  const key = v.toUpperCase();
+  return FACING_LABELS[key] || v;
+};
+
+/** OLX-style posted date (TODAY, YESTERDAY, 3 DAYS AGO). */
+export const formatListingPostedDate = (dateInput) => {
+  if (!dateInput) return '';
+  const date = new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDiff = Math.round((startOfToday - startOfDate) / (24 * 60 * 60 * 1000));
+
+  if (dayDiff === 0) return 'TODAY';
+  if (dayDiff === 1) return 'YESTERDAY';
+  if (dayDiff > 1 && dayDiff < 7) return `${dayDiff} DAYS AGO`;
+
+  return date
+    .toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+    .replace(',', '')
+    .toUpperCase();
+};

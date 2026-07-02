@@ -27,5 +27,18 @@ export const FURNISHING_OPTIONS = [
   { value: 'unfurnished', label: 'Unfurnished' },
 ];
 
+/** Stored as `facing` on properties */
+export const FACING_OPTIONS = [
+  { value: '', label: 'Select facing (optional)' },
+  { value: 'N', label: 'North' },
+  { value: 'E', label: 'East' },
+  { value: 'S', label: 'South' },
+  { value: 'W', label: 'West' },
+  { value: 'NE', label: 'North-East' },
+  { value: 'NW', label: 'North-West' },
+  { value: 'SE', label: 'South-East' },
+  { value: 'SW', label: 'South-West' },
+];
+
 /** Suggestions for road no. datalist (user may type any 1–999) */
 export const ROAD_NO_SUGGESTIONS = Array.from({ length: 30 }, (_, i) => String(i + 1));

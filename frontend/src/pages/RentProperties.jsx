@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
-import PropertyListRow from '../components/properties/PropertyListRow';
+import PropertyListGrid from '../components/properties/PropertyListGrid';
 import SearchBar from '../components/search/SearchBar';
 import { Building2 } from 'lucide-react';
 import BrandLoader from '../components/ui/BrandLoader';
@@ -45,7 +45,7 @@ const RentProperties = () => {
                 Showing <span className="font-semibold text-navy">{data.properties.length}</span> properties
               </p>
             </div>
-            <PropertyListRow properties={data.properties} />
+            <PropertyListGrid properties={data.properties} />
           </>
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
