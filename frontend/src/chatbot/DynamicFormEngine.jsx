@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import LocationSearchDropdown from './LocationSearchDropdown';
 import { STEP_KEYS } from './stepConfig';
 import { FURNISHING_OPTIONS } from '../constants/propertyForm';
@@ -32,6 +32,11 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
   const [plotRoad, setPlotRoad] = useState('');
   const [plotFacing, setPlotFacing] = useState('');
   const [otherDesc, setOtherDesc] = useState('');
+  const submittedRef = useRef(false);
+
+  useEffect(() => {
+    submittedRef.current = false;
+  }, [stepKey]);
 
   const floorOpts = [
     { v: 'ground', l: 'Ground' },
@@ -43,31 +48,31 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
 
   const facingOpts = ['N', 'E', 'S', 'W', 'NE', 'NW', 'SE', 'SW', 'Any'];
 
-  const handleListing = () => {
-    if (!listingType) return;
-    const label = listingType === 'buy' ? 'Buy' : 'Rent';
-    onSubmit(`Looking to ${label}`, { listingType });
+  const submitOnce = (summary, patch) => {
+    if (disabled) return;
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    onSubmit(summary, patch);
   };
 
   const handleLocation = () => {
     const label = location === '' ? 'Any area / Patna' : location;
-    onSubmit(`Location: ${label}`, { location: location || '' });
+    submitOnce(`Location: ${label}`, { location: location || '' });
   };
 
   const handleShopRangeSelect = (opt) => {
-    if (disabled) return;
-    onSubmit(`Shop size: ${opt.label}`, { shopSqftRange: opt.dbValue });
+    submitOnce(`Shop size: ${opt.label}`, { shopSqftRange: opt.dbValue });
   };
 
   const handleShopBudget = (skipped) => {
     if (skipped) {
-      onSubmit('Budget: skipped', { budgetMin: '', budgetMax: '' });
+      submitOnce('Budget: skipped', { budgetMin: '', budgetMax: '' });
       return;
     }
     const parts = [];
     if (budgetMin) parts.push(`Min ₹${budgetMin}`);
     if (budgetMax) parts.push(`Max ₹${budgetMax}`);
-    onSubmit(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: skipped', {
+    submitOnce(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: skipped', {
       budgetMin: budgetMin || '',
       budgetMax: budgetMax || '',
     });
@@ -75,26 +80,26 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
 
   const handleBhk = () => {
     if (!bhk) return;
-    onSubmit(`${bhk} BHK`, { bhk });
+    submitOnce(`${bhk} BHK`, { bhk });
   };
 
   const handleFloor = () => {
     if (!floorPref) return;
     const l = floorOpts.find((x) => x.v === floorPref)?.l || floorPref;
-    onSubmit(`Floor preference: ${l}`, { floorPreference: floorPref });
+    submitOnce(`Floor preference: ${l}`, { floorPreference: floorPref });
   };
 
   const handleFurnish = () => {
     const opt = FURNISHING_OPTIONS.find((o) => o.value === furnishing);
     const label = opt?.label || 'Any';
-    onSubmit(`Furnishing: ${label}`, { furnishing });
+    submitOnce(`Furnishing: ${label}`, { furnishing });
   };
 
   const handleHomeBudget = () => {
     const parts = [];
     if (budgetMin) parts.push(`Min ₹${budgetMin}`);
     if (budgetMax) parts.push(`Max ₹${budgetMax}`);
-    onSubmit(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
+    submitOnce(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
       budgetMin: budgetMin || '',
       budgetMax: budgetMax || '',
     });
@@ -104,7 +109,7 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     const n = Number(plotArea);
     if (!Number.isFinite(n) || n <= 0) return;
     const unitLabel = plotUnit === 'acres' ? 'acres' : 'sq ft';
-    onSubmit(`Plot size: ${n} ${unitLabel}`, {
+    submitOnce(`Plot size: ${n} ${unitLabel}`, {
       plotAreaValue: n,
       plotAreaUnit: plotUnit,
     });
@@ -112,19 +117,19 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
 
   const handlePlotRoad = () => {
     const t = plotRoad.trim() || '—';
-    onSubmit(`Road width: ${t}`, { plotRoadWidth: plotRoad.trim() });
+    submitOnce(`Road width: ${t}`, { plotRoadWidth: plotRoad.trim() });
   };
 
   const handlePlotFacing = () => {
     if (!plotFacing) return;
-    onSubmit(`Facing: ${plotFacing}`, { plotFacing });
+    submitOnce(`Facing: ${plotFacing}`, { plotFacing });
   };
 
   const handlePlotBudget = () => {
     const parts = [];
     if (budgetMin) parts.push(`Min ₹${budgetMin}`);
     if (budgetMax) parts.push(`Max ₹${budgetMax}`);
-    onSubmit(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
+    submitOnce(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
       budgetMin: budgetMin || '',
       budgetMax: budgetMax || '',
     });
@@ -134,7 +139,7 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     const parts = [];
     if (budgetMin) parts.push(`Min ₹${budgetMin}`);
     if (budgetMax) parts.push(`Max ₹${budgetMax}`);
-    onSubmit(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
+    submitOnce(parts.length ? `Budget — ${parts.join(', ')}` : 'Budget: flexible', {
       budgetMin: budgetMin || '',
       budgetMax: budgetMax || '',
     });
@@ -142,13 +147,13 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
 
   const handleOtherArea = () => {
     const t = homeArea.trim();
-    onSubmit(t ? `Area: ${t}` : 'Area: flexible', { otherArea: t });
+    submitOnce(t ? `Area: ${t}` : 'Area: flexible', { otherArea: t });
   };
 
   const handleOtherDesc = () => {
     const t = otherDesc.trim();
     if (!t) return;
-    onSubmit(`Details: ${t.slice(0, 200)}${t.length > 200 ? '…' : ''}`, {
+    submitOnce(`Details: ${t.slice(0, 200)}${t.length > 200 ? '…' : ''}`, {
       description: t,
     });
   };
@@ -187,15 +192,15 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     return (
       <div className="space-y-3">
         <label className="text-xs font-medium text-slate-600">Location</label>
-        <LocationSearchDropdown value={location} onChange={setLocation} id="htls-loc" />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleLocation}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
+        <LocationSearchDropdown
+          value={location}
+          onChange={(v) => {
+            setLocation(v);
+            const label = v === '' ? 'Any area / Patna' : v;
+            submitOnce(`Location: ${label}`, { location: v || '' });
+          }}
+          id="htls-loc"
+        />
       </div>
     );
   }
@@ -272,19 +277,19 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
         <p className="text-xs text-slate-600">BHK</p>
         <div className="flex flex-wrap gap-2">
           {['1', '2', '3', '4', '5+'].map((b) => (
-            <Btn key={b} active={bhk === b} onClick={() => setBhk(b)}>
+            <Btn
+              key={b}
+              active={bhk === b}
+              onClick={() => {
+                if (disabled) return;
+                setBhk(b);
+                submitOnce(`${b} BHK`, { bhk: b });
+              }}
+            >
               {b} BHK
             </Btn>
           ))}
         </div>
-        <button
-          type="button"
-          disabled={disabled || !bhk}
-          onClick={handleBhk}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
       </div>
     );
   }
@@ -295,19 +300,19 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
         <p className="text-xs text-slate-600">Floor preference</p>
         <div className="flex flex-wrap gap-2">
           {floorOpts.map((o) => (
-            <Btn key={o.v} active={floorPref === o.v} onClick={() => setFloorPref(o.v)}>
+            <Btn
+              key={o.v}
+              active={floorPref === o.v}
+              onClick={() => {
+                if (disabled) return;
+                setFloorPref(o.v);
+                submitOnce(`Floor preference: ${o.l}`, { floorPreference: o.v });
+              }}
+            >
               {o.l}
             </Btn>
           ))}
         </div>
-        <button
-          type="button"
-          disabled={disabled || !floorPref}
-          onClick={handleFloor}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
       </div>
     );
   }
@@ -317,23 +322,30 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
       <div className="space-y-3">
         <p className="text-xs font-medium text-slate-600">Furnishing</p>
         <div className="flex flex-wrap gap-2">
-          <Btn active={furnishing === ''} onClick={() => setFurnishing('')}>
+          <Btn
+            active={furnishing === ''}
+            onClick={() => {
+              if (disabled) return;
+              setFurnishing('');
+              submitOnce('Furnishing: Any', { furnishing: '' });
+            }}
+          >
             Any
           </Btn>
           {FURNISHING_OPTIONS.filter((o) => o.value).map((o) => (
-            <Btn key={o.value} active={furnishing === o.value} onClick={() => setFurnishing(o.value)}>
+            <Btn
+              key={o.value}
+              active={furnishing === o.value}
+              onClick={() => {
+                if (disabled) return;
+                setFurnishing(o.value);
+                submitOnce(`Furnishing: ${o.label}`, { furnishing: o.value });
+              }}
+            >
               {o.label}
             </Btn>
           ))}
         </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleFurnish}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Continue
-        </button>
       </div>
     );
   }
@@ -349,6 +361,13 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Min ₹"
             value={budgetMin}
             onChange={(e) => setBudgetMin(e.target.value)}
+            onBlur={handleHomeBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleHomeBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
           <input
@@ -357,17 +376,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Max ₹"
             value={budgetMax}
             onChange={(e) => setBudgetMax(e.target.value)}
+            onBlur={handleHomeBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleHomeBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleHomeBudget}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          {isLastStep ? 'Search properties' : 'Continue'}
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: just tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -401,17 +420,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           inputMode="decimal"
           value={plotArea}
           onChange={(e) => setPlotArea(e.target.value)}
+          onBlur={handlePlotArea}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handlePlotArea();
+            }
+          }}
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder={plotUnit === 'acres' ? 'e.g. 2' : 'e.g. 2400'}
         />
-        <button
-          type="button"
-          disabled={disabled || !plotArea}
-          onClick={handlePlotArea}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -424,17 +443,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           type="text"
           value={plotRoad}
           onChange={(e) => setPlotRoad(e.target.value)}
+          onBlur={handlePlotRoad}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handlePlotRoad();
+            }
+          }}
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder="e.g. 30 ft"
         />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handlePlotRoad}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Continue
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -445,19 +464,19 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
         <p className="text-xs text-slate-600">Facing direction</p>
         <div className="flex flex-wrap gap-2">
           {facingOpts.map((f) => (
-            <Btn key={f} active={plotFacing === f} onClick={() => setPlotFacing(f)}>
+            <Btn
+              key={f}
+              active={plotFacing === f}
+              onClick={() => {
+                if (disabled) return;
+                setPlotFacing(f);
+                submitOnce(`Facing: ${f}`, { plotFacing: f });
+              }}
+            >
               {f}
             </Btn>
           ))}
         </div>
-        <button
-          type="button"
-          disabled={disabled || !plotFacing}
-          onClick={handlePlotFacing}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
       </div>
     );
   }
@@ -473,6 +492,13 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Min ₹"
             value={budgetMin}
             onChange={(e) => setBudgetMin(e.target.value)}
+            onBlur={handlePlotBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handlePlotBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
           <input
@@ -481,17 +507,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Max ₹"
             value={budgetMax}
             onChange={(e) => setBudgetMax(e.target.value)}
+            onBlur={handlePlotBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handlePlotBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handlePlotBudget}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Search properties
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to search.</p>
       </div>
     );
   }
@@ -507,6 +533,13 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Min ₹"
             value={budgetMin}
             onChange={(e) => setBudgetMin(e.target.value)}
+            onBlur={handleOtherBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleOtherBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
           <input
@@ -515,17 +548,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             placeholder="Max ₹"
             value={budgetMax}
             onChange={(e) => setBudgetMax(e.target.value)}
+            onBlur={handleOtherBudget}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleOtherBudget();
+              }
+            }}
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleOtherBudget}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Continue
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -538,17 +571,17 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           type="text"
           value={homeArea}
           onChange={(e) => setHomeArea(e.target.value)}
+          onBlur={handleOtherArea}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleOtherArea();
+            }
+          }}
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder="Describe size"
         />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleOtherArea}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white touch-manipulation"
-        >
-          Continue
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -560,18 +593,12 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
         <textarea
           value={otherDesc}
           onChange={(e) => setOtherDesc(e.target.value)}
+          onBlur={handleOtherDesc}
           rows={3}
           className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm touch-manipulation"
           placeholder="Tell us what you need…"
         />
-        <button
-          type="button"
-          disabled={disabled || !otherDesc.trim()}
-          onClick={handleOtherDesc}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Search properties
-        </button>
+        <p className="text-[11px] text-slate-500">Tip: tap outside to search.</p>
       </div>
     );
   }
