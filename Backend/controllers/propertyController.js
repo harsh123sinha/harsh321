@@ -48,7 +48,8 @@ function getUploadedProjectPdf(req) {
 // Get all properties
 export const getAllProperties = async (req, res) => {
   try {
-    const properties = await propertyModel.getAll();
+    const limit = req.query.limit;
+    const properties = await propertyModel.getAll(limit);
     res.json({ success: true, properties });
   } catch (error) {
     console.error('Get all properties error:', error);
@@ -97,6 +98,7 @@ export const getMyProperties = async (req, res) => {
 export const getPropertiesByType = async (req, res) => {
   try {
     const { type } = req.params;
+    const limit = req.query.limit;
 
     if (!VALID_PROPERTY_TYPES.includes(type)) {
       return res.status(400).json({ error: 'Invalid property type' });
@@ -104,8 +106,8 @@ export const getPropertiesByType = async (req, res) => {
 
     const properties =
       type === 'plot'
-        ? await propertyModel.findByPlotTypes()
-        : await propertyModel.findByType(type);
+        ? await propertyModel.findByPlotTypes(limit)
+        : await propertyModel.findByType(type, limit);
     res.json({ success: true, properties, type });
   } catch (error) {
     console.error('Get properties by type error:', error);
@@ -180,6 +182,8 @@ export const searchProperties = async (req, res) => {
       minPrice: req.query.minPrice,
       maxPrice: req.query.maxPrice,
       brokerId: req.query.brokerId,
+      limit: req.query.limit,
+      offset: req.query.offset,
     };
 
     const properties = await propertyModel.search(filters);

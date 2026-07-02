@@ -49,6 +49,12 @@ const PERFORMANCE_INDEXES = [
   },
   {
     table: 'properties',
+    name: 'idx_properties_catalog_kind_status_type_id',
+    columns: 'listing_kind, listing_status, type, id',
+    requiredColumns: ['listing_kind', 'listing_status', 'type', 'id'],
+  },
+  {
+    table: 'properties',
     name: 'idx_properties_listing_featured',
     columns: 'listing_status, featured',
     requiredColumns: ['listing_status', 'featured'],

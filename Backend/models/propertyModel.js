@@ -104,14 +104,15 @@ export const propertyModel = {
     return result.insertId;
   },
 
-  // Get all properties with owner info
-  getAll: async () => {
+  // Get all properties with owner info (bounded)
+  getAll: async (limit = 200) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
       ${SQL_FROM_WITH_BROKER}
       WHERE 1=1 ${SQL_PUBLIC_ACTIVE} ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
+      LIMIT ${sqlLimit(limit, 200, 500)}
     `;
     const [rows] = await db.execute(query);
     return rows;
@@ -142,8 +143,8 @@ export const propertyModel = {
     return rows;
   },
 
-  // Get properties by type
-  findByType: async (type) => {
+  // Get properties by type (bounded)
+  findByType: async (type, limit = 200) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
@@ -152,13 +153,14 @@ export const propertyModel = {
       ${SQL_PUBLIC_ACTIVE}
       ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
+      LIMIT ${sqlLimit(limit, 200, 500)}
     `;
     const [rows] = await db.execute(query, [type]);
     return rows;
   },
 
-  /** Plots: legacy `plot` plus plot_lease / plot_buy, and ENUM-truncated plot rows */
-  findByPlotTypes: async () => {
+  /** Plots: legacy `plot` plus plot_lease / plot_buy, and ENUM-truncated plot rows (bounded) */
+  findByPlotTypes: async (limit = 200) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
@@ -167,6 +169,7 @@ export const propertyModel = {
       ${SQL_PUBLIC_ACTIVE}
       ${SQL_PROPERTIES_ONLY}
       ORDER BY p.id DESC
+      LIMIT ${sqlLimit(limit, 200, 500)}
     `;
     const [rows] = await db.execute(query);
     return rows;
@@ -387,8 +390,12 @@ export const propertyModel = {
     return rows;
   },
 
-  // Search properties
+  // Search properties (bounded + supports pagination via offset)
   search: async (filters) => {
+    const limit = sqlLimit(filters?.limit, 200, 500);
+    const offsetRaw = Number.parseInt(String(filters?.offset ?? 0), 10);
+    const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? offsetRaw : 0;
+
     let query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
@@ -469,7 +476,7 @@ export const propertyModel = {
       params.push(filters.maxPrice);
     }
 
-    query += ' ORDER BY p.id DESC';
+    query += ` ORDER BY p.id DESC LIMIT ${limit} OFFSET ${offset}`;
 
     const [rows] = await db.execute(query, params);
     return rows;

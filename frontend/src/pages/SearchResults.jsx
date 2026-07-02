@@ -56,6 +56,7 @@ const SearchResults = () => {
       if (filters.other_type) params.append('other_type', filters.other_type);
       if (filters.minPrice) params.append('minPrice', filters.minPrice);
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+      params.append('limit', '200');
 
       const response = await api.get(`/properties/search?${params.toString()}`);
       return response.data;

@@ -10,7 +10,7 @@ const ShopProperties = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['properties', 'shop', 'rent'],
     queryFn: async () => {
-      const params = new URLSearchParams({ type: 'rent', other_type: 'Shop' });
+      const params = new URLSearchParams({ type: 'rent', other_type: 'Shop', limit: '200' });
       const response = await api.get(`/properties/search?${params.toString()}`);
       return response.data;
     },
