@@ -35,6 +35,7 @@ import {
   isDigitKey as isRoadNoDigitKey,
 } from '../../utils/roadNoValidation';
 import ListingVerificationOverlay from '../../components/properties/ListingVerificationOverlay';
+import ListingVerificationStrip from '../../components/properties/ListingVerificationStrip';
 import AddListingModeToggle from '../../components/properties/AddListingModeToggle';
 import AddProjectFields, { validateAddProjectForm } from '../../components/properties/AddProjectFields';
 import LocationSearchCombobox from '../../components/search/LocationSearchCombobox';
@@ -78,6 +79,9 @@ const AddProperty = () => {
   const [loading, setLoading] = useState(false);
   const [submitPhase, setSubmitPhase] = useState(null);
   const [pendingReviewResult, setPendingReviewResult] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [showVerifyStrip, setShowVerifyStrip] = useState(false);
+  const verifyModalTimerRef = useRef(null);
   const [listingMode, setListingMode] = useState('property');
   const [projectData, setProjectData] = useState({
     projectType: 'apartment',
@@ -123,6 +127,15 @@ const AddProperty = () => {
     listingHintShown.current = true;
     toast('Complete sign up or log in, then submit your listing.', { duration: 6000, id: 'listing-auth-hint' });
   }, [searchParams]);
+
+  useEffect(() => {
+    return () => {
+      if (verifyModalTimerRef.current) {
+        window.clearTimeout(verifyModalTimerRef.current);
+        verifyModalTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const isProject = listingMode === 'project';
   const isPlot = !isProject && formData.category === 'plot';
@@ -337,6 +350,13 @@ const AddProperty = () => {
 
     setLoading(true);
     setSubmitPhase('verifying');
+    setShowVerifyModal(true);
+    setShowVerifyStrip(false);
+    if (verifyModalTimerRef.current) window.clearTimeout(verifyModalTimerRef.current);
+    verifyModalTimerRef.current = window.setTimeout(() => {
+      setShowVerifyModal(false);
+      setShowVerifyStrip(true);
+    }, 3000);
 
     if (isProject) {
       const data = new FormData();
@@ -367,12 +387,17 @@ const AddProperty = () => {
         const isPending = Boolean(response.data?.pendingReview);
         setPendingReviewResult(isPending);
         setSubmitPhase('verified');
-        await new Promise((r) => setTimeout(r, 2000));
+        setShowVerifyModal(false);
+        setShowVerifyStrip(true);
+        await new Promise((r) => setTimeout(r, 1200));
         toast.success(isPending ? 'Project submitted for review.' : 'Project added successfully!');
         clearAddListingDraft();
-        navigate('/my-properties');
+        const id = response.data?.propertyId;
+        navigate(id ? `/projects/${id}` : '/my-properties');
       } catch (error) {
         setSubmitPhase(null);
+        setShowVerifyModal(false);
+        setShowVerifyStrip(false);
         toast.error(error.response?.data?.error || 'Failed to add project');
       }
       setLoading(false);
@@ -444,7 +469,9 @@ const AddProperty = () => {
       const isPending = Boolean(response.data?.pendingReview);
       setPendingReviewResult(isPending);
       setSubmitPhase('verified');
-      await new Promise((r) => setTimeout(r, 2000));
+      setShowVerifyModal(false);
+      setShowVerifyStrip(true);
+      await new Promise((r) => setTimeout(r, 1200));
 
       if (isPending) {
         toast.success(response.data.message || 'Listing submitted for admin review.');
@@ -452,9 +479,12 @@ const AddProperty = () => {
         toast.success('Property verified and added successfully!');
       }
       clearAddListingDraft();
-      navigate('/my-properties');
+      const id = response.data?.propertyId;
+      navigate(id ? `/property/${id}` : '/my-properties');
     } catch (error) {
       setSubmitPhase(null);
+      setShowVerifyModal(false);
+      setShowVerifyStrip(false);
       const resData = error.response?.data;
       toast.error(
         resData?.error ||
@@ -512,7 +542,10 @@ const AddProperty = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <ListingVerificationOverlay phase={submitPhase} pendingReview={pendingReviewResult} />
+      {showVerifyModal && (
+        <ListingVerificationOverlay phase={submitPhase} pendingReview={pendingReviewResult} />
+      )}
+      {showVerifyStrip && <ListingVerificationStrip phase={submitPhase} />}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-navy mb-2">
           {isProject ? 'Add New Project' : 'Add New Property'}
