@@ -3,11 +3,18 @@ import { createPortal } from 'react-dom';
 import { PATNA_LOCATION_OPTIONS } from '../constants/patnaLocations';
 
 /**
- * Location step: single search field + suggestions panel portaled **above** the field
- * (opens upward) so it stays visible above the chat footer — no native-style dropdown.
+ * Location step: search field + suggestions panel portaled above the field (chatbot)
+ * so the full area list stays visible above the chat footer.
  */
-const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_OPTIONS }) => {
-  const [open, setOpen] = useState(false);
+const LocationSearchDropdown = ({
+  value,
+  onChange,
+  id,
+  options = PATNA_LOCATION_OPTIONS,
+  openOnMount = false,
+  dropUp = true,
+}) => {
+  const [open, setOpen] = useState(openOnMount);
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   const menuRef = useRef(null);
@@ -30,13 +37,26 @@ const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_
     if (!open || !inputRef.current) return;
     const r = inputRef.current.getBoundingClientRect();
     const gap = 8;
-    const spaceAbove = r.top - gap;
-    const maxH = Math.min(260, Math.max(96, spaceAbove));
+    if (dropUp) {
+      const spaceAbove = r.top - gap;
+      const maxH = Math.min(420, Math.max(160, spaceAbove - 8));
+      setMenuStyle({
+        left: r.left,
+        width: Math.max(r.width, 220),
+        maxHeight: maxH,
+        bottom: window.innerHeight - r.top + gap,
+        top: undefined,
+      });
+      return;
+    }
+    const spaceBelow = window.innerHeight - r.bottom - gap;
+    const maxH = Math.min(420, Math.max(160, spaceBelow - 8));
     setMenuStyle({
       left: r.left,
       width: Math.max(r.width, 220),
       maxHeight: maxH,
-      bottom: window.innerHeight - r.top + gap,
+      top: r.bottom + gap,
+      bottom: undefined,
     });
   };
 
@@ -54,7 +74,13 @@ const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onResize);
     };
-  }, [open, q]);
+  }, [open, q, dropUp]);
+
+  useEffect(() => {
+    if (!openOnMount) return;
+    setOpen(true);
+    setQ('');
+  }, [openOnMount]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,11 +105,15 @@ const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_
           position: 'fixed',
           left: menuStyle.left,
           width: menuStyle.width,
-          bottom: menuStyle.bottom,
           maxHeight: menuStyle.maxHeight,
           zIndex: 10000,
+          ...(menuStyle.bottom != null ? { bottom: menuStyle.bottom } : {}),
+          ...(menuStyle.top != null ? { top: menuStyle.top } : {}),
         }}
       >
+        <p className="shrink-0 border-b border-slate-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          All areas ({filtered.length})
+        </p>
         <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
           {filtered.map((o) => (
             <li key={o.value || '__any'}>
@@ -113,7 +143,7 @@ const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_
     <div className="relative w-full space-y-2">
       <p className="text-xs text-slate-600">
         {value === '' ? (
-          <span>Whole Patna / any locality</span>
+          <span>Whole Patna / any locality — pick from the list above the field</span>
         ) : (
           <span>
             Selected: <span className="font-semibold text-navy">{selectedLabel}</span>
@@ -126,7 +156,7 @@ const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_
         type="search"
         autoComplete="off"
         enterKeyHint="search"
-        placeholder="Search locality…"
+        placeholder="Search or scroll all localities…"
         value={q}
         onChange={(e) => {
           setQ(e.target.value);

@@ -1,10 +1,7 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Building2, MapPin } from 'lucide-react';
-import api from '../utils/api';
-import PropertyListGrid from '../components/properties/PropertyListGrid';
+import { MapPin } from 'lucide-react';
+import PaginatedPropertyListing from '../components/properties/PaginatedPropertyListing';
 import SearchBar from '../components/search/SearchBar';
-import BrandLoader from '../components/ui/BrandLoader';
 import { usePageSeo } from '../hooks/usePageSeo';
 import {
   buildAreaRentSeo,
@@ -20,25 +17,9 @@ const AreaFlatsForRent = () => {
   const seo = area ? buildAreaRentSeo(area) : null;
   usePageSeo(seo);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['area-rent', area?.searchLocation],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        type: 'rent',
-        location: area.searchLocation,
-      });
-      const response = await api.get(`/properties/search?${params.toString()}`);
-      return response.data;
-    },
-    enabled: Boolean(area?.searchLocation),
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
-
   if (!area) {
     return <Navigate to="/patna" replace />;
   }
-
   const otherAreas = FEATURED_PATNA_AREAS.filter((item) => item.slug !== area.slug).slice(0, 6);
 
   return (
@@ -83,41 +64,29 @@ const AreaFlatsForRent = () => {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <BrandLoader />
-          </div>
-        ) : data?.properties?.length > 0 ? (
-          <>
-            <div className="mb-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <p className="text-gray">
-                Showing{' '}
-                <span className="font-semibold text-navy">{data.properties.length}</span> properties
-                for rent in {area.name}, Patna
-              </p>
-            </div>
-            <PropertyListGrid properties={data.properties} />
-          </>
-        ) : (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-16">
-            <Building2 className="h-16 w-16 sm:h-20 sm:w-20 text-gray mx-auto mb-4" />
-            <h2 className="text-xl sm:text-2xl font-bold text-navy mb-2">
-              No listings in {area.name} right now
-            </h2>
-            <p className="text-gray mb-6 max-w-lg mx-auto">
-              New rentals are added regularly. Browse all Patna properties or check a nearby area.
+        <PaginatedPropertyListing
+          listKey={`/patna/${area.slug}`}
+          queryKey={['area-rent', area.searchLocation]}
+          enabled={Boolean(area?.searchLocation)}
+          buildUrl={(limit, offset) => {
+            const params = new URLSearchParams({
+              type: 'rent',
+              location: area.searchLocation,
+              limit: String(limit),
+              offset: String(offset),
+            });
+            return `/properties/search?${params.toString()}`;
+          }}
+          emptyTitle={`No listings in ${area.name} right now`}
+          emptyMessage="New rentals are added regularly. Browse all Patna properties or check a nearby area."
+          countLabel={({ total, showing }) => (
+            <p>
+              Showing <span className="font-semibold text-navy">{showing}</span> of{' '}
+              <span className="font-semibold text-navy">{total}</span> properties for rent in{' '}
+              {area.name}, Patna
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link to="/rent" className="btn-primary px-5 py-2.5 text-sm">
-                All rentals in Patna
-              </Link>
-              <Link to="/patna" className="btn-secondary px-5 py-2.5 text-sm">
-                Other Patna areas
-              </Link>
-            </div>
-          </div>
-        )}
-
+          )}
+        />
         {otherAreas.length > 0 && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 pt-8 border-t border-stone-200">
             <h2 className="text-lg sm:text-xl font-bold text-navy mb-4">

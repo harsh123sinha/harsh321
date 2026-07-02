@@ -1,21 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '../utils/api';
-import PropertyListGrid from '../components/properties/PropertyListGrid';
+import PaginatedPropertyListing from '../components/properties/PaginatedPropertyListing';
 import SearchBar from '../components/search/SearchBar';
-import { Building2 } from 'lucide-react';
-import BrandLoader from '../components/ui/BrandLoader';
 
 const OtherProperties = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['properties', 'other'],
-    queryFn: async () => {
-      const response = await api.get('/properties/type/other');
-      return response.data;
-    },
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-[#0a1020] text-white pb-8 pt-8 sm:pb-10 sm:pt-10">
@@ -33,26 +19,16 @@ const OtherProperties = () => {
       </div>
 
       <div className="py-8 sm:py-12">
-        {isLoading ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <BrandLoader />
-          </div>
-        ) : data?.properties?.length > 0 ? (
-          <>
-            <div className="mb-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <p className="text-gray">
-                Showing <span className="font-semibold text-navy">{data.properties.length}</span> properties
-              </p>
-            </div>
-            <PropertyListGrid properties={data.properties} />
-          </>
-        ) : (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
-            <Building2 className="h-16 w-16 sm:h-20 sm:w-20 text-gray mx-auto mb-4" />
-            <h3 className="text-xl sm:text-2xl font-bold text-navy mb-2">No Properties Found</h3>
-            <p className="text-gray mb-6">Try adjusting your search filters</p>
-          </div>
-        )}
+        <PaginatedPropertyListing
+          queryKey={['properties', 'other']}
+          buildUrl={(limit, offset) => `/properties/type/other?limit=${limit}&offset=${offset}`}
+          countLabel={({ total, showing }) => (
+            <p>
+              Showing <span className="font-semibold text-navy">{showing}</span> of{' '}
+              <span className="font-semibold text-navy">{total}</span> properties
+            </p>
+          )}
+        />
       </div>
     </div>
   );

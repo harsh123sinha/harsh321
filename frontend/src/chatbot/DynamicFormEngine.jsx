@@ -203,6 +203,8 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           }}
           options={areaOptions}
           id="htls-loc"
+          openOnMount
+          dropUp
         />
       </div>
     );

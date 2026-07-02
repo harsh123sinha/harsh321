@@ -1,0 +1,1 @@
+export const PROPERTY_LIST_PAGE_SIZE = 20;

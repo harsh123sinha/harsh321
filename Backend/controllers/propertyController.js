@@ -99,16 +99,22 @@ export const getPropertiesByType = async (req, res) => {
   try {
     const { type } = req.params;
     const limit = req.query.limit;
+    const offset = req.query.offset;
 
     if (!VALID_PROPERTY_TYPES.includes(type)) {
       return res.status(400).json({ error: 'Invalid property type' });
     }
 
-    const properties =
+    const result =
       type === 'plot'
-        ? await propertyModel.findByPlotTypes(limit)
-        : await propertyModel.findByType(type, limit);
-    res.json({ success: true, properties, type });
+        ? await propertyModel.findByPlotTypes(limit, offset)
+        : await propertyModel.findByType(type, limit, offset);
+    res.json({
+      success: true,
+      properties: result.rows,
+      total: result.total,
+      type,
+    });
   } catch (error) {
     console.error('Get properties by type error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -186,7 +192,7 @@ export const searchProperties = async (req, res) => {
       offset: req.query.offset,
     };
 
-    const properties = await propertyModel.search(filters);
+    const result = await propertyModel.search(filters);
 
     if (req.user?.role === 'buyer') {
       const source = req.query.source === 'chatbot' ? 'chatbot' : 'search_bar';
@@ -195,7 +201,7 @@ export const searchProperties = async (req, res) => {
         .catch((err) => console.error('Search history log error:', err.message));
     }
 
-    res.json({ success: true, properties, filters });
+    res.json({ success: true, properties: result.rows, total: result.total, filters });
   } catch (error) {
     console.error('Search properties error:', error);
     res.status(500).json({ error: 'Server error' });

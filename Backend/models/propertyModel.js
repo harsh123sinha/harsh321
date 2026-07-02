@@ -7,6 +7,11 @@ function sqlLimit(limit, fallback = 50, max = 500) {
   return Math.min(safe, max);
 }
 
+function sqlOffset(offset) {
+  const n = Number.parseInt(String(offset), 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 /**
  * Plot listings: explicit types, plus rows where an older DB used
  * `ENUM('rent','buy','other','plot')` without `plot_lease` / `plot_buy`.
@@ -144,36 +149,50 @@ export const propertyModel = {
     return rows;
   },
 
-  // Get properties by type (bounded)
-  findByType: async (type, limit = 200) => {
-    const query = `
-      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      ${SQL_BROKER_FIELDS}
+  // Get properties by type (bounded + paginated)
+  findByType: async (type, limit = 200, offset = 0) => {
+    const lim = sqlLimit(limit, 200, 500);
+    const off = sqlOffset(offset);
+    const baseFrom = `
       ${SQL_FROM_WITH_BROKER}
       WHERE p.type = ?
       ${SQL_PUBLIC_ACTIVE}
-      ${SQL_PROPERTIES_ONLY}
-      ORDER BY p.id DESC
-      LIMIT ${sqlLimit(limit, 200, 500)}
-    `;
-    const [rows] = await db.execute(query, [type]);
-    return rows;
-  },
+      ${SQL_PROPERTIES_ONLY}`;
+    const [countRows] = await db.execute(`SELECT COUNT(*) AS total ${baseFrom}`, [type]);
+    const total = Number(countRows[0]?.total) || 0;
 
-  /** Plots: legacy `plot` plus plot_lease / plot_buy, and ENUM-truncated plot rows (bounded) */
-  findByPlotTypes: async (limit = 200) => {
     const query = `
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
+      ${baseFrom}
+      ORDER BY p.id DESC
+      LIMIT ${lim} OFFSET ${off}
+    `;
+    const [rows] = await db.execute(query, [type]);
+    return { rows, total };
+  },
+
+  /** Plots: legacy `plot` plus plot_lease / plot_buy, and ENUM-truncated plot rows (bounded + paginated) */
+  findByPlotTypes: async (limit = 200, offset = 0) => {
+    const lim = sqlLimit(limit, 200, 500);
+    const off = sqlOffset(offset);
+    const baseFrom = `
       ${SQL_FROM_WITH_BROKER}
       WHERE ${SQL_IS_PLOT_ROW}
       ${SQL_PUBLIC_ACTIVE}
-      ${SQL_PROPERTIES_ONLY}
+      ${SQL_PROPERTIES_ONLY}`;
+    const [countRows] = await db.execute(`SELECT COUNT(*) AS total ${baseFrom}`);
+    const total = Number(countRows[0]?.total) || 0;
+
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${baseFrom}
       ORDER BY p.id DESC
-      LIMIT ${sqlLimit(limit, 200, 500)}
+      LIMIT ${lim} OFFSET ${off}
     `;
     const [rows] = await db.execute(query);
-    return rows;
+    return { rows, total };
   },
 
   // Get featured properties (for home page)
@@ -394,23 +413,19 @@ export const propertyModel = {
   // Search properties (bounded + supports pagination via offset)
   search: async (filters) => {
     const limit = sqlLimit(filters?.limit, 200, 500);
-    const offsetRaw = Number.parseInt(String(filters?.offset ?? 0), 10);
-    const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? offsetRaw : 0;
+    const offset = sqlOffset(filters?.offset);
 
-    let query = `
-      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
-      ${SQL_BROKER_FIELDS}
+    let baseFrom = `
       ${SQL_FROM_WITH_BROKER}
       WHERE 1=1
       ${SQL_PUBLIC_ACTIVE}
-      ${SQL_PROPERTIES_ONLY}
-    `;
+      ${SQL_PROPERTIES_ONLY}`;
     const params = [];
 
     if (filters.brokerId) {
       const bid = String(filters.brokerId).trim();
       if (bid) {
-        query += ' AND br.broker_id = ?';
+        baseFrom += ' AND br.broker_id = ?';
         params.push(bid);
       }
     }
@@ -419,7 +434,7 @@ export const propertyModel = {
       const loc = String(filters.location).trim();
       if (loc) {
         const pat = `%${loc}%`;
-        query += ' AND (p.location LIKE ? OR p.city LIKE ? OR p.district LIKE ?)';
+        baseFrom += ' AND (p.location LIKE ? OR p.city LIKE ? OR p.district LIKE ?)';
         params.push(pat, pat, pat);
       }
     }
@@ -429,58 +444,66 @@ export const propertyModel = {
 
     if (filters.type) {
       if (filters.type === 'plot') {
-        query += ` AND ${SQL_IS_PLOT_ROW}`;
+        baseFrom += ` AND ${SQL_IS_PLOT_ROW}`;
       } else {
-        query += ' AND p.type = ?';
+        baseFrom += ' AND p.type = ?';
         params.push(filters.type);
       }
     }
 
     if (filters.bhk && !plotTypeFilter(filters.type)) {
-      query += ' AND p.bhk = ?';
+      baseFrom += ' AND p.bhk = ?';
       params.push(filters.bhk);
     }
 
     if (filters.katha) {
       const k = String(filters.katha).trim();
       if (k) {
-        query += " AND TRIM(COALESCE(p.katha, '')) = ?";
+        baseFrom += " AND TRIM(COALESCE(p.katha, '')) = ?";
         params.push(k);
       }
     }
 
     if (filters.other_type) {
-      query += ' AND p.other_type LIKE ?';
+      baseFrom += ' AND p.other_type LIKE ?';
       params.push(`%${filters.other_type}%`);
     }
 
     if (filters.shop_sqft_range) {
       const sr = String(filters.shop_sqft_range).trim();
       if (sr) {
-        query += ' AND p.shop_sqft_range = ?';
+        baseFrom += ' AND p.shop_sqft_range = ?';
         params.push(sr);
       }
     }
 
     if (filters.city) {
-      query += ' AND p.city LIKE ?';
+      baseFrom += ' AND p.city LIKE ?';
       params.push(`%${filters.city}%`);
     }
 
     if (filters.minPrice) {
-      query += ' AND p.price >= ?';
+      baseFrom += ' AND p.price >= ?';
       params.push(filters.minPrice);
     }
 
     if (filters.maxPrice) {
-      query += ' AND p.price <= ?';
+      baseFrom += ' AND p.price <= ?';
       params.push(filters.maxPrice);
     }
 
-    query += ` ORDER BY p.id DESC LIMIT ${limit} OFFSET ${offset}`;
+    const [countRows] = await db.execute(`SELECT COUNT(*) AS total ${baseFrom}`, params);
+    const total = Number(countRows[0]?.total) || 0;
+
+    const query = `
+      SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
+      ${SQL_BROKER_FIELDS}
+      ${baseFrom}
+      ORDER BY p.id DESC
+      LIMIT ${limit} OFFSET ${offset}`;
 
     const [rows] = await db.execute(query, params);
-    return rows;
+    return { rows, total };
   },
 
   // Admin search (includes title/description)

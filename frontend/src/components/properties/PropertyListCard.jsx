@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import {
@@ -7,6 +7,7 @@ import {
   parseImageUrls,
   DEFAULT_SITE_INQUIRY_PHONE,
 } from '../../utils/helpers';
+import { saveListScroll } from '../../utils/listScrollRestore';
 import PropertyCardImageCarousel from './PropertyCardImageCarousel';
 import BookmarkButton from './BookmarkButton';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
@@ -19,7 +20,9 @@ import { buildMobileIconSpecs } from './propertyListCardMobileSpecs';
 
 const CONTACT_PHONE = import.meta.env.VITE_CONTACT_OFFICE_1 || DEFAULT_SITE_INQUIRY_PHONE;
 
-const PropertyListCard = ({ property }) => {
+const PropertyListCard = ({ property, listKey, listIndex }) => {
+  const location = useLocation();
+  const scrollKey = listKey || location.pathname;
   const images = useMemo(() => parseImageUrls(property.image_url), [property.image_url]);
   const iconSpecs = useMemo(() => buildMobileIconSpecs(property), [property]);
   const postedLabel = formatListingPostedDate(property.created_at || property.updated_at);
@@ -29,12 +32,23 @@ const PropertyListCard = ({ property }) => {
   const typeBadge = getListTypeBadge(property.type);
   const cornerLabel = getImageCornerLabel(property);
 
+  const saveScrollForDetail = () => {
+    saveListScroll(scrollKey, property.id, listIndex);
+  };
+
   return (
-    <article className="overflow-hidden rounded-md border border-stone-200 bg-white lg:rounded-xl lg:border-stone-200/90 lg:shadow-sm lg:transition lg:hover:shadow-md">
+    <article
+      data-property-id={property.id}
+      className="overflow-hidden rounded-md border border-stone-200 bg-white lg:rounded-xl lg:border-stone-200/90 lg:shadow-sm lg:transition lg:hover:shadow-md"
+    >
       <div className="flex min-h-[10.75rem] items-stretch sm:min-h-[11.25rem] lg:min-h-[14rem]">
         {/* Left — photo + contact */}
         <div className="flex w-[44%] max-w-[10rem] shrink-0 flex-col p-1.5 sm:max-w-[11rem] lg:w-[55%] lg:max-w-none xl:w-[58%] lg:p-2.5">
-          <div className="flex min-h-0 flex-1 overflow-hidden rounded-sm border border-stone-300">
+          <Link
+            to={detailPath}
+            onClick={saveScrollForDetail}
+            className="flex min-h-0 flex-1 overflow-hidden rounded-sm border border-stone-300"
+          >
             <PropertyCardImageCarousel
               images={images}
               alt={property.title}
@@ -43,7 +57,7 @@ const PropertyListCard = ({ property }) => {
               olxMobile
               className="h-[8.5rem] w-full shrink-0 sm:h-[9rem] lg:h-auto lg:min-h-[12rem] lg:aspect-[5/4] xl:min-h-[14rem] xl:aspect-[4/3]"
             />
-          </div>
+          </Link>
 
           <div className="mt-1 flex items-stretch gap-1 rounded-sm border border-stone-200 bg-stone-50 px-1 py-0.5 lg:mt-1.5 lg:gap-1.5 lg:px-1.5 lg:py-1">
             <WhatsAppInquiryButton
@@ -64,6 +78,7 @@ const PropertyListCard = ({ property }) => {
         {/* Right — details in three sections */}
         <Link
           to={detailPath}
+          onClick={saveScrollForDetail}
           className="flex min-w-0 flex-1 flex-col divide-y divide-stone-200 py-1.5 pl-2 pr-2 sm:py-2 sm:pl-2.5 lg:px-4 lg:py-3"
         >
           {/* Section 1 — price + title */}
