@@ -158,21 +158,27 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
       <div className="space-y-3">
         <p className="text-xs text-slate-600">Rent or buy?</p>
         <div className="flex gap-2">
-          <Btn active={listingType === 'rent'} onClick={() => setListingType('rent')}>
+          <Btn
+            active={listingType === 'rent'}
+            onClick={() => {
+              if (disabled) return;
+              setListingType('rent');
+              onSubmit('Looking to Rent', { listingType: 'rent' });
+            }}
+          >
             Rent
           </Btn>
-          <Btn active={listingType === 'buy'} onClick={() => setListingType('buy')}>
+          <Btn
+            active={listingType === 'buy'}
+            onClick={() => {
+              if (disabled) return;
+              setListingType('buy');
+              onSubmit('Looking to Buy', { listingType: 'buy' });
+            }}
+          >
             Buy
           </Btn>
         </div>
-        <button
-          type="button"
-          disabled={disabled || !listingType}
-          onClick={handleListing}
-          className="w-full rounded-xl bg-navy py-3 text-sm font-semibold text-white disabled:opacity-40 touch-manipulation"
-        >
-          Continue
-        </button>
       </div>
     );
   }

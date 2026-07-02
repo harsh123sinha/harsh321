@@ -78,7 +78,7 @@ const BrokerSearch = () => {
         ) : (
           <div>
             <h2 className="text-lg font-bold text-navy mb-6">
-              {searchTerm ? `Brokers in “${searchTerm}”` : 'Top rated brokers'}
+              {searchTerm ? `Brokers in “${searchTerm}”` : 'All brokers'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {brokers.map((b) => (

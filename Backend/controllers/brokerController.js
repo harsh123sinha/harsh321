@@ -23,9 +23,9 @@ function formatBroker(b) {
 export const searchBrokers = async (req, res) => {
   try {
     const area = req.query.area || '';
-    const rows = area.trim()
-      ? await brokerModel.searchByArea(area)
-      : await brokerModel.getFeatured(12);
+    // UX: when user opens /broker with empty search, show all brokers
+    // (new brokers may not appear in the "top rated" limited list yet).
+    const rows = await brokerModel.searchByArea(area);
     res.json({
       success: true,
       brokers: rows.map(formatBroker),
