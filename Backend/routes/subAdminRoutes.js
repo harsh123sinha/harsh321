@@ -14,6 +14,7 @@ import {
 } from '../controllers/adminController.js';
 import { submitBrokerInternalRating } from '../controllers/brokerAdminController.js';
 import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
+import { addArea } from '../controllers/areaController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -40,5 +41,8 @@ router.delete('/properties/:id', adminDeleteProperty);
 
 router.get('/brokers/lookup', lookupBrokerByPublicId);
 router.post('/broker-ratings', submitBrokerInternalRating);
+
+// Areas (global dropdown)
+router.post('/areas', addArea);
 
 export default router;

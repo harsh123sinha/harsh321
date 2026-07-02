@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Users, Building2 } from 'lucide-react';
 import StaffNav from '../../components/staff/StaffNav';
+import AreaManagerCard from '../../components/staff/AreaManagerCard';
 
 const SubAdminDashboard = () => (
   <div className="min-h-screen bg-gray-50">
@@ -21,6 +22,7 @@ const SubAdminDashboard = () => (
           <h3 className="text-xl font-bold text-navy">Manage properties</h3>
           <p className="text-sm text-gray mt-2">Create and edit listings on behalf of owners</p>
         </Link>
+        <AreaManagerCard apiPrefix="/subadmin" />
       </div>
     </div>
   </div>

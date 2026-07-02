@@ -6,7 +6,7 @@ import { PATNA_LOCATION_OPTIONS } from '../constants/patnaLocations';
  * Location step: single search field + suggestions panel portaled **above** the field
  * (opens upward) so it stays visible above the chat footer — no native-style dropdown.
  */
-const LocationSearchDropdown = ({ value, onChange, id }) => {
+const LocationSearchDropdown = ({ value, onChange, id, options = PATNA_LOCATION_OPTIONS }) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
@@ -14,17 +14,17 @@ const LocationSearchDropdown = ({ value, onChange, id }) => {
   const [menuStyle, setMenuStyle] = useState(null);
 
   const selectedLabel =
-    PATNA_LOCATION_OPTIONS.find((o) => o.value === value)?.label || 'Any area';
+    options.find((o) => o.value === value)?.label || 'Any area';
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return PATNA_LOCATION_OPTIONS;
-    return PATNA_LOCATION_OPTIONS.filter(
+    if (!s) return options;
+    return options.filter(
       (o) =>
         o.label.toLowerCase().includes(s) ||
         String(o.value).toLowerCase().includes(s)
     );
-  }, [q]);
+  }, [q, options]);
 
   const updateMenuStyle = () => {
     if (!open || !inputRef.current) return;

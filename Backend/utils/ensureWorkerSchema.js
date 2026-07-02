@@ -119,6 +119,7 @@ async function ensureWorkerExtendedColumns() {
   if (!(await hasTable('worker'))) return;
 
   const alters = [
+    ['service_area', `ALTER TABLE worker ADD COLUMN service_area VARCHAR(120) NULL AFTER description`],
     ['profile_type', `ALTER TABLE worker ADD COLUMN profile_type VARCHAR(32) NOT NULL DEFAULT 'standard' AFTER profession`],
     ['hall_image_url', `ALTER TABLE worker ADD COLUMN hall_image_url VARCHAR(512) NULL AFTER aadhar_image_url`],
     ['area_sqft', `ALTER TABLE worker ADD COLUMN area_sqft DECIMAL(10,2) NULL AFTER hall_image_url`],

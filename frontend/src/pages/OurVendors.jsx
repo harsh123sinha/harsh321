@@ -106,6 +106,7 @@ function MarriageHallCard({ vendor, categoryLabel }) {
         <div className={cardBody}>
           <h3 className={`${cardTitle} md:text-base`}>{vendor.name}</h3>
           <p className="text-[8px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[7px] lg:text-sm">{vendor.profession}</p>
+          {vendor.service_area && <p className={cardSub}>Area: {vendor.service_area}</p>}
           <p className={cardText}>{vendor.description}</p>
           <div className="grid grid-cols-1 gap-px sm:grid-cols-2 sm:gap-2 text-[8px] sm:text-xs text-stone-600 leading-tight max-[499px]:text-[7px] lg:text-sm lg:gap-3">
             <span className="line-clamp-1">Area: {Number(vendor.area_sqft).toLocaleString('en-IN')} sq ft</span>
@@ -147,6 +148,7 @@ function StandardVendorCard({ vendor, categoryLabel }) {
           <h3 className={cardTitle}>{vendor.name}</h3>
           <p className="text-[8px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[7px] lg:text-sm">{vendor.profession}</p>
           <p className={cardSub}>{getCategoryLabelByProfession(vendor.profession)}</p>
+          {vendor.service_area && <p className={cardSub}>Area: {vendor.service_area}</p>}
           <p className={cardText}>{vendor.description}</p>
           {vendor.working_hours_per_day && (
             <p className={`hidden lg:block ${cardSub}`}>
@@ -260,6 +262,7 @@ export default function OurVendors() {
   const [profession, setProfession] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
   const [vendorSearch, setVendorSearch] = useState('');
+  const [areaSearch, setAreaSearch] = useState('');
 
   const applyCategorySelection = useCallback((id, { syncUrl = true } = {}) => {
     setCategoryId(id);
@@ -290,12 +293,13 @@ export default function OurVendors() {
   const readyToBrowse = categoryId && (profession || browseFilters.length <= 1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['publicVendors', categoryId, isRentalCategory ? '' : profession, vendorSearch],
+    queryKey: ['publicVendors', categoryId, isRentalCategory ? '' : profession, vendorSearch, areaSearch],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (categoryId) params.set('categoryId', categoryId);
       if (!isRentalCategory && profession) params.set('profession', profession);
       if (vendorSearch.trim()) params.set('q', vendorSearch.trim());
+      if (areaSearch.trim()) params.set('area', areaSearch.trim());
       const res = await api.get(`/workers/public?${params.toString()}`);
       return res.data;
     },
@@ -467,6 +471,15 @@ export default function OurVendors() {
                     value={vendorSearch}
                     onChange={(e) => setVendorSearch(e.target.value)}
                     placeholder="Search…"
+                    className="w-full pl-5 max-[499px]:pl-5 sm:pl-8 lg:pl-10 pr-1 sm:pr-3 lg:pr-4 py-0.5 max-[499px]:py-0.5 sm:py-2 lg:py-3 text-[8px] max-[399px]:text-[7px] sm:text-sm lg:text-base border border-stone-200 rounded max-[499px]:rounded sm:rounded-lg lg:rounded-xl bg-white focus:outline-none focus:border-gold"
+                  />
+                </div>
+                <div className="relative w-[4.25rem] max-[499px]:w-[4rem] max-[399px]:w-[3.5rem] sm:w-56 lg:w-64 xl:w-72 shrink-0">
+                  <MapPin className="absolute left-1 max-[499px]:h-2.5 max-[499px]:w-2.5 sm:left-2.5 lg:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-stone-400" />
+                  <input
+                    value={areaSearch}
+                    onChange={(e) => setAreaSearch(e.target.value)}
+                    placeholder="Area…"
                     className="w-full pl-5 max-[499px]:pl-5 sm:pl-8 lg:pl-10 pr-1 sm:pr-3 lg:pr-4 py-0.5 max-[499px]:py-0.5 sm:py-2 lg:py-3 text-[8px] max-[399px]:text-[7px] sm:text-sm lg:text-base border border-stone-200 rounded max-[499px]:rounded sm:rounded-lg lg:rounded-xl bg-white focus:outline-none focus:border-gold"
                   />
                 </div>

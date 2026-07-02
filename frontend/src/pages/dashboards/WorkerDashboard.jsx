@@ -40,6 +40,8 @@ import {
 } from '../../constants/workerProfileTypes';
 import ImageCaptureInput from '../../components/common/ImageCaptureInput';
 import WorkerListingsPanel from '../../components/workers/WorkerListingsPanel';
+import LocationSearchCombobox from '../../components/search/LocationSearchCombobox';
+import { useAreaOptions } from '../../hooks/useAreas';
 
 const JOB_RED = 'rgb(149, 0, 0)';
 
@@ -49,6 +51,7 @@ const emptyForm = {
   phone_number: '',
   profession: '',
   description: '',
+  service_area: '',
   working_hours_per_day: '',
   off_day: '',
   price_type: 'daily',
@@ -62,6 +65,7 @@ const emptyForm = {
 
 export default function WorkerDashboard() {
   const { user, setUser } = useAuth();
+  const { options: areaOptions } = useAreaOptions();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileComplete, setProfileComplete] = useState(false);
@@ -103,6 +107,7 @@ export default function WorkerDashboard() {
           phone_number: w?.phone_number || user?.phone_number || '',
           profession: w?.profession || '',
           description: w?.description || '',
+          service_area: w?.service_area || '',
           working_hours_per_day: w?.working_hours_per_day != null ? String(w.working_hours_per_day) : '',
           off_day: w?.off_day || '',
           price_type: w?.price_type || 'daily',
@@ -160,6 +165,7 @@ export default function WorkerDashboard() {
     if (!professionCategory) return 'Please select a service category';
     if (!form.profession) return 'Please select your profession';
     if (!form.description.trim()) return 'Description is required';
+    if (!form.service_area.trim()) return 'Service area is required';
 
     if (isMarriageHall) {
       const area = parseFloat(form.area_sqft);
@@ -215,6 +221,7 @@ export default function WorkerDashboard() {
       fd.append('profession', form.profession);
       fd.append('category_id', professionCategory);
       fd.append('description', form.description.trim());
+      fd.append('service_area', form.service_area.trim());
 
       if (isMarriageHall) {
         fd.append('area_sqft', form.area_sqft);
@@ -486,6 +493,18 @@ export default function WorkerDashboard() {
 
             <Field label="Short description *" icon={Briefcase}>
               <textarea name="description" value={form.description} onChange={handleChange} required rows={3} className="input-field resize-y" />
+            </Field>
+
+            <Field label="Service area / location *" icon={Search}>
+              <div className="rounded-lg border-2 border-gray-light bg-white px-2 py-1">
+                <LocationSearchCombobox
+                  value={form.service_area}
+                  onChange={(v) => setForm((prev) => ({ ...prev, service_area: v }))}
+                  options={areaOptions}
+                  triggerClassName="w-full px-2 py-2 text-left text-sm"
+                  tone="light"
+                />
+              </div>
             </Field>
 
             {!isMarriageHall && !isListingVendor && (

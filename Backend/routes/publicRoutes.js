@@ -1,5 +1,6 @@
 import express from 'express';
 import { getHomeData, getRandomProperties, getStats, getFeaturedProjects, getProjectById, getSitemap } from '../controllers/publicController.js';
+import { listAreas } from '../controllers/areaController.js';
 import { apiLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
@@ -10,5 +11,6 @@ router.get('/projects/:id', apiLimiter, getProjectById);
 router.get('/random-properties', apiLimiter, getRandomProperties);
 router.get('/stats', apiLimiter, getStats);
 router.get('/sitemap.xml', getSitemap);
+router.get('/areas', apiLimiter, listAreas);
 
 export default router;

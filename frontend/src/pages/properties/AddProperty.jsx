@@ -37,11 +37,14 @@ import {
 import ListingVerificationOverlay from '../../components/properties/ListingVerificationOverlay';
 import AddListingModeToggle from '../../components/properties/AddListingModeToggle';
 import AddProjectFields, { validateAddProjectForm } from '../../components/properties/AddProjectFields';
+import LocationSearchCombobox from '../../components/search/LocationSearchCombobox';
+import { useAreaOptions } from '../../hooks/useAreas';
 
 const inputClass = (err) =>
   `w-full px-4 py-3 border-2 rounded-lg focus:outline-none ${fieldErrorClass(err)}`;
 
 const AddProperty = () => {
+  const { options: areaOptions } = useAreaOptions();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -839,14 +842,18 @@ const AddProperty = () => {
 
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Location / area *</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                className={inputClass(fieldErrors.location)}
-              />
+              <div className={`${inputClass(fieldErrors.location)} !p-0`}>
+                <LocationSearchCombobox
+                  value={formData.location}
+                  onChange={(v) => {
+                    setFormData((prev) => ({ ...prev, location: v }));
+                    setFieldErrors((prev) => ({ ...prev, location: '' }));
+                  }}
+                  options={areaOptions}
+                  triggerClassName="w-full px-4 py-3 text-left"
+                  tone="light"
+                />
+              </div>
               <FieldHint error={fieldErrors.location} />
             </div>
             <div>

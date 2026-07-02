@@ -3,6 +3,7 @@ import LocationSearchDropdown from './LocationSearchDropdown';
 import { STEP_KEYS } from './stepConfig';
 import { FURNISHING_OPTIONS } from '../constants/propertyForm';
 import { CHAT_SHOP_AREA_OPTIONS } from './chatShopAreaOptions';
+import { useAreaOptions } from '../hooks/useAreas';
 
 const Btn = ({ children, onClick, active, type = 'button' }) => (
   <button
@@ -19,6 +20,7 @@ const Btn = ({ children, onClick, active, type = 'button' }) => (
 );
 
 const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }) => {
+  const { options: areaOptions } = useAreaOptions();
   const [listingType, setListingType] = useState('');
   const [location, setLocation] = useState('');
   const [budgetMin, setBudgetMin] = useState('');
@@ -199,6 +201,7 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             const label = v === '' ? 'Any area / Patna' : v;
             submitOnce(`Location: ${label}`, { location: v || '' });
           }}
+          options={areaOptions}
           id="htls-loc"
         />
       </div>

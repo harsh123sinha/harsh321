@@ -342,7 +342,13 @@ const ChatWidget = () => {
           ) : null}
         </div>
       )}
-      <ChatWindow open={open} isMobile={isMobile} onClose={() => setOpen(false)} footer={footer}>
+      <ChatWindow
+        open={open}
+        isMobile={isMobile}
+        onClose={() => setOpen(false)}
+        onNewChat={startOver}
+        footer={footer}
+      >
         <MessageList messages={state.messages} typing={state.typing} onCloseChat={() => setOpen(false)} />
       </ChatWindow>
     </>

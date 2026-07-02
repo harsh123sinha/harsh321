@@ -23,6 +23,7 @@ import {
   getWorkerReviewsAdmin,
 } from '../controllers/workerAdminController.js';
 import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
+import { addArea } from '../controllers/areaController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -62,5 +63,8 @@ router.delete('/subadmins/:id', deleteSubAdmin);
 router.get('/workers', adminGetAllWorkers);
 router.get('/workers/:workerId/reviews', getWorkerReviewsAdmin);
 router.post('/workers/:workerId/reviews', submitWorkerInternalReview);
+
+// Areas (global dropdown)
+router.post('/areas', addArea);
 
 export default router;

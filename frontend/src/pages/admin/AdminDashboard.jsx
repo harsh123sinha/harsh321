@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Users, Building2, UserCog, Briefcase } from 'lucide-react';
 import StaffNav from '../../components/staff/StaffNav';
+import AreaManagerCard from '../../components/staff/AreaManagerCard';
 
 const AdminDashboard = () => (
   <div className="min-h-screen bg-gray-50">
@@ -28,6 +29,7 @@ const AdminDashboard = () => (
           <h3 className="text-xl font-bold text-navy">Manage sub-admins</h3>
           <p className="text-sm text-gray mt-2">Team access to the panel</p>
         </Link>
+        <AreaManagerCard apiPrefix="/admin" />
       </div>
     </div>
   </div>

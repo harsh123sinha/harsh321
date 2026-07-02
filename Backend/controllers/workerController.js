@@ -93,6 +93,7 @@ function toPublicVendor(worker) {
     ...rest,
     employee_id,
     category_id: findCategoryIdByProfession(worker.profession),
+    service_area: worker.service_area || '',
     harsh_rating_avg: worker.harsh_rating_avg != null ? Number(worker.harsh_rating_avg) : null,
     customer_rating_avg: worker.customer_rating_avg != null ? Number(worker.customer_rating_avg) : null,
     customer_review_count: Number(worker.customer_review_count || 0),
@@ -253,6 +254,7 @@ function parseRequiredBody(body) {
   const phone_number = String(body.phone_number || '').trim();
   const profession = String(body.profession || '').trim();
   const description = String(body.description || '').trim();
+  const service_area = String(body.service_area || '').trim();
   const categoryId = String(body.category_id || findCategoryIdByProfession(profession)).trim();
   const profileType = getProfileType(profession, categoryId);
 
@@ -262,6 +264,7 @@ function parseRequiredBody(body) {
   if (!isValidIndianMobile(phone_number)) errors.push('Valid mobile number is required.');
   if (!isValidWorkerProfession(profession)) errors.push('Please select a valid profession.');
   if (!description) errors.push('Description is required.');
+  if (!service_area) errors.push('Service area is required.');
 
   const data = {
     name,
@@ -269,6 +272,7 @@ function parseRequiredBody(body) {
     phone_number,
     profession,
     description,
+    service_area,
     profile_type: profileType,
     working_hours_per_day: null,
     off_day: null,
@@ -597,6 +601,7 @@ export const browsePublicVendors = async (req, res) => {
     const categoryId = String(req.query.categoryId || '').trim();
     const profession = String(req.query.profession || '').trim();
     const q = String(req.query.q || '').trim();
+    const area = String(req.query.area || '').trim();
 
     let professions = [];
     if (profession) {
@@ -610,7 +615,7 @@ export const browsePublicVendors = async (req, res) => {
       }
     }
 
-    const workers = await workerModel.searchPublic({ professions, q });
+    const workers = await workerModel.searchPublic({ professions, q, area });
     const enriched = await enrichWorkersWithServiceDetails(workers);
     const workerIds = enriched.map((w) => w.id);
     const allReviews = await workerCustomerReviewModel.findByWorkerIds(workerIds);

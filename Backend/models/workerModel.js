@@ -23,7 +23,7 @@ export const workerModel = {
     const query = `
       INSERT INTO worker (
         user_id, name, email, phone_number, profession, profile_type,
-        description, working_hours_per_day, off_day,
+        description, service_area, working_hours_per_day, off_day,
         price_type, price_amount, area_sqft, outside_caterers_allowed, catering_type,
         hall_booking_cost, veg_platter_cost, nonveg_platter_cost, profile_complete
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -36,6 +36,7 @@ export const workerModel = {
       data.profession,
       data.profile_type || 'standard',
       data.description,
+      data.service_area || null,
       data.working_hours_per_day ?? null,
       data.off_day || null,
       data.price_type || null,
@@ -60,6 +61,7 @@ export const workerModel = {
         profession = ?,
         profile_type = ?,
         description = ?,
+        service_area = ?,
         working_hours_per_day = ?,
         off_day = ?,
         price_type = ?,
@@ -80,6 +82,7 @@ export const workerModel = {
       data.profession,
       data.profile_type || 'standard',
       data.description,
+      data.service_area || null,
       data.working_hours_per_day ?? null,
       data.off_day || null,
       data.price_type || null,
@@ -96,7 +99,7 @@ export const workerModel = {
     return true;
   },
 
-  searchPublic: async ({ professions = [], q = '' } = {}) => {
+  searchPublic: async ({ professions = [], q = '', area = '' } = {}) => {
     let query = `
       SELECT w.*, u.name AS user_name
       FROM worker w
@@ -115,6 +118,13 @@ export const workerModel = {
       query += ` AND (w.name LIKE ? OR w.profession LIKE ? OR w.description LIKE ?)`;
       const like = `%${term}%`;
       params.push(like, like, like);
+    }
+
+    const areaTerm = String(area || '').trim();
+    if (areaTerm) {
+      query += ` AND (w.service_area LIKE ? OR w.description LIKE ?)`;
+      const like = `%${areaTerm}%`;
+      params.push(like, like);
     }
 
     query += ' ORDER BY w.updated_at DESC LIMIT 200';
