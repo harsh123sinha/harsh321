@@ -1,14 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Plus, List } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { PROPERTY_OWNER_QUICK_LINKS } from '../../constants/dashboardQuickLinks';
 
 const AgentDashboard = () => {
   const { user } = useAuth();
-
-  const quickLinks = [
-    { to: '/add-property', icon: Plus, title: 'Add Property', desc: 'List a new property' },
-    { to: '/my-properties', icon: List, title: 'My Properties', desc: 'View and manage your listings' },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -19,9 +14,9 @@ const AgentDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {quickLinks.map((link) => (
+          {PROPERTY_OWNER_QUICK_LINKS.map((link) => (
             <Link
-              key={link.to}
+              key={link.title}
               to={link.to}
               className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow"
             >

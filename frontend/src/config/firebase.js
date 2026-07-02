@@ -40,20 +40,25 @@ export function buildServiceWorkerUrl() {
   return `/firebase-messaging-sw.js?${params.toString()}`;
 }
 
-export async function requestFcmToken() {
+export async function requestFcmToken({ promptForPermission = false } = {}) {
   const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY;
   if (!vapidKey) {
     console.warn('VITE_FCM_VAPID_KEY is not set');
     return null;
   }
 
+  if (!('Notification' in window)) return null;
+
   const messaging = await getFirebaseMessaging();
   if (!messaging) return null;
 
   if (Notification.permission === 'default') {
+    if (!promptForPermission) return null;
     const permission = await Notification.requestPermission();
+    localStorage.setItem('htls_fcm_perm_state', permission);
     if (permission !== 'granted') return null;
   } else if (Notification.permission !== 'granted') {
+    localStorage.setItem('htls_fcm_perm_state', Notification.permission);
     return null;
   }
 

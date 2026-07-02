@@ -42,6 +42,11 @@ export default function BrandMark({
             : `min-w-0 ${compact ? 'max-w-[8.5rem] xs:max-w-[10rem] sm:max-w-none' : desktop ? 'max-w-[14rem] 2xl:max-w-none' : ''}`
         }
       >
+        {!footer && (
+          <span className="block text-[8px] leading-none text-white/80 xs:text-[9px] sm:text-[10px] mb-0.5">
+            Home
+          </span>
+        )}
         <span className={`htls-brand-name font-times block ${nameClass} ${brandNameSize(compact, footer, desktop)}`}>
           {brandLabel}
         </span>

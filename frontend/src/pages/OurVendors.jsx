@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, Users, IndianRupee } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import BrandLoader from '../components/ui/BrandLoader';
 import VendorCardFooter from '../components/vendors/VendorCardFooter';
@@ -24,12 +24,48 @@ const cardImg =
 const cardBody =
   'vendor-card-body flex flex-1 flex-col p-1 sm:p-2 md:p-2.5 space-y-px sm:space-y-1 min-h-0 max-[499px]:p-0.5 max-[499px]:space-y-0 max-[399px]:p-px lg:p-4 lg:space-y-2 xl:p-5';
 const cardTitle =
-  'font-bold text-navy text-[9px] leading-tight line-clamp-1 sm:text-xs md:text-sm max-[499px]:text-[8px] max-[399px]:text-[7px] lg:text-base xl:text-lg';
+  'font-bold text-navy text-[10px] leading-tight line-clamp-2 sm:text-xs md:text-sm max-[499px]:text-[9px] lg:text-base xl:text-lg';
 const cardSub =
-  'text-[7px] leading-tight line-clamp-1 sm:text-[10px] md:text-xs text-stone-500 max-[499px]:text-[6px] max-[399px]:text-[5px] lg:text-sm';
+  'text-[8px] leading-tight line-clamp-2 sm:text-[10px] md:text-xs text-stone-500 max-[499px]:text-[7px] lg:text-sm';
 const cardText = 'hidden lg:block text-sm xl:text-base text-stone-600 line-clamp-3';
 const cardPrice =
-  'text-[8px] sm:text-[10px] md:text-xs font-semibold text-navy leading-tight line-clamp-2 max-[499px]:text-[7px] max-[399px]:text-[6px] lg:text-sm xl:text-base';
+  'text-[9px] sm:text-[10px] md:text-xs font-semibold text-navy leading-tight line-clamp-2 max-[499px]:text-[8px] lg:text-sm xl:text-base';
+
+function vendorDetailPath(vendor, listing = null) {
+  const base = `/our-vendors/vendor/${vendor.id}`;
+  if (listing?.id) return `${base}?listingId=${listing.id}`;
+  return base;
+}
+
+function CardNavigate({ vendor, listing, children, className = '' }) {
+  const navigate = useNavigate();
+  const path = vendorDetailPath(vendor, listing);
+  return (
+    <div
+      className={`${className} cursor-pointer`}
+      onClick={() => navigate(path)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(path);
+        }
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label="View details"
+    >
+      {children}
+    </div>
+  );
+}
+
+function CardFooterStop({ children }) {
+  return (
+    <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      {children}
+    </div>
+  );
+}
 
 function CardServiceBadge({ categoryId, professionId, emoji, className = '' }) {
   return (
@@ -62,29 +98,35 @@ function MarriageHallCard({ vendor, categoryLabel }) {
   const categoryId = vendor.category_id || 'events-celebrations';
   return (
     <div className={cardShell}>
-      <div className="relative shrink-0">
-        <img src={vendor.hall_image_url || vendor.worker_image_url} alt={vendor.name} className={cardImg} />
-        <CardServiceBadge categoryId={categoryId} />
-      </div>
-      <div className={cardBody}>
-        <h3 className={`${cardTitle} md:text-base`}>{vendor.name}</h3>
-        <p className="text-[7px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[6px] max-[399px]:text-[5px] lg:text-sm">{vendor.profession}</p>
-        <p className={cardText}>{vendor.description}</p>
-        <div className="grid grid-cols-1 gap-px sm:grid-cols-2 sm:gap-2 text-[8px] sm:text-xs text-stone-600 leading-tight max-[499px]:text-[6px] max-[399px]:text-[5px] lg:text-sm lg:gap-3">
-          <span className="line-clamp-1">Area: {Number(vendor.area_sqft).toLocaleString('en-IN')} sq ft</span>
-          <span className="line-clamp-1">Outside: {vendor.outside_caterers_allowed ? 'Yes' : 'No'}</span>
-          <span className={`font-semibold text-navy col-span-2 line-clamp-1`}>
-            Hall: ₹{Number(vendor.hall_booking_cost).toLocaleString('en-IN')}
-          </span>
-          {vendor.veg_platter_cost != null && (
-            <span className="line-clamp-1">Veg: ₹{Number(vendor.veg_platter_cost).toLocaleString('en-IN')}/plate</span>
-          )}
-          {vendor.nonveg_platter_cost != null && (
-            <span className="line-clamp-1">Non-veg: ₹{Number(vendor.nonveg_platter_cost).toLocaleString('en-IN')}/plate</span>
-          )}
+      <CardNavigate vendor={vendor} className="flex flex-1 flex-col min-h-0">
+        <div className="relative shrink-0">
+          <img src={vendor.hall_image_url || vendor.worker_image_url} alt={vendor.name} className={cardImg} />
+          <CardServiceBadge categoryId={categoryId} />
         </div>
-        <VendorCardFooter vendor={vendor} categoryLabel={categoryLabel} />
-      </div>
+        <div className={cardBody}>
+          <h3 className={`${cardTitle} md:text-base`}>{vendor.name}</h3>
+          <p className="text-[8px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[7px] lg:text-sm">{vendor.profession}</p>
+          <p className={cardText}>{vendor.description}</p>
+          <div className="grid grid-cols-1 gap-px sm:grid-cols-2 sm:gap-2 text-[8px] sm:text-xs text-stone-600 leading-tight max-[499px]:text-[7px] lg:text-sm lg:gap-3">
+            <span className="line-clamp-1">Area: {Number(vendor.area_sqft).toLocaleString('en-IN')} sq ft</span>
+            <span className="line-clamp-1">Outside: {vendor.outside_caterers_allowed ? 'Yes' : 'No'}</span>
+            <span className={`font-semibold text-navy col-span-2 line-clamp-1`}>
+              Hall: ₹{Number(vendor.hall_booking_cost).toLocaleString('en-IN')}
+            </span>
+            {vendor.veg_platter_cost != null && (
+              <span className="line-clamp-1">Veg: ₹{Number(vendor.veg_platter_cost).toLocaleString('en-IN')}/plate</span>
+            )}
+            {vendor.nonveg_platter_cost != null && (
+              <span className="line-clamp-1">Non-veg: ₹{Number(vendor.nonveg_platter_cost).toLocaleString('en-IN')}/plate</span>
+            )}
+          </div>
+        </div>
+      </CardNavigate>
+      <CardFooterStop>
+        <div className={cardBody}>
+          <VendorCardFooter vendor={vendor} categoryLabel={categoryLabel} />
+        </div>
+      </CardFooterStop>
     </div>
   );
 }
@@ -94,28 +136,34 @@ function StandardVendorCard({ vendor, categoryLabel }) {
   const categoryId = vendor.category_id || 'home-repair';
   return (
     <div className={cardShell}>
-      {img && (
-        <div className="relative shrink-0">
-          <img src={img} alt={vendor.name} className={cardImg} />
-          <CardServiceBadge categoryId={categoryId} professionId={vendor.profession} />
-        </div>
-      )}
-      <div className={cardBody}>
-        <h3 className={cardTitle}>{vendor.name}</h3>
-        <p className="text-[7px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[6px] max-[399px]:text-[5px] lg:text-sm">{vendor.profession}</p>
-        <p className={cardSub}>{getCategoryLabelByProfession(vendor.profession)}</p>
-        <p className={cardText}>{vendor.description}</p>
-        {vendor.working_hours_per_day && (
-          <p className={`hidden lg:block ${cardSub}`}>
-            {vendor.working_hours_per_day} hrs/day · Off: {vendor.off_day}
-          </p>
+      <CardNavigate vendor={vendor} className="flex flex-1 flex-col min-h-0">
+        {img && (
+          <div className="relative shrink-0">
+            <img src={img} alt={vendor.name} className={cardImg} />
+            <CardServiceBadge categoryId={categoryId} professionId={vendor.profession} />
+          </div>
         )}
-        <p className={`${cardPrice} flex items-center gap-0.5 sm:gap-1`}>
-          <IndianRupee className="h-2 w-2 max-[499px]:h-1.5 max-[499px]:w-1.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-gold shrink-0" />
-          <span className="line-clamp-2">{formatWorkerPrice(vendor) || 'Contact for pricing'}</span>
-        </p>
-        <VendorCardFooter vendor={vendor} categoryLabel={categoryLabel} />
-      </div>
+        <div className={cardBody}>
+          <h3 className={cardTitle}>{vendor.name}</h3>
+          <p className="text-[8px] sm:text-[10px] md:text-xs text-gold font-medium line-clamp-1 max-[499px]:text-[7px] lg:text-sm">{vendor.profession}</p>
+          <p className={cardSub}>{getCategoryLabelByProfession(vendor.profession)}</p>
+          <p className={cardText}>{vendor.description}</p>
+          {vendor.working_hours_per_day && (
+            <p className={`hidden lg:block ${cardSub}`}>
+              {vendor.working_hours_per_day} hrs/day · Off: {vendor.off_day}
+            </p>
+          )}
+          <p className={`${cardPrice} flex items-center gap-0.5 sm:gap-1`}>
+            <IndianRupee className="h-2 w-2 max-[499px]:h-1.5 max-[499px]:w-1.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-gold shrink-0" />
+            <span className="line-clamp-2">{formatWorkerPrice(vendor) || 'Contact for pricing'}</span>
+          </p>
+        </div>
+      </CardNavigate>
+      <CardFooterStop>
+        <div className={cardBody}>
+          <VendorCardFooter vendor={vendor} categoryLabel={categoryLabel} />
+        </div>
+      </CardFooterStop>
     </div>
   );
 }
@@ -149,45 +197,57 @@ function ListingItemCard({ listing, vendor, categoryLabel }) {
 
     return (
       <div className={cardShell}>
-        <div className="relative shrink-0">
-          <img src={listing.image_url} alt={listing.title} className={cardImg} />
-          <CardServiceBadge
-            categoryId="rental-vehicle"
-            professionId={listing.vehicle_type === 'bike' ? 'self_drive_bike' : 'car_with_driver'}
-          />
-        </div>
-        <div className={cardBody}>
-          <h3 className={cardTitle}>{listing.title}</h3>
-          <p className={cardSub}>{vendor.name}</p>
-          <p className={`${cardSub} capitalize`}>
-            {listing.vehicle_type} · {listing.rental_mode?.replace('_', ' ')}
-            {listing.model_year ? ` · ${listing.model_year}` : ''}
-          </p>
-          <p className={cardPrice}>{costLabel}</p>
-          {kmLine && <p className={cardSub}>{kmLine}</p>}
-          {listing.description && <p className={cardText}>{listing.description}</p>}
-          <VendorCardFooter vendor={vendor} listing={listing} categoryLabel={categoryLabel} />
-        </div>
+        <CardNavigate vendor={vendor} listing={listing} className="flex flex-1 flex-col min-h-0">
+          <div className="relative shrink-0">
+            <img src={listing.image_url} alt={listing.title} className={cardImg} />
+            <CardServiceBadge
+              categoryId="rental-vehicle"
+              professionId={listing.vehicle_type === 'bike' ? 'self_drive_bike' : 'car_with_driver'}
+            />
+          </div>
+          <div className={cardBody}>
+            <h3 className={cardTitle}>{listing.title}</h3>
+            <p className={cardSub}>{vendor.name}</p>
+            <p className={`${cardSub} capitalize`}>
+              {listing.vehicle_type} · {listing.rental_mode?.replace('_', ' ')}
+              {listing.model_year ? ` · ${listing.model_year}` : ''}
+            </p>
+            <p className={cardPrice}>{costLabel}</p>
+            {kmLine && <p className={cardSub}>{kmLine}</p>}
+            {listing.description && <p className={cardText}>{listing.description}</p>}
+          </div>
+        </CardNavigate>
+        <CardFooterStop>
+          <div className={cardBody}>
+            <VendorCardFooter vendor={vendor} listing={listing} categoryLabel={categoryLabel} />
+          </div>
+        </CardFooterStop>
       </div>
     );
   }
 
   return (
     <div className={cardShell}>
-      <div className="relative shrink-0">
-        <img src={listing.image_url} alt={listing.title} className={cardImg} />
-        <CardServiceBadge
-          categoryId="building-material"
-          emoji={getMaterialEmoji(listing.material_type || listing.title)}
-        />
-      </div>
-      <div className={cardBody}>
-        <h3 className={cardTitle}>{listing.material_type || listing.title}</h3>
-        <p className={cardSub}>{vendor.name} · Building material</p>
-        {listing.description && <p className={cardText}>{listing.description}</p>}
-        <p className={`${cardPrice} line-clamp-2`}>{formatMaterialListingRate(listing)}</p>
-        <VendorCardFooter vendor={vendor} listing={listing} categoryLabel={categoryLabel} />
-      </div>
+      <CardNavigate vendor={vendor} listing={listing} className="flex flex-1 flex-col min-h-0">
+        <div className="relative shrink-0">
+          <img src={listing.image_url} alt={listing.title} className={cardImg} />
+          <CardServiceBadge
+            categoryId="building-material"
+            emoji={getMaterialEmoji(listing.material_type || listing.title)}
+          />
+        </div>
+        <div className={cardBody}>
+          <h3 className={cardTitle}>{listing.material_type || listing.title}</h3>
+          <p className={cardSub}>{vendor.name} · Building material</p>
+          {listing.description && <p className={cardText}>{listing.description}</p>}
+          <p className={`${cardPrice} line-clamp-2`}>{formatMaterialListingRate(listing)}</p>
+        </div>
+      </CardNavigate>
+      <CardFooterStop>
+        <div className={cardBody}>
+          <VendorCardFooter vendor={vendor} listing={listing} categoryLabel={categoryLabel} />
+        </div>
+      </CardFooterStop>
     </div>
   );
 }
@@ -286,9 +346,9 @@ export default function OurVendors() {
       <div className="w-full max-w-7xl mx-auto px-1 max-[499px]:px-1 sm:px-4 py-2 max-[499px]:py-2 sm:py-6 lg:max-w-none lg:mx-0 lg:px-0 lg:py-0">
         <div className="flex flex-row gap-1 max-[499px]:gap-1 sm:gap-3 lg:gap-0">
           {/* Category sidebar */}
-          <aside className="flex w-[3.25rem] max-[399px]:w-[2.85rem] xs:w-[4rem] sm:w-36 shrink-0 bg-navy rounded-md max-[499px]:rounded-md sm:rounded-xl border border-gold/30 overflow-hidden flex-col sticky top-14 sm:top-16 lg:top-20 self-start max-h-[calc(100dvh-3.75rem)] sm:max-h-[calc(100dvh-4.5rem)] lg:max-h-[calc(100vh-5rem)] lg:w-72 xl:w-80 lg:rounded-none lg:rounded-r-2xl lg:border-l-0 lg:border-y-0 lg:border-r lg:shadow-lg lg:min-h-[calc(100vh-5rem)]">
-            <div className="p-1 max-[499px]:p-1 sm:p-3 lg:p-5 border-b border-gold/20">
-              <p className="text-[8px] max-[399px]:text-[7px] sm:text-sm lg:text-lg font-bold text-gold mb-0.5 sm:mb-2 lg:mb-3 leading-tight">Categories</p>
+          <aside className="flex w-[4.5rem] max-[399px]:w-[4rem] xs:w-[5rem] sm:w-40 shrink-0 bg-navy rounded-md max-[499px]:rounded-md sm:rounded-xl border border-gold/30 overflow-hidden flex-col sticky top-14 sm:top-16 lg:top-20 self-start max-h-[calc(100dvh-3.75rem)] sm:max-h-[calc(100dvh-4.5rem)] lg:max-h-[calc(100vh-5rem)] lg:w-72 xl:w-80 lg:rounded-none lg:rounded-r-2xl lg:border-l-0 lg:border-y-0 lg:border-r lg:shadow-lg lg:min-h-[calc(100vh-5rem)]">
+            <div className="p-1.5 max-[499px]:p-1.5 sm:p-3 lg:p-5 border-b border-gold/20">
+              <p className="text-[9px] max-[399px]:text-[8px] sm:text-sm lg:text-lg font-bold text-gold mb-1 sm:mb-2 lg:mb-3 leading-tight">Categories</p>
               <div className="relative">
                 <Search className="absolute left-1 max-[499px]:h-2.5 max-[499px]:w-2.5 sm:left-2.5 lg:left-3 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-gold/60" />
                 <input
@@ -314,10 +374,10 @@ export default function OurVendors() {
                         : 'hover:bg-white/5 border-l-2 sm:border-l-4 border-l-transparent'
                     }`}
                   >
-                    <span className="shrink-0 scale-[0.82] max-[399px]:scale-[0.72] lg:hidden origin-center">
+                    <span className="shrink-0 lg:hidden origin-center">
                       <ServiceCategory3DIcon
                         categoryId={cat.id}
-                        size="xs"
+                        size="sm"
                         className="svc-3d-tile--flat svc-3d-tile--crisp"
                       />
                     </span>
@@ -329,7 +389,7 @@ export default function OurVendors() {
                       />
                     </span>
                     <span
-                      className={`text-[6px] max-[399px]:text-[5px] xs:text-[7px] sm:text-[10px] lg:text-sm xl:text-base leading-tight flex-1 line-clamp-2 lg:line-clamp-none ${
+                      className={`text-[8px] max-[399px]:text-[7px] xs:text-[9px] sm:text-[10px] lg:text-sm xl:text-base leading-tight flex-1 line-clamp-3 lg:line-clamp-none ${
                         categoryId === cat.id ? 'font-semibold text-gold-light' : 'text-gold'
                       }`}
                     >

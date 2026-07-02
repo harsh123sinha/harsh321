@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Building2, Bookmark } from 'lucide-react';
+import { Building2, Bookmark, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,16 +43,28 @@ const BuyerDashboard = () => {
           </div>
         )}
 
-        <Link
-          to="/saved"
-          className="flex items-center gap-3 bg-white rounded-xl shadow-md p-5 mb-8 border border-gold/20 hover:border-gold/50 transition-colors"
-        >
-          <Bookmark className="h-8 w-8 text-gold flex-shrink-0" />
-          <div>
-            <p className="font-bold text-navy">Saved properties</p>
-            <p className="text-sm text-gray">View listings you bookmarked</p>
-          </div>
-        </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            to="/our-vendors"
+            className="flex items-center gap-3 bg-white rounded-xl shadow-md p-5 border border-gold/20 hover:border-gold/50 transition-colors"
+          >
+            <Wrench className="h-8 w-8 text-gold flex-shrink-0" />
+            <div>
+              <p className="font-bold text-navy">Our Services</p>
+              <p className="text-sm text-gray">Plumbers, halls, rental cars & building materials</p>
+            </div>
+          </Link>
+          <Link
+            to="/saved"
+            className="flex items-center gap-3 bg-white rounded-xl shadow-md p-5 border border-gold/20 hover:border-gold/50 transition-colors"
+          >
+            <Bookmark className="h-8 w-8 text-gold flex-shrink-0" />
+            <div>
+              <p className="font-bold text-navy">Saved properties</p>
+              <p className="text-sm text-gray">View listings you bookmarked</p>
+            </div>
+          </Link>
+        </div>
 
         <h2 className="text-2xl font-bold text-navy mb-6">Featured Properties</h2>
         {homeData?.featuredProperties?.length > 0 ? (

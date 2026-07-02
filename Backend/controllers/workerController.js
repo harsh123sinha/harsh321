@@ -566,6 +566,32 @@ export const deleteMyListing = async (req, res) => {
   }
 };
 
+export const getPublicVendorById = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) {
+      return res.status(400).json({ error: 'Invalid vendor id' });
+    }
+
+    const worker = await workerModel.findById(id);
+    if (!worker || !worker.profile_complete) {
+      return res.status(404).json({ error: 'Vendor not found' });
+    }
+
+    const [enriched] = await enrichWorkersWithServiceDetails([worker]);
+    const reviews = await workerCustomerReviewModel.findByWorkerIds([id]);
+    const vendor = toPublicVendor({
+      ...enriched,
+      reviews: reviews.filter((r) => r.worker_id === id),
+    });
+
+    res.json({ success: true, vendor });
+  } catch (error) {
+    console.error('getPublicVendorById:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const browsePublicVendors = async (req, res) => {
   try {
     const categoryId = String(req.query.categoryId || '').trim();

@@ -62,9 +62,15 @@ const NotificationBell = ({ compact = false, small = false }) => {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, [open]);
 
-  if (!isAuthenticated) return null;
+  const unread = isAuthenticated ? (countData?.count ?? 0) : 0;
 
-  const unread = countData?.count ?? 0;
+  const handleBellClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setOpen((v) => !v);
+  };
 
   const handleNotificationClick = (n) => {
     if (n.type === 'broker_review_request' || (n.data?.openReviewModal && n.data?.brokerId)) {
@@ -121,13 +127,15 @@ const NotificationBell = ({ compact = false, small = false }) => {
       <div className="relative" ref={panelRef}>
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={`relative text-white hover:text-gold transition-colors touch-target ${compact ? 'p-1' : 'p-2'}`}
+          onClick={handleBellClick}
+          className={`relative inline-flex items-center justify-center text-white hover:text-gold transition-colors touch-target ${
+            compact ? 'h-8 w-8' : 'h-10 w-10'
+          } ${compact ? '' : 'p-2'}`}
           aria-label="Notifications"
         >
           <Bell
             className={
-              small ? 'h-3 w-3' : compact ? 'h-4 w-4 2xl:h-5 2xl:w-5' : 'h-5 w-5'
+              small ? 'h-4 w-4' : compact ? 'h-4 w-4 2xl:h-5 2xl:w-5' : 'h-5 w-5'
             }
           />
           {unread > 0 && (
@@ -143,7 +151,7 @@ const NotificationBell = ({ compact = false, small = false }) => {
           )}
         </button>
 
-        {open && (
+        {open && isAuthenticated && (
           <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-xl bg-white shadow-xl border border-gray-100 z-50">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-navy text-white">
               <span className="font-semibold">Notifications</span>

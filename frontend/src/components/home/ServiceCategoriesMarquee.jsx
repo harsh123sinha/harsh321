@@ -10,7 +10,7 @@ function CategoryItem({ cat }) {
 
   return (
     <Link
-      to={`/our-vendors?categoryId=${encodeURIComponent(cat.id)}`}
+      to={`/our-vendors/category/${encodeURIComponent(cat.id)}`}
       className="group flex w-[3.25rem] shrink-0 flex-col items-center gap-0.5 xs:w-[3.5rem] sm:w-24 sm:gap-2.5 touch-target"
       title={cat.label}
     >

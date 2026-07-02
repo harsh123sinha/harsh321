@@ -12,9 +12,9 @@ const DESKTOP_NAV_GAP = 'gap-2.5 2xl:gap-4';
 const DESKTOP_ICON = 'h-3.5 w-3.5 shrink-0 2xl:h-4 2xl:w-4';
 const DESKTOP_TEXT = 'text-xs xl:text-sm 2xl:text-base';
 
-const AUTH_CENTER_GAP = 'gap-3 2xl:gap-4';
-const AUTH_CENTER_TEXT = 'text-xs xl:text-sm 2xl:text-base font-medium';
-const AUTH_CENTER_ICON = 'h-3.5 w-3.5 shrink-0 2xl:h-4 2xl:w-4';
+const AUTH_CENTER_GAP = 'gap-2 2xl:gap-2.5';
+const AUTH_CENTER_TEXT = 'text-[11px] xl:text-xs 2xl:text-sm font-medium';
+const AUTH_CENTER_ICON = 'h-3 w-3 shrink-0 2xl:h-3.5 2xl:w-3.5';
 
 const PostPropertyButton = ({ className = '', onClick, compact = false, desktop = false }) => (
   <Link
@@ -207,13 +207,27 @@ const Navbar = () => {
 
   const authenticatedCenterNav = (
     <div
-      className={`flex shrink-0 flex-nowrap items-center ${AUTH_CENTER_GAP} xl:-translate-x-10 2xl:-translate-x-14`}
+      className={`flex shrink-0 flex-nowrap items-center ${AUTH_CENTER_GAP} xl:translate-x-[60px]`}
     >
       {authMainNavLinkItems}
-      <span className="shrink-0">
+      <span className="shrink-0 inline-flex items-center">
         <NotificationBell compact />
       </span>
       {authSavedDashboardLinks}
+    </div>
+  );
+
+  const mobileNavIcons = (
+    <div className="flex shrink-0 items-center h-8 gap-0.5">
+      <NotificationBell compact small />
+      <Link
+        to={isAuthenticated ? '/saved' : '/login'}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 hover:text-gold touch-target"
+        title={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
+        aria-label={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
+      >
+        <Bookmark className="h-4 w-4" />
+      </Link>
     </div>
   );
 
@@ -226,7 +240,7 @@ const Navbar = () => {
       <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 xl:max-w-none xl:px-4 2xl:px-6">
         {/* Phone + tablet — hamburger (below 1280px) */}
         <div className="xl:hidden relative">
-          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
+          <div className="flex min-h-16 items-center justify-between gap-2 py-2">
             <Link
               to="/"
               className="flex min-w-0 flex-1 items-center touch-target"
@@ -234,6 +248,7 @@ const Navbar = () => {
             >
               <BrandMark compact />
             </Link>
+            {mobileNavIcons}
             <button
               type="button"
               onClick={toggleMenu}
