@@ -121,6 +121,12 @@ export const createUser = async (req, res) => {
       phone_number: phone_number || null
     });
 
+    import('../services/staffAlertService.js')
+      .then(({ notifyNewUserSignup }) =>
+        notifyNewUserSignup({ id: userId, name, email, role, phone_number: phone_number || null })
+      )
+      .catch((err) => console.error('Staff alert (new user):', err.message));
+
     res.status(201).json({
       success: true,
       message: 'User created successfully',
@@ -326,6 +332,8 @@ export const adminCreateProperty = async (req, res) => {
 
     const furnishDb = parseFurnishingForDb(type, otherTrim, furnishing_status);
 
+    const staffType = req.user?.isSubAdmin ? 'subadmin' : 'admin';
+
     const propertyId = await propertyModel.create({
       title,
       description,
@@ -354,9 +362,15 @@ export const adminCreateProperty = async (req, res) => {
       owner_id: parseInt(owner_id, 10),
       featured: featured === 'true' || featured === true ? 1 : 0,
       listing_status: listingStatus,
+      listed_by_staff: staffType,
     });
 
     if (listingStatus === 'pending_review') {
+      import('../services/staffAlertService.js')
+        .then(({ notifyStaffPropertyListed }) =>
+          notifyStaffPropertyListed({ id: propertyId, title }, owner, staffType)
+        )
+        .catch((err) => console.error('Staff alert (property):', err.message));
       return res.status(201).json({
         ...buildPendingReviewSuccess(),
         propertyId,
@@ -368,6 +382,12 @@ export const adminCreateProperty = async (req, res) => {
       message: 'Property created successfully',
       propertyId
     });
+
+    import('../services/staffAlertService.js')
+      .then(({ notifyStaffPropertyListed }) =>
+        notifyStaffPropertyListed({ id: propertyId, title }, owner, staffType)
+      )
+      .catch((err) => console.error('Staff alert (property):', err.message));
 
     if (listingStatus === 'active') {
       import('../services/propertyMatchService.js')

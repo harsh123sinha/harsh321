@@ -12,7 +12,6 @@ export default function AddProjectFields({
   handleChange,
   fieldErrors,
   inputClass,
-  handleNoNumbersKeyDown,
   projectPdf,
   onProjectPdfChange,
 }) {
@@ -80,12 +79,11 @@ export default function AddProjectFields({
           name="title"
           value={formData.title}
           onChange={handleChange}
-          onKeyDown={handleNoNumbersKeyDown}
           required
           placeholder="e.g. Mount Galaxy"
-          className={inputClass(fieldErrors.title)}
+          className={inputClass(fieldErrors.title || fieldErrors.listingProse)}
         />
-        <FieldHint error={fieldErrors.title} />
+        <FieldHint error={fieldErrors.title || fieldErrors.listingProse} />
       </div>
 
       <div>
@@ -173,12 +171,11 @@ export default function AddProjectFields({
           name="description"
           value={formData.description}
           onChange={handleChange}
-          onKeyDown={handleNoNumbersKeyDown}
           required
           rows={4}
-          className={inputClass(fieldErrors.description)}
+          className={inputClass(fieldErrors.description || fieldErrors.listingProse)}
         />
-        <FieldHint error={fieldErrors.description} />
+        <FieldHint error={fieldErrors.description || fieldErrors.listingProse} />
       </div>
 
       <div>

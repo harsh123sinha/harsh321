@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1 Zameen, Char Parivar, 4 Floor — Mission Banner Preview</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ─── Theme tokens (tweak here) ───────────────────────────────────── */
+    :root {
+      --navy-deep: #081936;
+      --navy-mid: #0f2a54;
+      --navy-dark: #0a2044;
+      --gold: #d4af37;
+      --gold-light: #f4d57a;
+      --navy-cta: #0a1f44;
+      --text-muted: #a8bdd9;
+
+      --banner-radius: 12px;
+      --banner-min-h-desktop: 180px;
+      --banner-min-h-mobile: 200px;
+
+      /* Animation timing — adjust cycle length & floor stagger */
+      --cycle-duration: 7s;
+      --floor-stagger: 0.5s;
+      --floor-build-ms: 500ms;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #e8ecf2;
+      padding: 1.5rem 1rem 3rem;
+      color: #fff;
+    }
+
+    .page-hint {
+      max-width: 1100px;
+      margin: 0 auto 1rem;
+      font-size: 0.8rem;
+      color: #475569;
+      text-align: center;
+    }
+
+    /* ─── Banner shell ────────────────────────────────────────────────── */
+    .mission-banner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1100px;
+      min-height: var(--banner-min-h-desktop);
+      margin: 0 auto;
+      padding: 1rem 1.25rem 0.85rem;
+      border-radius: var(--banner-radius);
+      overflow: hidden;
+
+      /* Diagonal navy gradient + subtle gold inner glow */
+      background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy-mid) 48%, var(--navy-dark) 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(212, 175, 55, 0.22),
+        inset 0 0 28px rgba(212, 175, 55, 0.12),
+        0 12px 40px rgba(8, 25, 54, 0.35);
+    }
+
+    /* Soft ambient gold wash on the right (behind building) */
+    .mission-banner::before {
+      content: '';
+      position: absolute;
+      right: -5%;
+      top: 50%;
+      width: 42%;
+      height: 140%;
+      transform: translateY(-50%);
+      background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.14) 0%, transparent 68%);
+      pointer-events: none;
+    }
+
+    /* ─── Main row: text + building (grows to fill space above CTA) ─── */
+    .mission-banner__main {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    /* ─── Left content ────────────────────────────────────────────────── */
+    .mission-banner__content {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.2rem;
+      padding-right: 0.25rem;
+    }
+
+    .mission-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1.35;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 55%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .mission-headline {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.15rem, 2.8vw, 1.75rem);
+      line-height: 1.15;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .mission-sub {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      line-height: 1.2;
+      background: linear-gradient(90deg, var(--gold-light) 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .mission-body {
+      margin-top: 0.15rem;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+      max-width: 36ch;
+    }
+
+    /* ─── Building illustration (right) ───────────────────────────────── */
+    .mission-building {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 100%;
+      max-height: 118px;
+      padding-bottom: 2px;
+      opacity: 0;
+      animation: sceneVisibility var(--cycle-duration) ease-in-out infinite;
+    }
+
+  @keyframes sceneVisibility {
+      0%, 4%   { opacity: 0; }
+      8%, 78%  { opacity: 1; }
+      88%, 100% { opacity: 0; }
+    }
+
+    .building-stack {
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 3px;
+      animation: buildingPulse var(--cycle-duration) ease-in-out infinite;
+    }
+
+    @keyframes buildingPulse {
+      0%, 44% {
+        filter: drop-shadow(0 0 0 transparent);
+      }
+      48% {
+        filter: drop-shadow(0 0 10px rgba(244, 213, 122, 0.55));
+      }
+      52% {
+        filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.95));
+      }
+      56%, 100% {
+        filter: drop-shadow(0 0 0 transparent);
+      }
+    }
+
+    /* Each floor: navy fill, gold stroke, staggered build-in */
+    .building-floor {
+      --floor-w: 72px;
+      --floor-h: 22px;
+      width: var(--floor-w);
+      height: var(--floor-h);
+      border-radius: 4px;
+      border: 1.5px solid var(--gold);
+      background: rgba(8, 25, 54, 0.55);
+      opacity: 0;
+      transform: translateY(14px);
+      animation: floorBuild var(--cycle-duration) ease-out infinite;
+    }
+
+    .building-floor:nth-child(1) { animation-delay: calc(var(--floor-stagger) * 0); }
+    .building-floor:nth-child(2) { animation-delay: calc(var(--floor-stagger) * 1); }
+    .building-floor:nth-child(3) { animation-delay: calc(var(--floor-stagger) * 2); }
+    .building-floor:nth-child(4) { animation-delay: calc(var(--floor-stagger) * 3); }
+
+    @keyframes floorBuild {
+      0% {
+        opacity: 0;
+        transform: translateY(14px);
+        box-shadow: none;
+        border-color: rgba(212, 175, 55, 0.35);
+      }
+      /* Slide up + fade in (~7% of cycle ≈ 490ms at 7s) */
+      7% {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: var(--gold-light);
+        box-shadow:
+          0 0 14px rgba(244, 213, 122, 0.85),
+          inset 0 0 8px rgba(212, 175, 55, 0.35);
+      }
+      /* Glow settles */
+      12% {
+        border-color: var(--gold);
+        box-shadow: 0 0 4px rgba(212, 175, 55, 0.35);
+      }
+      75% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      88%, 100% {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+    }
+
+    /* Window dots for visual interest */
+    .building-floor::after {
+      content: '';
+      display: block;
+      width: 55%;
+      height: 35%;
+      margin: 22% auto 0;
+      border-radius: 2px;
+      background: linear-gradient(90deg, rgba(244, 213, 122, 0.15) 0%, rgba(244, 213, 122, 0.45) 50%, rgba(244, 213, 122, 0.15) 100%);
+      opacity: 0.7;
+    }
+
+    /* Ground line */
+    .building-ground {
+      width: 88px;
+      height: 3px;
+      margin-top: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.55;
+    }
+
+    /* ─── CTA row (separate flex row — never overlaps text) ───────────── */
+    .mission-banner__cta-row {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      flex-shrink: 0;
+      padding-top: 0.65rem;
+      margin-top: 0.15rem;
+      border-top: 1px solid rgba(212, 175, 55, 0.12);
+    }
+
+    .mission-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.55rem 1.35rem;
+      border: none;
+      border-radius: 999px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.02em;
+      color: var(--navy-cta);
+      cursor: pointer;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+      box-shadow:
+        0 4px 14px rgba(212, 175, 55, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
+    }
+
+    .mission-cta:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 22px rgba(212, 175, 55, 0.5),
+        0 0 20px rgba(244, 213, 122, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .mission-cta:active {
+      transform: translateY(0);
+    }
+
+    /* ─── Reduced motion: static completed building ─────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      .mission-building,
+      .building-stack,
+      .building-floor {
+        animation: none !important;
+      }
+
+      .mission-building {
+        opacity: 1;
+      }
+
+      .building-floor {
+        opacity: 1;
+        transform: none;
+        box-shadow: 0 0 4px rgba(212, 175, 55, 0.3);
+      }
+    }
+
+    /* ─── Mobile (<560px) ─────────────────────────────────────────────── */
+    @media (max-width: 559px) {
+      .mission-banner {
+        min-height: var(--banner-min-h-mobile);
+        padding: 0.85rem 1rem 0.75rem;
+      }
+
+      .mission-body {
+        display: none;
+      }
+
+      .mission-headline {
+        font-size: 1.05rem;
+      }
+
+      .mission-sub {
+        font-size: 0.82rem;
+      }
+
+      .mission-label {
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+      }
+
+      .mission-building {
+        max-height: 96px;
+      }
+
+      .building-floor {
+        --floor-w: 52px;
+        --floor-h: 16px;
+      }
+
+      .building-ground {
+        width: 64px;
+      }
+
+      .mission-cta {
+        font-size: 0.78rem;
+        padding: 0.48rem 1.1rem;
+      }
+
+      .mission-banner__main {
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .building-floor {
+        --floor-w: 44px;
+        --floor-h: 14px;
+      }
+
+      .mission-headline {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <p class="page-hint">
+  Preview — open at <strong>/mission-banner.html</strong> · Will sit below Happy Clients on Home
+  </p>
+
+  <!-- ═══ Mission hero banner ═══ -->
+  <section class="mission-banner" aria-label="Co-development mission: 1 Zameen, Char Parivar, 4 Floor">
+    <div class="mission-banner__main">
+      <!-- Left: copy -->
+      <div class="mission-banner__content">
+        <p class="mission-label">Our Mission :- Har Parivaar Ka Hoga Apna Ghar</p>
+        <h1 class="mission-headline">1 Zameen, Char Parivar, 4 Floor</h1>
+        <p class="mission-sub">Sabka Apna Flat</p>
+        <p class="mission-body">
+          Per paisa 4 hisso mein — Patna mein apna ghar ab sabke liye mumkin.
+        </p>
+      </div>
+
+      <!-- Right: animated 4-floor building -->
+      <div class="mission-building" aria-hidden="true">
+        <div>
+          <div class="building-stack">
+            <div class="building-floor"></div>
+            <div class="building-floor"></div>
+            <div class="building-floor"></div>
+            <div class="building-floor"></div>
+          </div>
+          <div class="building-ground"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom row: CTA never overlaps headline -->
+    <div class="mission-banner__cta-row">
+      <a href="#register" class="mission-cta">Register With Us</a>
+    </div>
+  </section>
+
+  <script>
+    /**
+     * Lightweight JS — only enhances reduced-motion users & optional CTA hook.
+     * All building animation is pure CSS (see --cycle-duration & --floor-stagger).
+     */
+    (function () {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const banner = document.querySelector('.mission-banner');
+
+      if (prefersReduced && banner) {
+        banner.classList.add('is-static');
+      }
+
+      // Placeholder — wire to your registration flow later
+      document.querySelector('.mission-cta')?.addEventListener('click', (e) => {
+        if (document.querySelector('.mission-cta')?.getAttribute('href') === '#register') {
+          e.preventDefault();
+          console.info('[Mission Banner] Register With Us — hook your form/route here.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

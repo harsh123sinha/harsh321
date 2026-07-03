@@ -6,6 +6,7 @@ import SearchBar from '../components/search/SearchBar';
 import ServiceCategoriesMarquee from '../components/home/ServiceCategoriesMarquee';
 import HeroReachHomeAnimation from '../components/home/HeroReachHomeAnimation';
 import EnquellPartnerBanner from '../components/home/EnquellPartnerBanner';
+import MissionCoDevBanner from '../components/home/MissionCoDevBanner';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
@@ -136,6 +137,8 @@ const Home = () => {
             </div>
           </div>
         )}
+
+        <MissionCoDevBanner className="mt-6 sm:mt-8" />
 
         <EnquellPartnerBanner className="mt-6 sm:mt-8" />
       </section>

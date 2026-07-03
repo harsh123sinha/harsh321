@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Building2, UserCog, Briefcase } from 'lucide-react';
+import { Users, Building2, UserCog, Briefcase, Target } from 'lucide-react';
 import StaffNav from '../../components/staff/StaffNav';
 import AreaManagerCard from '../../components/staff/AreaManagerCard';
 
@@ -23,6 +23,11 @@ const AdminDashboard = () => (
           <Building2 className="h-12 w-12 text-gold mb-4" />
           <h3 className="text-xl font-bold text-navy">Manage properties</h3>
           <p className="text-sm text-gray mt-2">Listings, featured flag, photos</p>
+        </Link>
+        <Link to="/admin/mission" className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow">
+          <Target className="h-12 w-12 text-gold mb-4" />
+          <h3 className="text-xl font-bold text-navy">Mission registrations</h3>
+          <p className="text-sm text-gray mt-2">1 Zameen, Char Parivar interest forms</p>
         </Link>
         <Link to="/admin/subadmins" className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow">
           <UserCog className="h-12 w-12 text-gold mb-4" />

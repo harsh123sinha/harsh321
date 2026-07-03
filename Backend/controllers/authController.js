@@ -127,6 +127,12 @@ export const signup = async (req, res) => {
     import('../services/notificationService.js')
       .then(({ sendWelcomeAfterSignup }) => sendWelcomeAfterSignup(userId))
       .catch((err) => console.error('Welcome notification error:', err.message));
+
+    import('../services/staffAlertService.js')
+      .then(({ notifyNewUserSignup }) =>
+        notifyNewUserSignup({ id: userId, name, email, role: roleLower, phone_number })
+      )
+      .catch((err) => console.error('Staff alert (signup):', err.message));
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during signup' });

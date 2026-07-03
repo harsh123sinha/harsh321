@@ -121,6 +121,18 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.facing`);
   }
+  if (!(await hasColumn(t, 'built_up_area_sqft'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN built_up_area_sqft INT UNSIGNED NULL DEFAULT NULL AFTER facing`
+    );
+    console.log(`✅ DB: added ${t}.built_up_area_sqft`);
+  }
+  if (!(await hasColumn(t, 'listing_review_reason'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN listing_review_reason VARCHAR(500) NULL DEFAULT NULL AFTER listing_status`
+    );
+    console.log(`✅ DB: added ${t}.listing_review_reason`);
+  }
   if (!(await hasColumn(t, 'road_no'))) {
     await db.execute(
       `ALTER TABLE \`${t}\` ADD COLUMN road_no SMALLINT UNSIGNED NULL DEFAULT NULL AFTER location`

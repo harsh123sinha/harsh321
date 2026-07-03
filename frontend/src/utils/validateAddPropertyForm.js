@@ -1,6 +1,7 @@
 import { getContactFieldError } from './contactValidation';
-import { getNoNumbersFieldError } from './noNumbersValidation';
 import { getRoadNoFieldError } from './roadNoValidation';
+import { containsPhoneNumber, getListingProseCombined } from './containsPhoneNumber';
+import { getTitleWordLimitError } from './listingTitleUtils';
 
 export function validateAddPropertyForm({
   formData,
@@ -25,12 +26,32 @@ export function validateAddPropertyForm({
   if (formData.road_no && roadErr) errors.road_no = roadErr;
   if (!images?.length) errors.images = 'At least one property image is required.';
 
+  const titleWordErr = getTitleWordLimitError(formData.title);
+  if (titleWordErr) errors.title = titleWordErr;
+
+  const proseCheck = containsPhoneNumber(getListingProseCombined(formData));
+  if (proseCheck.blocked) {
+    errors.listingProse = proseCheck.reason;
+    errors.title = proseCheck.reason;
+    errors.description = proseCheck.reason;
+  }
+
   if (isOther && !String(formData.otherDescription || '').trim()) {
     errors.otherDescription = 'Property type description is required.';
   }
 
   if (isShop && !String(formData.shopSqftRange || '').trim()) {
     errors.shopSqftRange = 'Shop size is required.';
+  }
+
+  if (showBhkAndAmenities && !isShop && !isPlot && !isOther) {
+    if (!String(formData.builtUpAreaSqft || '').trim()) {
+      errors.builtUpAreaSqft = 'Built-up area (sq ft) is required.';
+    }
+  }
+
+  if (formData.pincode && !/^\d{6}$/.test(String(formData.pincode).trim())) {
+    errors.pincode = 'Pincode must be 6 digits.';
   }
 
   if (isPlot) {
@@ -69,13 +90,6 @@ export function validateAddPropertyForm({
     if (!parkingOk) {
       errors.parking = 'Select Car parking, Bike parking, or No parking.';
     }
-  }
-
-  for (const name of ['title', 'description']) {
-    const val = formData[name];
-    if (!val) continue;
-    const numErr = getNoNumbersFieldError(val);
-    if (numErr) errors[name] = numErr;
   }
 
   const textFields = [

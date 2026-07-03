@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase, Target } from 'lucide-react';
+import StaffNotificationBell from './StaffNotificationBell';
 
 const linkClass = (active) =>
   `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -39,6 +40,10 @@ export default function StaffNav({ variant }) {
               <Building2 className="h-4 w-4" />
               Properties
             </Link>
+            <Link to={`${base}/mission`} className={linkClass(active(`${base}/mission`))}>
+              <Target className="h-4 w-4" />
+              Mission
+            </Link>
             {isAdmin && (
               <Link to={`${base}/workers`} className={linkClass(active(`${base}/workers`))}>
                 <Briefcase className="h-4 w-4" />
@@ -54,6 +59,7 @@ export default function StaffNav({ variant }) {
           </nav>
         </div>
         <div className="flex items-center gap-2">
+          <StaffNotificationBell variant={variant} />
           <Link to="/" className="text-sm text-gray hover:text-navy px-2">
             Site home
           </Link>

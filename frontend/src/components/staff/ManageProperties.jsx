@@ -381,21 +381,37 @@ export default function ManageProperties({ variant }) {
                 <th className="px-3 py-3">Price</th>
                 <th className="px-3 py-3">Featured</th>
                 <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3">Review note</th>
                 <th className="px-3 py-3 w-36">Actions</th>
               </tr>
             </thead>
             <tbody>
               {properties.map((p) => (
-                <tr key={p.id} className="border-t border-gray-light hover:bg-gray-50">
+                <tr key={p.id} className={`border-t border-gray-light hover:bg-gray-50 ${p.listing_status === 'pending_review' ? 'bg-amber-50/60' : ''}`}>
                   <td className="px-3 py-2">{p.id}</td>
-                  <td className="px-3 py-2 font-medium text-navy max-w-[200px] truncate">{p.title}</td>
+                  <td className="px-3 py-2 font-medium text-navy max-w-[200px] whitespace-normal break-words">
+                    <div>{p.title}</div>
+                    {p.listed_by_staff && (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gold/20 text-navy border border-gold/40">
+                        Added by Harsh To Let Services
+                      </span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 capitalize">{p.type}</td>
                   <td className="px-3 py-2">{p.city}</td>
                   <td className="px-3 py-2">{p.owner_name || p.owner_id}</td>
                   <td className="px-3 py-2 capitalize">{p.owner_role || '—'}</td>
                   <td className="px-3 py-2 font-mono text-xs">{p.owner_id ?? '—'}</td>
                   <td className="px-3 py-2 font-mono text-xs">{p.broker_public_id || '—'}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">{p.owner_phone || '—'}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {p.owner_phone ? (
+                      <a href={`tel:${p.owner_phone}`} className="font-semibold text-navy hover:underline">
+                        {p.owner_phone}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="px-3 py-2 whitespace-nowrap">{fmtPrice(p.price)}</td>
                   <td className="px-3 py-2">
                     <button
@@ -412,6 +428,13 @@ export default function ManageProperties({ variant }) {
                       <span className="text-amber-700 font-semibold">Pending review</span>
                     ) : (
                       p.listing_status || 'active'
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-xs text-amber-900 max-w-[180px] whitespace-normal break-words">
+                    {p.listing_review_reason ? (
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5">{p.listing_review_reason}</span>
+                    ) : (
+                      '—'
                     )}
                   </td>
                   <td className="px-3 py-2">
@@ -483,6 +506,18 @@ export default function ManageProperties({ variant }) {
                     </option>
                   ))}
                 </select>
+                {form.owner_id && (() => {
+                  const owner = users.find((u) => String(u.id) === String(form.owner_id));
+                  if (!owner?.phone_number) return null;
+                  return (
+                    <p className="mt-2 text-sm">
+                      <span className="text-stone-500">Owner phone: </span>
+                      <a href={`tel:${owner.phone_number}`} className="font-semibold text-navy hover:underline">
+                        {owner.phone_number}
+                      </a>
+                    </p>
+                  );
+                })()}
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">

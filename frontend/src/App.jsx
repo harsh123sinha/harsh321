@@ -29,6 +29,7 @@ import ServiceCategoryDetail from './pages/ServiceCategoryDetail';
 import ServiceVendorDetail from './pages/ServiceVendorDetail';
 import PatnaAreasIndex from './pages/PatnaAreasIndex';
 import AreaFlatsForRent from './pages/AreaFlatsForRent';
+import MissionRegister from './pages/MissionRegister';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -53,16 +54,19 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminProperties from './pages/admin/AdminProperties';
 import AdminSubAdmins from './pages/admin/AdminSubAdmins';
 import AdminWorkers from './pages/admin/AdminWorkers';
+import AdminMission from './pages/admin/AdminMission';
 
 // Sub-admin pages
 import SubAdminLogin from './pages/subadmin/SubAdminLogin';
 import SubAdminDashboard from './pages/subadmin/SubAdminDashboard';
 import SubAdminUsers from './pages/subadmin/SubAdminUsers';
 import SubAdminProperties from './pages/subadmin/SubAdminProperties';
+import SubAdminMission from './pages/subadmin/SubAdminMission';
 
 // Static pages
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import OurPricing from './pages/OurPricing';
 import ChatWidget from './chatbot/ChatWidget';
 import FcmBootstrap from './components/notifications/FcmBootstrap';
 
@@ -114,6 +118,7 @@ function App() {
               />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/our-pricing" element={<OurPricing />} />
               <Route path="/add-property" element={<AddProperty />} />
               <Route path="/job-apply" element={<JobApply />} />
               <Route path="/our-vendors" element={<OurVendors />} />
@@ -121,6 +126,7 @@ function App() {
               <Route path="/our-vendors/vendor/:id" element={<ServiceVendorDetail />} />
               <Route path="/patna" element={<PatnaAreasIndex />} />
               <Route path="/patna/:areaSlug/flats-for-rent" element={<AreaFlatsForRent />} />
+              <Route path="/mission/register" element={<MissionRegister />} />
             </Route>
 
             {/* Auth routes (no layout) */}
@@ -187,6 +193,7 @@ function App() {
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/properties" element={<AdminProperties />} />
             <Route path="/admin/workers" element={<AdminWorkers />} />
+            <Route path="/admin/mission" element={<AdminMission />} />
             <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
 
             {/* Sub-admin routes (no layout) */}
@@ -194,6 +201,7 @@ function App() {
             <Route path="/subadmin/dashboard" element={<SubAdminDashboard />} />
             <Route path="/subadmin/users" element={<SubAdminUsers />} />
             <Route path="/subadmin/properties" element={<SubAdminProperties />} />
+            <Route path="/subadmin/mission" element={<SubAdminMission />} />
           </Routes>
           <ChatWidget />
           <FcmBootstrap />

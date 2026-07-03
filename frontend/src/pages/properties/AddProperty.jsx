@@ -20,15 +20,10 @@ import {
   fieldErrorClass,
 } from '../../utils/contactValidation';
 import ImageCaptureInput from '../../components/common/ImageCaptureInput';
-import {
-  NO_NUMBERS_FIELDS,
-  NO_NUMBERS_MESSAGE,
-  containsDigit,
-  stripDigits,
-  isDigitKey,
-} from '../../utils/noNumbersValidation';
 import FieldHint from '../../components/common/FieldHint';
 import { validateAddPropertyForm } from '../../utils/validateAddPropertyForm';
+import { containsPhoneNumber, getListingProseCombined } from '../../utils/containsPhoneNumber';
+import { getTitleWordLimitError, LISTING_TITLE_MAX_WORDS } from '../../utils/listingTitleUtils';
 import {
   sanitizeRoadNoInput,
   getRoadNoFieldError,
@@ -59,6 +54,8 @@ const AddProperty = () => {
     location: '',
     road_no: '',
     city: '',
+    pincode: '',
+    builtUpAreaSqft: '',
     balconies: '',
     bathrooms: '',
     garden: false,
@@ -179,27 +176,9 @@ const AddProperty = () => {
     }
   };
 
-  const handleNoNumbersKeyDown = (e) => {
-    const { name } = e.target;
-    if (!NO_NUMBERS_FIELDS.has(name)) return;
-    if (isDigitKey(e.key)) {
-      e.preventDefault();
-      setFieldErrors((prev) => ({ ...prev, [name]: NO_NUMBERS_MESSAGE }));
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let v = type === 'checkbox' ? checked : value;
-
-    if (NO_NUMBERS_FIELDS.has(name) && type !== 'checkbox') {
-      if (containsDigit(v)) {
-        v = stripDigits(v);
-        setFieldErrors((prev) => ({ ...prev, [name]: NO_NUMBERS_MESSAGE }));
-      } else {
-        setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-      }
-    }
+    const v = type === 'checkbox' ? checked : value;
 
     setFormData((prev) => {
       const next = { ...prev, [name]: v };
@@ -216,6 +195,7 @@ const AddProperty = () => {
         if (v === 'plot') {
           Object.assign(next, {
             bhk: '',
+            builtUpAreaSqft: '',
             balconies: '',
             bathrooms: '',
             garden: false,
@@ -231,6 +211,7 @@ const AddProperty = () => {
         } else if (v === 'other') {
           Object.assign(next, {
             bhk: '',
+            builtUpAreaSqft: '',
             shopSqftRange: '',
             shopRoadDistance: '',
             shopTokenAmount: '',
@@ -246,6 +227,7 @@ const AddProperty = () => {
         } else if (v === 'shop') {
           Object.assign(next, {
             bhk: '',
+            builtUpAreaSqft: '',
             balconies: '',
             bathrooms: '',
             garden: false,
@@ -260,10 +242,22 @@ const AddProperty = () => {
         }
       }
 
+      if (name === 'title' || name === 'description') {
+        const proseCheck = containsPhoneNumber(getListingProseCombined(next));
+        setFieldErrors((prev) => ({
+          ...prev,
+          title: proseCheck.blocked
+            ? proseCheck.reason
+            : getTitleWordLimitError(next.title),
+          description: proseCheck.blocked ? proseCheck.reason : '',
+          listingProse: proseCheck.blocked ? proseCheck.reason : '',
+        }));
+      }
+
       return next;
     });
 
-    if (type !== 'checkbox') {
+    if (type !== 'checkbox' && name !== 'title' && name !== 'description') {
       if (CONTACT_VALIDATED_FIELDS.has(name)) {
         setFieldErrors((prev) => ({
           ...prev,
@@ -426,6 +420,8 @@ const AddProperty = () => {
     data.append('location', formData.location.trim());
     data.append('road_no', formData.road_no);
     data.append('city', formData.city.trim());
+    data.append('pincode', String(formData.pincode || '').trim());
+    data.append('built_up_area_sqft', formData.builtUpAreaSqft || '');
     data.append('other_type', other_type);
     data.append('shop_sqft_range', isShop ? formData.shopSqftRange : '');
     data.append('featured', formData.featured ? 'true' : 'false');
@@ -575,7 +571,6 @@ const AddProperty = () => {
                 handleChange={handleChange}
                 fieldErrors={fieldErrors}
                 inputClass={inputClass}
-                handleNoNumbersKeyDown={handleNoNumbersKeyDown}
                 projectPdf={projectPdf}
                 onProjectPdfChange={setProjectPdf}
               />
@@ -588,11 +583,13 @@ const AddProperty = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                onKeyDown={handleNoNumbersKeyDown}
                 required
-                className={inputClass(fieldErrors.title)}
+                className={inputClass(fieldErrors.title || fieldErrors.listingProse)}
               />
-              <FieldHint error={fieldErrors.title} />
+              <p className="mt-1 text-xs text-stone-500">
+                Descriptive title only (max {LISTING_TITLE_MAX_WORDS} words). Put BHK, price, area, pincode, and floor in their fields below.
+              </p>
+              <FieldHint error={fieldErrors.title || fieldErrors.listingProse} />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-navy mb-2">Description *</label>
@@ -600,12 +597,11 @@ const AddProperty = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                onKeyDown={handleNoNumbersKeyDown}
                 required
                 rows={4}
-                className={inputClass(fieldErrors.description)}
+                className={inputClass(fieldErrors.description || fieldErrors.listingProse)}
               />
-              <FieldHint error={fieldErrors.description} />
+              <FieldHint error={fieldErrors.description || fieldErrors.listingProse} />
             </div>
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Price (₹) *</label>
@@ -702,6 +698,24 @@ const AddProperty = () => {
                   placeholder="e.g. 2"
                 />
                 <FieldHint error={fieldErrors.bhk} />
+              </div>
+            )}
+
+            {showBhkAndAmenities && !isShop && !isPlot && !isOther && (
+              <div>
+                <label className="block text-sm font-medium text-navy mb-2">Built-up area (sq ft) *</label>
+                <input
+                  type="number"
+                  name="builtUpAreaSqft"
+                  min="1"
+                  step="1"
+                  value={formData.builtUpAreaSqft}
+                  onChange={handleChange}
+                  required
+                  className={inputClass(fieldErrors.builtUpAreaSqft)}
+                  placeholder="e.g. 1200"
+                />
+                <FieldHint error={fieldErrors.builtUpAreaSqft} />
               </div>
             )}
 
@@ -959,6 +973,21 @@ const AddProperty = () => {
               <p className="text-xs text-gray mt-1">
                 District and state are set automatically from city for maps and search.
               </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-navy mb-2">Pincode</label>
+              <input
+                type="text"
+                name="pincode"
+                inputMode="numeric"
+                maxLength={6}
+                value={formData.pincode}
+                onChange={handleChange}
+                placeholder="e.g. 800001"
+                className={inputClass(fieldErrors.pincode)}
+              />
+              <FieldHint error={fieldErrors.pincode} />
             </div>
 
             <div className="md:col-span-2">

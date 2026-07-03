@@ -1,4 +1,5 @@
-import { validateListingContactText, validateTitleDescriptionNoNumbers } from './contactValidation.js';
+import { containsPhoneNumber } from './containsPhoneNumber.js';
+import { validateListingContactTextExcludingProse } from './contactValidation.js';
 import { moderatePropertyImage } from './moderation.js';
 import { applyListingWatermark } from './watermark.js';
 import { compressImageForStorage } from './imagePrep.js';
@@ -8,25 +9,53 @@ import {
   messageForViolationCode,
 } from './moderationMessages.js';
 
+/** Scan title + description together for phones / contact phrases. */
+export function assessListingProse(body = {}) {
+  const combined = [body.title, body.description]
+    .filter((p) => p != null && String(p).trim() !== '')
+    .map((p) => String(p))
+    .join(' ');
+  return containsPhoneNumber(combined);
+}
+
+export function getProseReviewFlag(body = {}) {
+  const prose = assessListingProse(body);
+  return prose.reviewOnly ? prose : null;
+}
+
 /**
- * Validate all text fields before DB insert/update.
+ * Validate listing text before DB insert/update.
+ * Title/description: smart phone detection (8+ digit runs, spelled digits).
+ * Other fields: email / website / social hard-block.
  */
 export function assertListingTextAllowed(body) {
-  const noNumbers = validateTitleDescriptionNoNumbers(body);
-  if (noNumbers.invalid) {
-    const err = new Error(messageForViolationCode('no_numbers'));
+  const prose = assessListingProse(body);
+  if (prose.blocked) {
+    const err = new Error(prose.reason || messageForViolationCode('phone'));
     err.status = 400;
-    err.payload = buildTextValidationError(['no_numbers']);
+    err.payload = {
+      error: prose.reason,
+      listingProse: { matchedText: prose.matchedText },
+    };
     throw err;
   }
 
-  const scan = validateListingContactText(body);
+  const scan = validateListingContactTextExcludingProse(body);
   if (scan.codes.length > 0) {
     const err = new Error(messageForViolationCode(scan.codes[0]));
     err.status = 400;
     err.payload = buildTextValidationError(scan.codes);
     throw err;
   }
+}
+
+export function buildReviewReasons({ imageNeedsReview = false, proseReview = null } = {}) {
+  const parts = [];
+  if (imageNeedsReview) parts.push('Image flagged by moderation');
+  if (proseReview?.matchedText) {
+    parts.push(`Contact phrase: "${proseReview.matchedText}"`);
+  }
+  return parts.length ? parts.join(' · ') : null;
 }
 
 /**

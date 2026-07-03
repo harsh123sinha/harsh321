@@ -24,6 +24,15 @@ import {
 } from '../controllers/workerAdminController.js';
 import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
 import { addArea } from '../controllers/areaController.js';
+import {
+  adminListMissionRegistrations,
+  adminUpdateMissionStatus,
+} from '../controllers/missionController.js';
+import {
+  getStaffAlerts,
+  markStaffAlertRead,
+  markAllStaffAlertsRead,
+} from '../controllers/staffAlertController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -66,5 +75,14 @@ router.post('/workers/:workerId/reviews', submitWorkerInternalReview);
 
 // Areas (global dropdown)
 router.post('/areas', addArea);
+
+// Mission co-ownership registrations
+router.get('/mission/registrations', adminListMissionRegistrations);
+router.patch('/mission/registrations/:id', adminUpdateMissionStatus);
+
+// Staff notification bell
+router.get('/staff-alerts', getStaffAlerts);
+router.patch('/staff-alerts/read-all', markAllStaffAlertsRead);
+router.patch('/staff-alerts/:id/read', markStaffAlertRead);
 
 export default router;

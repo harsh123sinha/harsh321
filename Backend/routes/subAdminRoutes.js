@@ -15,6 +15,15 @@ import {
 import { submitBrokerInternalRating } from '../controllers/brokerAdminController.js';
 import { lookupBrokerByPublicId } from '../controllers/brokerController.js';
 import { addArea } from '../controllers/areaController.js';
+import {
+  adminListMissionRegistrations,
+  adminUpdateMissionStatus,
+} from '../controllers/missionController.js';
+import {
+  getStaffAlerts,
+  markStaffAlertRead,
+  markAllStaffAlertsRead,
+} from '../controllers/staffAlertController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -44,5 +53,12 @@ router.post('/broker-ratings', submitBrokerInternalRating);
 
 // Areas (global dropdown)
 router.post('/areas', addArea);
+
+router.get('/mission/registrations', adminListMissionRegistrations);
+router.patch('/mission/registrations/:id', adminUpdateMissionStatus);
+
+router.get('/staff-alerts', getStaffAlerts);
+router.patch('/staff-alerts/read-all', markAllStaffAlertsRead);
+router.patch('/staff-alerts/:id/read', markStaffAlertRead);
 
 export default router;

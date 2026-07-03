@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Building2 } from 'lucide-react';
+import { Users, Building2, Target } from 'lucide-react';
 import StaffNav from '../../components/staff/StaffNav';
 import AreaManagerCard from '../../components/staff/AreaManagerCard';
 
@@ -21,6 +21,11 @@ const SubAdminDashboard = () => (
           <Building2 className="h-12 w-12 text-gold mb-4" />
           <h3 className="text-xl font-bold text-navy">Manage properties</h3>
           <p className="text-sm text-gray mt-2">Create and edit listings on behalf of owners</p>
+        </Link>
+        <Link to="/subadmin/mission" className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow">
+          <Target className="h-12 w-12 text-gold mb-4" />
+          <h3 className="text-xl font-bold text-navy">Mission registrations</h3>
+          <p className="text-sm text-gray mt-2">Co-ownership interest from the public site</p>
         </Link>
         <AreaManagerCard apiPrefix="/subadmin" />
       </div>

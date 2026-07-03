@@ -1,12 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { MapPin } from 'lucide-react';
-import {
-  formatIndianPrice,
-  formatListingPostedDate,
-  parseImageUrls,
-  DEFAULT_SITE_INQUIRY_PHONE,
-} from '../../utils/helpers';
+import { formatIndianPrice, formatListingPostedDate, parseImageUrls, DEFAULT_SITE_INQUIRY_PHONE } from '../../utils/helpers';
+import { formatListingCardTitle } from '../../utils/listingTitleUtils';
 import { saveListScroll } from '../../utils/listScrollRestore';
 import PropertyCardImageCarousel from './PropertyCardImageCarousel';
 import BookmarkButton from './BookmarkButton';
@@ -41,7 +37,7 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
       data-property-id={property.id}
       className="overflow-hidden rounded-md border border-stone-200 bg-white lg:rounded-xl lg:border-stone-200/90 lg:shadow-sm lg:transition lg:hover:shadow-md"
     >
-      <div className="flex min-h-[10.75rem] items-stretch sm:min-h-[11.25rem] lg:min-h-[14rem]">
+      <div className="flex min-h-[11.5rem] items-stretch sm:min-h-[12rem] lg:min-h-[14.5rem]">
         {/* Left — photo + contact */}
         <div className="flex w-[44%] max-w-[10rem] shrink-0 flex-col p-1.5 sm:max-w-[11rem] lg:w-[55%] lg:max-w-none xl:w-[58%] lg:p-2.5">
           <Link
@@ -79,12 +75,12 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
         <Link
           to={detailPath}
           onClick={saveScrollForDetail}
-          className="flex min-w-0 flex-1 flex-col divide-y divide-stone-200 py-1.5 pl-2 pr-2 sm:py-2 sm:pl-2.5 lg:px-4 lg:py-3"
+          className="flex min-w-0 flex-1 flex-col divide-y divide-stone-200 py-2 pl-2 pr-2 sm:py-2.5 sm:pl-2.5 lg:px-4 lg:py-3"
         >
           {/* Section 1 — price + title */}
-          <div className="min-w-0 pb-2 lg:pb-3">
-            <div className="flex items-center justify-between gap-1.5">
-              <p className="min-w-0 truncate text-[1.1rem] font-bold leading-tight tracking-tight text-[#0a1020] sm:text-xl lg:text-2xl lg:font-black">
+          <div className="min-w-0 pb-2.5 lg:pb-3">
+            <div className="flex items-start justify-between gap-1.5">
+              <p className="min-w-0 text-[1.1rem] font-bold leading-tight tracking-tight text-[#0a1020] sm:text-xl lg:text-2xl lg:font-black">
                 {formatIndianPrice(property.price)}
               </p>
               <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
@@ -101,13 +97,18 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
               </div>
             </div>
 
-            <h3 className="mt-1 truncate text-[11px] font-medium uppercase tracking-wide text-stone-700 sm:text-xs lg:mt-1.5 lg:text-sm">
-              {property.title}
+            <h3 className="mt-1.5 text-[11px] font-medium uppercase leading-snug tracking-wide text-stone-700 whitespace-normal break-words sm:text-xs lg:mt-2 lg:text-sm">
+              {formatListingCardTitle(property.title)}
             </h3>
+            {property.listed_by_staff ? (
+              <span className="mt-1.5 inline-block text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gold/15 text-navy border border-gold/30 sm:text-[10px]">
+                Added by Harsh To Let Services
+              </span>
+            ) : null}
           </div>
 
           {/* Section 2 — specs */}
-          <div className="flex min-h-0 flex-1 flex-col py-2 lg:py-3">
+          <div className="flex min-h-0 flex-1 flex-col py-2.5 lg:py-3">
             {iconSpecs.length > 0 ? (
               <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5 lg:gap-x-3 lg:gap-y-2">
                 {iconSpecs.map((item, idx) => {

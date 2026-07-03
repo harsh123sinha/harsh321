@@ -22,6 +22,9 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
 import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './routes/brokerRoutes.js';
 import workerRoutes, { reviewRouter as workerCustomerReviewRoutes } from './routes/workerRoutes.js';
+import missionRoutes from './routes/missionRoutes.js';
+import { registerMissionInterest } from './controllers/missionController.js';
+import { ensureMissionSchema } from './utils/ensureMissionSchema.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -81,6 +84,8 @@ app.use('/api/brokers', brokerRoutes);
 app.use('/api/broker-customer-reviews', brokerCustomerReviewRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/worker-customer-reviews', workerCustomerReviewRoutes);
+app.use('/api/mission', missionRoutes);
+app.post('/api/register', registerMissionInterest);
 
 // 404 handler
 app.use((req, res) => {
@@ -155,6 +160,12 @@ async function start() {
     await ensureServiceDetailSchema();
   } catch (e) {
     console.error('⚠️ ensureServiceDetailSchema failed:', e.message);
+  }
+
+  try {
+    await ensureMissionSchema();
+  } catch (e) {
+    console.error('⚠️ ensureMissionSchema failed:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

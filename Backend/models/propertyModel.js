@@ -59,9 +59,9 @@ export const propertyModel = {
     const {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, facing,
+      shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured,
-      listing_status,
+      listing_status, listing_review_reason, listed_by_staff,
       listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to,
       enclave_pdf_url,
     } = propertyData;
@@ -70,11 +70,12 @@ export const propertyModel = {
       INSERT INTO properties
       (title, description, price, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-       shop_road_distance, shop_token_amount, furnishing_status, facing,
+       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
        location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status,
+       listing_review_reason, listed_by_staff,
        listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-              ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.execute(query, [
@@ -92,11 +93,16 @@ export const propertyModel = {
         : null,
       furnishing_status || null,
       facing || null,
+      built_up_area_sqft != null && built_up_area_sqft !== '' && Number.isFinite(Number(built_up_area_sqft))
+        ? Number(built_up_area_sqft)
+        : null,
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,
       other_type || null, owner_id, featured || 0,
       listing_status || 'active',
+      listing_review_reason || null,
+      listed_by_staff || null,
       listing_kind || 'property',
       project_type || null,
       developer_name || null,
@@ -618,9 +624,9 @@ export const propertyModel = {
     const {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status,
+      shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, featured, owner_id,
-      listing_status
+      listing_status, listing_review_reason,
     } = propertyData;
 
     const enclavePdfUrl = propertyData.enclave_pdf_url;
@@ -631,9 +637,11 @@ export const propertyModel = {
           balconies = ?, bathrooms = ?, garden = ?, car_parking = ?, floor_no = ?,
           bike_parking = ?, shop_sqft_range = ?,
           shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, facing = ?,
+          built_up_area_sqft = ?,
           location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
           image_url = ?, other_type = ?, featured = ?, owner_id = ?,
           listing_status = COALESCE(?, listing_status),
+          listing_review_reason = COALESCE(?, listing_review_reason),
           enclave_pdf_url = COALESCE(?, enclave_pdf_url)
       WHERE id = ?
     `;
@@ -653,11 +661,15 @@ export const propertyModel = {
         : null,
       furnishing_status || null,
       facing || null,
+      built_up_area_sqft != null && built_up_area_sqft !== '' && Number.isFinite(Number(built_up_area_sqft))
+        ? Number(built_up_area_sqft)
+        : null,
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,
       other_type || null, featured || 0, owner_id,
       listing_status || null,
+      listing_review_reason ?? null,
       enclavePdfUrl ?? null,
       id
     ]);

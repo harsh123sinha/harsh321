@@ -394,6 +394,18 @@ const Signup = () => {
               </div>
             </div>
 
+            <div className="rounded-lg border border-gold/40 bg-gold/5 px-3 py-2.5 text-sm text-navy">
+              <p className="font-semibold">Service charges</p>
+              <p className="mt-1 text-gray text-xs sm:text-sm leading-relaxed">
+                <strong className="text-navy">Residential:</strong> 30% of 1st month rent from tenant &amp; owner
+                each · <strong className="text-navy">Commercial:</strong> 60% of 1st month rent from tenant &amp;
+                owner each.{' '}
+                <Link to="/our-pricing" className="text-gold font-semibold hover:underline">
+                  View Our Pricing →
+                </Link>
+              </p>
+            </div>
+
             <div className="flex items-start space-x-2">
               <input
                 type="checkbox"
@@ -439,6 +451,12 @@ const Signup = () => {
                 Login
               </Link>
             </p>
+          </div>
+
+          <div className="mt-4 text-center">
+            <Link to="/our-pricing" className="text-sm text-gold font-semibold hover:underline">
+              Our Pricing
+            </Link>
           </div>
 
           <div className="mt-4 text-center">

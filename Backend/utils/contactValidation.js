@@ -194,8 +194,6 @@ export function scanContactViolations(text) {
  */
 export function collectListingTextFields(body = {}) {
   const parts = [
-    body.title,
-    body.description,
     body.location,
     body.city,
     body.district,
@@ -213,22 +211,13 @@ export function collectListingTextFields(body = {}) {
     .join('\n');
 }
 
-export function validateListingContactText(body) {
+/** Title/description are validated separately via containsPhoneNumber. */
+export function validateListingContactTextExcludingProse(body) {
   const combined = collectListingTextFields(body);
   return scanContactViolations(combined);
 }
 
-const NO_NUMBERS_FIELDS = ['title', 'description'];
-
-/**
- * Title and description must not contain any digits (blocks disguised phone numbers).
- */
-export function validateTitleDescriptionNoNumbers(body = {}) {
-  for (const key of NO_NUMBERS_FIELDS) {
-    const val = body[key];
-    if (val != null && String(val).trim() !== '' && /\d/.test(String(val))) {
-      return { invalid: true, field: key, code: 'no_numbers' };
-    }
-  }
-  return { invalid: false };
+export function validateListingContactText(body) {
+  const combined = collectListingTextFields(body);
+  return scanContactViolations(combined);
 }

@@ -36,7 +36,34 @@ export default function TermsContent() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-navy mb-2">4. User Responsibilities</h2>
+        <h2 className="text-xl font-bold text-navy mb-2">4. Service Charges</h2>
+        <p className="text-gray leading-relaxed text-sm sm:text-base mb-2">
+          Harsh To Let Services charges a brokerage / facilitation fee on successful dealings facilitated through the
+          platform. See{' '}
+          <a href="/our-pricing" className="text-gold font-semibold hover:underline">
+            Our Pricing
+          </a>{' '}
+          for full details. Summary:
+        </p>
+        <ul className="list-disc list-inside text-gray space-y-1 ml-2 text-sm sm:text-base">
+          <li>
+            <strong className="text-navy">Residential flats:</strong> 30% of the first month&apos;s rent from tenant
+            and 30% from owner
+          </li>
+          <li>
+            <strong className="text-navy">Commercial deals:</strong> 60% of the first month&apos;s rent from tenant
+            and 60% from owner
+          </li>
+        </ul>
+        <p className="text-gray leading-relaxed text-sm sm:text-base mt-2">
+          Exact amounts and payment terms are confirmed in writing before any deal is finalised. By signing up or
+          listing a property, you acknowledge these charges may apply where Harsh To Let Services facilitates the
+          transaction.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-bold text-navy mb-2">5. User Responsibilities</h2>
         <p className="text-gray leading-relaxed text-sm sm:text-base">
           Users are responsible for verifying all property details, conducting due diligence, and ensuring all
           transactions comply with local laws and regulations.
@@ -44,7 +71,7 @@ export default function TermsContent() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-navy mb-2">5. Limitation of Liability</h2>
+        <h2 className="text-xl font-bold text-navy mb-2">6. Limitation of Liability</h2>
         <p className="text-gray leading-relaxed text-sm sm:text-base">
           HarshToLetServices shall not be held liable for any direct, indirect, incidental, or consequential damages
           arising from the use of our services or inability to use our services.
@@ -52,7 +79,7 @@ export default function TermsContent() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold text-navy mb-2">6. Contact Us</h2>
+        <h2 className="text-xl font-bold text-navy mb-2">7. Contact Us</h2>
         <p className="text-gray leading-relaxed text-sm sm:text-base">
           If you have any questions about these Terms & Conditions, please contact us at info@realestate.com
         </p>

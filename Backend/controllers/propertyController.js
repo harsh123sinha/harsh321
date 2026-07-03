@@ -29,6 +29,8 @@ import {
   processPropertyImagesForUpload,
   assertNoRejectedImagesOnCreate,
   resolveListingStatus,
+  getProseReviewFlag,
+  buildReviewReasons,
 } from '../utils/propertyListingGuard.js';
 import { compressPdfForUpload } from '../utils/pdfPrep.js';
 import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
@@ -253,14 +255,15 @@ export const addProperty = async (req, res) => {
       }
 
       assertListingTextAllowed(req.body);
+      const proseReview = getProseReviewFlag(req.body);
 
       let imageUrls = [];
-      let needsReview = false;
+      let imageNeedsReview = false;
       const imageFiles = getUploadedImages(req);
       if (imageFiles.length > 0) {
         const processed = await processPropertyImagesForUpload(imageFiles);
         assertNoRejectedImagesOnCreate(processed.rejected);
-        needsReview = processed.needsReview;
+        imageNeedsReview = processed.needsReview;
         imageUrls = await uploadProcessedFilesToS3(processed.files);
       } else {
         return res.status(400).json({ error: 'At least one project image is required' });
@@ -273,7 +276,9 @@ export const addProperty = async (req, res) => {
         enclavePdfUrl = await uploadPdfToS3(compressedPdf, pdfFile.originalname);
       }
 
+      const needsReview = imageNeedsReview || Boolean(proseReview);
       const listingStatus = resolveListingStatus(needsReview);
+      const listingReviewReason = buildReviewReasons({ imageNeedsReview, proseReview });
       const loc = normalizeListingLocation(city);
       const roadNoDb = parseRoadNo(road_no) ?? 1;
 
@@ -305,6 +310,7 @@ export const addProperty = async (req, res) => {
         owner_id: req.user.id,
         featured: featured === 'true' ? 1 : 0,
         listing_status: listingStatus,
+        listing_review_reason: listingReviewReason,
         listing_kind: 'project',
         project_type,
         developer_name: String(developer_name).trim(),
@@ -333,7 +339,7 @@ export const addProperty = async (req, res) => {
       title, description, price, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing
+      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
     } = req.body;
 
     // Validation (district / state / pincode optional — filled from city for search compatibility)
@@ -370,18 +376,21 @@ export const addProperty = async (req, res) => {
     }
 
     assertListingTextAllowed(req.body);
+    const proseReview = getProseReviewFlag(req.body);
 
     let imageUrls = [];
-    let needsReview = false;
+    let imageNeedsReview = false;
     const imageFiles = getUploadedImages(req);
     if (imageFiles.length > 0) {
       const processed = await processPropertyImagesForUpload(imageFiles);
       assertNoRejectedImagesOnCreate(processed.rejected);
-      needsReview = processed.needsReview;
+      imageNeedsReview = processed.needsReview;
       imageUrls = await uploadProcessedFilesToS3(processed.files);
     }
 
+    const needsReview = imageNeedsReview || Boolean(proseReview);
     const listingStatus = resolveListingStatus(needsReview);
+    const listingReviewReason = buildReviewReasons({ imageNeedsReview, proseReview });
 
     const loc = normalizeListingLocation(city);
     const district =
@@ -439,6 +448,7 @@ export const addProperty = async (req, res) => {
       shop_token_amount: shopTokenDb,
       furnishing_status: furnishDb,
       facing: facingDb,
+      built_up_area_sqft: built_up_area_sqft,
       location,
       road_no: roadNoDb,
       city,
@@ -450,6 +460,7 @@ export const addProperty = async (req, res) => {
       owner_id: req.user.id,
       featured: featured === 'true' ? 1 : 0,
       listing_status: listingStatus,
+      listing_review_reason: listingReviewReason,
       listing_kind: 'property',
     });
 
@@ -489,7 +500,7 @@ export const updateProperty = async (req, res) => {
       title, description, price, type, bhk, katha, location, city,
       district, state, pincode, other_type, featured, removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing
+      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
     } = req.body;
 
     // Check if property exists and user owns it
@@ -501,6 +512,11 @@ export const updateProperty = async (req, res) => {
     if (property.owner_id !== req.user.id) {
       return res.status(403).json({ error: 'You can only edit your own properties' });
     }
+
+    const proseReview = getProseReviewFlag({
+      title: title || property.title,
+      description: description || property.description,
+    });
 
     assertListingTextAllowed({
       title: title || property.title,
@@ -626,8 +642,20 @@ export const updateProperty = async (req, res) => {
       return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
     }
 
-    const nextListingStatus =
-      imageNeedsReview ? 'pending_review' : property.listing_status || 'active';
+    const needsReview = imageNeedsReview || Boolean(proseReview);
+    const nextListingStatus = needsReview
+      ? 'pending_review'
+      : property.listing_status || 'active';
+    const listingReviewReason = needsReview
+      ? buildReviewReasons({ imageNeedsReview, proseReview })
+      : property.listing_review_reason;
+
+    const nextBuiltUpArea =
+      built_up_area_sqft !== undefined
+        ? String(built_up_area_sqft).trim() === ''
+          ? null
+          : built_up_area_sqft
+        : property.built_up_area_sqft;
 
     let nextEnclavePdfUrl = property.enclave_pdf_url;
     const pdfFile = getUploadedProjectPdf(req);
@@ -658,6 +686,7 @@ export const updateProperty = async (req, res) => {
       shop_token_amount: nextShopToken,
       furnishing_status: nextFurnishing,
       facing: nextFacing,
+      built_up_area_sqft: nextBuiltUpArea,
       location: location || property.location,
       road_no: nextRoadNo,
       city: city || property.city,
@@ -669,6 +698,7 @@ export const updateProperty = async (req, res) => {
       featured: featured !== undefined ? (featured === 'true' ? 1 : 0) : property.featured,
       owner_id: property.owner_id,
       listing_status: nextListingStatus,
+      listing_review_reason: listingReviewReason,
       enclave_pdf_url: nextEnclavePdfUrl,
     });
 
