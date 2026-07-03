@@ -66,14 +66,6 @@
   background: transparent;
 }
 
-.filter-range-input--gold::-webkit-slider-thumb {
-  border-color: #d4af37;
-}
-
-.filter-range-input--gold::-moz-range-thumb {
-  border-color: #d4af37;
-}
-
 @keyframes htls-filter-sheet-in {
   from {
     opacity: 0;
@@ -110,10 +102,10 @@
 @keyframes htls-filter-cta-pulse {
   0%,
   100% {
-    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
   }
   50% {
-    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.45);
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.3);
   }
 }
 
@@ -137,12 +129,109 @@
   animation: htls-filter-cta-pulse 2.5s ease-in-out infinite;
 }
 
+/* Gen Z filter FAB — navy core, white shimmer ring + sweep */
+@keyframes htls-filter-fab-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes htls-filter-fab-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes htls-filter-fab-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 22px rgba(15, 23, 42, 0.35),
+      0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 12px 28px rgba(15, 23, 42, 0.45),
+      0 0 0 8px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes htls-filter-fab-shimmer {
+  0% {
+    transform: translateX(-140%) rotate(14deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(140%) rotate(14deg);
+    opacity: 0;
+  }
+}
+
+.htls-filter-fab {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  animation:
+    htls-filter-fab-float 3s ease-in-out infinite,
+    htls-filter-fab-pulse 2.4s ease-in-out infinite;
+}
+
+.htls-filter-fab::after {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0.08) 70%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  animation: htls-filter-fab-shimmer 2.6s ease-in-out infinite;
+}
+
+.htls-filter-fab-ring {
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.15) 0deg,
+    rgba(255, 255, 255, 0.95) 90deg,
+    rgba(15, 23, 42, 0.2) 180deg,
+    rgba(255, 255, 255, 0.95) 270deg,
+    rgba(255, 255, 255, 0.15) 360deg
+  );
+  animation: htls-filter-fab-ring-spin 4s linear infinite;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .htls-filter-sheet,
   .htls-filter-section,
   .htls-filter-bar,
   .htls-filter-loc-list,
-  .htls-filter-cta {
+  .htls-filter-cta,
+  .htls-filter-fab,
+  .htls-filter-fab::after,
+  .htls-filter-fab-ring {
     animation: none !important;
   }
 }

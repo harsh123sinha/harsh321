@@ -7,11 +7,11 @@ const NavItem = ({ to, icon: Icon, label, active, onClick }) => {
   const body = (
     <>
       <Icon
-        className={`h-5 w-5 shrink-0 ${active ? 'text-[#002f6c]' : 'text-stone-500'}`}
+        className={`h-5 w-5 shrink-0 ${active ? 'text-navy' : 'text-stone-500'}`}
         aria-hidden
       />
       <span
-        className={`text-[10px] font-medium ${active ? 'text-[#002f6c]' : 'text-stone-500'}`}
+        className={`text-[10px] font-medium ${active ? 'text-navy' : 'text-stone-500'}`}
       >
         {label}
       </span>
@@ -58,11 +58,12 @@ const MobileBottomNav = ({ catalogKind = 'search' }) => {
             type="button"
             onClick={openFilter}
             aria-label="Open filters"
-            className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-[#23e5db] bg-[#002f6c] text-white shadow-lg ring-2 ring-[#ffce32]/80 touch-manipulation"
+            className="htls-filter-fab relative flex h-14 w-14 items-center justify-center rounded-full bg-navy text-white shadow-lg touch-manipulation active:scale-95"
           >
-            <SlidersHorizontal className="h-6 w-6" aria-hidden />
+            <span className="htls-filter-fab-ring pointer-events-none absolute -inset-[3px] rounded-full" aria-hidden />
+            <SlidersHorizontal className="relative z-10 h-6 w-6" aria-hidden />
           </button>
-          <span className="mt-1 text-[10px] font-semibold text-[#002f6c]">Filter</span>
+          <span className="mt-1 text-[10px] font-bold tracking-wide text-navy">Filter</span>
         </div>
 
         <NavItem to="/job-apply" icon={UserPlus} label="Job Apply" active={pathname === '/job-apply'} />

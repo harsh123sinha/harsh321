@@ -30,7 +30,7 @@ const MobileCompactHeader = ({ title, locationHint }) => {
           type="button"
           onClick={openFilter}
           aria-label="Location filters"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#002f6c] touch-manipulation"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-navy touch-manipulation"
         >
           <MapPin className="h-5 w-5" aria-hidden />
         </button>

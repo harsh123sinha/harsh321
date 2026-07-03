@@ -21,10 +21,10 @@ import {
 
 const Section = ({ title, children, index = 0 }) => (
   <section
-    className="htls-filter-section border-b border-gold/15 py-4"
+    className="htls-filter-section border-b border-stone-200 py-4"
     style={{ animationDelay: `${index * 60}ms` }}
   >
-    <h3 className="mb-3 text-base font-bold tracking-wide text-gold">{title}</h3>
+    <h3 className="mb-3 text-base font-bold tracking-wide text-navy">{title}</h3>
     {children}
   </section>
 );
@@ -81,11 +81,11 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
     <div className="px-4 pb-4">
       {/* Location search */}
       <div
-        className="htls-filter-section border-b border-gold/15 py-4"
+        className="htls-filter-section border-b border-stone-200 py-4"
         style={{ animationDelay: '0ms' }}
       >
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gold/60" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-navy/40" />
           <input
             type="search"
             value={locationQ}
@@ -95,18 +95,18 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
             }}
             onFocus={() => setShowLocList(true)}
             placeholder="Search locality in Patna…"
-            className="w-full rounded-xl border border-gold/30 bg-navy-light/60 py-3 pl-10 pr-3 text-sm font-medium text-white placeholder:text-white/40 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/25"
+            className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-10 pr-3 text-sm font-medium text-navy placeholder:text-stone-400 outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/15"
           />
         </div>
-        <p className="mt-2 text-xs text-gold/60">
+        <p className="mt-2 text-xs text-stone-500">
           Select cities, neighbourhoods or areas that you want to search properties in.
         </p>
         {showLocList && filteredLocations.length > 0 ? (
-          <ul className="htls-filter-loc-list mt-2 max-h-40 overflow-y-auto rounded-xl border border-gold/25 bg-navy-light/90 shadow-lg shadow-black/30">
+          <ul className="htls-filter-loc-list mt-2 max-h-40 overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-lg shadow-navy/10">
             <li>
               <button
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-sm text-gold/80 transition hover:bg-gold/10"
+                className="w-full px-3 py-2.5 text-left text-sm text-navy/70 transition hover:bg-navy/5"
                 onClick={() => {
                   setLocationQ('');
                   set({ location: '' });
@@ -120,7 +120,7 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
               <li key={o.value || '__any'}>
                 <button
                   type="button"
-                  className="w-full px-3 py-2.5 text-left text-sm text-white/90 transition hover:bg-gold/10 hover:text-gold"
+                  className="w-full px-3 py-2.5 text-left text-sm text-navy transition hover:bg-navy/5"
                   onClick={() => {
                     setLocationQ(o.value);
                     set({ location: o.value });
@@ -159,12 +159,12 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
           formatLabel={formatBudgetLabel}
         />
         {budgetChip ? (
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold">
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-navy/20 bg-navy/5 px-3 py-1.5 text-xs font-semibold text-navy">
             {budgetChip}
             <button
               type="button"
               aria-label="Clear budget"
-              className="text-gold/70 hover:text-gold"
+              className="text-navy/60 hover:text-navy"
               onClick={() => set({ minPrice: 0, maxPrice: BUDGET_MAX })}
             >
               ×
@@ -266,7 +266,7 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
       <button
         type="button"
         onClick={handleApply}
-        className="htls-filter-cta mt-4 w-full rounded-xl bg-gradient-to-r from-gold to-gold-light py-3.5 text-base font-bold text-navy shadow-lg shadow-gold/20 transition hover:brightness-105 active:scale-[0.98] touch-manipulation"
+        className="htls-filter-cta mt-4 w-full rounded-xl bg-navy py-3.5 text-base font-bold text-white shadow-lg shadow-navy/25 transition hover:bg-navy-light active:scale-[0.98] touch-manipulation"
       >
         View Properties
       </button>
