@@ -61,11 +61,16 @@ export function validateAddPropertyForm({
 
   if (showBhkAndAmenities && !isShop) {
     if (!String(formData.bhk || '').trim()) errors.bhk = 'BHK is required.';
+    else if (!/^\d+$/.test(String(formData.bhk).trim())) errors.bhk = 'BHK must be numbers only.';
     if (!String(formData.balconies || '').trim() && formData.balconies !== 0) {
       errors.balconies = 'Number of balconies is required (use 0 if none).';
+    } else if (formData.balconies !== '' && !/^\d+$/.test(String(formData.balconies).trim())) {
+      errors.balconies = 'Balconies must be numbers only.';
     }
     if (!String(formData.bathrooms || '').trim() && formData.bathrooms !== 0) {
       errors.bathrooms = 'Number of bathrooms is required (use 0 if none).';
+    } else if (formData.bathrooms !== '' && !/^\d+$/.test(String(formData.bathrooms).trim())) {
+      errors.bathrooms = 'Bathrooms must be numbers only.';
     }
     if (!String(formData.floor_no || '').trim()) errors.floor_no = 'Floor number is required.';
     if (showFurnishing && !String(formData.furnishing || '').trim()) {

@@ -145,6 +145,31 @@ const AddProperty = () => {
     !isShop &&
     (formData.category === 'homes' || formData.category === 'flat' || formData.category === 'apartment');
 
+  const clearFieldError = (...keys) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      keys.forEach((k) => {
+        next[k] = '';
+      });
+      return next;
+    });
+  };
+
+  const handleIntegerChange = (e, maxLen = 6) => {
+    const { name } = e.target;
+    const cleaned = String(e.target.value ?? '')
+      .replace(/\D/g, '')
+      .slice(0, maxLen);
+    setFormData((prev) => ({ ...prev, [name]: cleaned }));
+    setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const blockNonDigitKeyDown = (e) => {
+    const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
   const handleRoadNoChange = (e) => {
     const cleaned = sanitizeRoadNoInput(e.target.value);
     setFormData((prev) => ({ ...prev, road_no: cleaned }));
@@ -589,7 +614,10 @@ const AddProperty = () => {
               <p className="mt-1 text-xs text-stone-500">
                 Descriptive title only (max {LISTING_TITLE_MAX_WORDS} words). Put BHK, price, area, pincode, and floor in their fields below.
               </p>
-              <FieldHint error={fieldErrors.title || fieldErrors.listingProse} />
+              <FieldHint
+                error={fieldErrors.title || fieldErrors.listingProse}
+                onDismiss={() => clearFieldError('title', 'listingProse')}
+              />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-navy mb-2">Description *</label>
@@ -601,7 +629,10 @@ const AddProperty = () => {
                 rows={4}
                 className={inputClass(fieldErrors.description || fieldErrors.listingProse)}
               />
-              <FieldHint error={fieldErrors.description || fieldErrors.listingProse} />
+              <FieldHint
+                error={fieldErrors.description || fieldErrors.listingProse}
+                onDismiss={() => clearFieldError('description', 'listingProse')}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Price (₹) *</label>
@@ -687,17 +718,18 @@ const AddProperty = () => {
               <div>
                 <label className="block text-sm font-medium text-navy mb-2">BHK *</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   name="bhk"
-                  min="1"
-                  step="1"
                   value={formData.bhk}
-                  onChange={handleChange}
+                  onChange={(e) => handleIntegerChange(e, 2)}
+                  onKeyDown={blockNonDigitKeyDown}
                   required
                   className={inputClass(fieldErrors.bhk)}
                   placeholder="e.g. 2"
                 />
-                <FieldHint error={fieldErrors.bhk} />
+                <FieldHint error={fieldErrors.bhk} onDismiss={() => clearFieldError('bhk')} />
               </div>
             )}
 
@@ -705,17 +737,21 @@ const AddProperty = () => {
               <div>
                 <label className="block text-sm font-medium text-navy mb-2">Built-up area (sq ft) *</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   name="builtUpAreaSqft"
-                  min="1"
-                  step="1"
                   value={formData.builtUpAreaSqft}
-                  onChange={handleChange}
+                  onChange={(e) => handleIntegerChange(e, 8)}
+                  onKeyDown={blockNonDigitKeyDown}
                   required
                   className={inputClass(fieldErrors.builtUpAreaSqft)}
                   placeholder="e.g. 1200"
                 />
-                <FieldHint error={fieldErrors.builtUpAreaSqft} />
+                <FieldHint
+                  error={fieldErrors.builtUpAreaSqft}
+                  onDismiss={() => clearFieldError('builtUpAreaSqft')}
+                />
               </div>
             )}
 
@@ -812,30 +848,40 @@ const AddProperty = () => {
                   <div>
                     <label className="block text-sm text-navy mb-1">Balconies (count) *</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       name="balconies"
-                      min="0"
-                      step="1"
                       value={formData.balconies}
-                      onChange={handleChange}
+                      onChange={(e) => handleIntegerChange(e, 2)}
+                      onKeyDown={blockNonDigitKeyDown}
                       required
                       className={inputClass(fieldErrors.balconies)}
+                      placeholder="0"
                     />
-                    <FieldHint error={fieldErrors.balconies} />
+                    <FieldHint
+                      error={fieldErrors.balconies}
+                      onDismiss={() => clearFieldError('balconies')}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm text-navy mb-1">Bathrooms (count) *</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       name="bathrooms"
-                      min="0"
-                      step="1"
                       value={formData.bathrooms}
-                      onChange={handleChange}
+                      onChange={(e) => handleIntegerChange(e, 2)}
+                      onKeyDown={blockNonDigitKeyDown}
                       required
                       className={inputClass(fieldErrors.bathrooms)}
+                      placeholder="0"
                     />
-                    <FieldHint error={fieldErrors.bathrooms} />
+                    <FieldHint
+                      error={fieldErrors.bathrooms}
+                      onDismiss={() => clearFieldError('bathrooms')}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm text-navy mb-1">Floor no. *</label>
