@@ -11,6 +11,7 @@ import LoadingIndicator from './LoadingIndicator';
 import { chatReducer, initialChatState, nextMsgId } from './chatReducer';
 import { getStepsForCategory, categoryLabel } from './stepConfig';
 import { buildSearchParams, refineResults } from './buildSearchParams';
+import { useIsCatalogRoute } from '../hooks/useIsCatalogRoute';
 
 const WELCOME = `Namaste 👋 Harsh To Let Services me aapka swagat hai!
 
@@ -82,6 +83,7 @@ const CHAT_TEASER_EXIT_AT_MS = 4500;
 
 const ChatWidget = () => {
   const location = useLocation();
+  const isCatalog = useIsCatalogRoute();
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [fabTeaserMounted, setFabTeaserMounted] = useState(false);
@@ -314,10 +316,16 @@ const ChatWidget = () => {
     return null;
   })();
 
+  const fabPositionClass = isCatalog
+    ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 sm:right-5'
+    : 'bottom-5 right-5 sm:bottom-6 sm:right-6 md:bottom-10 md:right-14 lg:bottom-12 lg:right-24 xl:bottom-14 xl:right-32';
+
   return (
     <>
       {(!open || !isMobile) && (
-        <div className="pointer-events-none fixed bottom-5 right-5 z-[70] flex flex-col-reverse items-end gap-3 sm:bottom-6 sm:right-6 md:bottom-10 md:right-14 lg:bottom-12 lg:right-24 xl:bottom-14 xl:right-32">
+        <div
+          className={`pointer-events-none fixed z-[90] flex flex-col-reverse items-end gap-3 ${fabPositionClass}`}
+        >
           <ChatButton embedded open={open} onClick={() => setOpen((v) => !v)} />
           {fabTeaserMounted && location.pathname === '/' && !open ? (
             <div

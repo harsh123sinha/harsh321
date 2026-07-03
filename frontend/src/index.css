@@ -33,6 +33,120 @@
   display: none;
 }
 
+/* OLX-style dual range slider thumbs */
+.filter-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 3px solid #002f6c;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.filter-range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 3px solid #002f6c;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.filter-range-input::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.filter-range-input::-moz-range-track {
+  background: transparent;
+}
+
+.filter-range-input--gold::-webkit-slider-thumb {
+  border-color: #d4af37;
+}
+
+.filter-range-input--gold::-moz-range-thumb {
+  border-color: #d4af37;
+}
+
+@keyframes htls-filter-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes htls-filter-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes htls-filter-bar-grow {
+  from {
+    transform: scaleY(0);
+    opacity: 0.3;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes htls-filter-cta-pulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.45);
+  }
+}
+
+.htls-filter-sheet {
+  animation: htls-filter-sheet-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.htls-filter-section {
+  animation: htls-filter-section-in 0.4s ease-out both;
+}
+
+.htls-filter-bar {
+  animation: htls-filter-bar-grow 0.5s ease-out both;
+}
+
+.htls-filter-loc-list {
+  animation: htls-filter-section-in 0.25s ease-out both;
+}
+
+.htls-filter-cta {
+  animation: htls-filter-cta-pulse 2.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .htls-filter-sheet,
+  .htls-filter-section,
+  .htls-filter-bar,
+  .htls-filter-loc-list,
+  .htls-filter-cta {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .htls-phone-sweep-bar {
     animation: none !important;

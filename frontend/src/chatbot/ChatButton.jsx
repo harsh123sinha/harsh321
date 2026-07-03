@@ -1,7 +1,7 @@
 import { MessageCircle, X } from 'lucide-react';
 
 const fabBase =
-  'group z-[70] flex h-14 w-14 items-center justify-center rounded-full bg-navy text-white shadow-lg ring-2 ring-white/30 transition hover:scale-110 hover:shadow-xl active:scale-95 motion-reduce:transition-none sm:h-16 sm:w-16';
+  'group z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-navy text-white shadow-lg ring-2 ring-white/30 transition hover:scale-110 hover:shadow-xl active:scale-95 motion-reduce:transition-none sm:h-16 sm:w-16';
 
 /** When `embedded`, parent supplies fixed positioning (e.g. FAB + teaser stack). */
 const ChatButton = ({ onClick, open, label = 'Open chat assistant', embedded = false }) => (

@@ -492,6 +492,44 @@ export const propertyModel = {
       params.push(filters.maxPrice);
     }
 
+    if (filters.bathrooms) {
+      const b = String(filters.bathrooms).trim();
+      if (b === '4+') {
+        baseFrom += ' AND p.bathrooms >= 4';
+      } else if (b) {
+        baseFrom += ' AND p.bathrooms = ?';
+        params.push(b);
+      }
+    }
+
+    if (filters.facing) {
+      const f = String(filters.facing).trim().toUpperCase();
+      if (f) {
+        baseFrom += ' AND UPPER(TRIM(COALESCE(p.facing, \'\'))) = ?';
+        params.push(f);
+      }
+    }
+
+    if (filters.furnishing_status) {
+      const fs = String(filters.furnishing_status).trim();
+      if (fs) {
+        baseFrom += ' AND p.furnishing_status = ?';
+        params.push(fs);
+      }
+    }
+
+    if (filters.car_parking === '0') {
+      baseFrom += ' AND (p.car_parking = 0 OR p.car_parking IS NULL)';
+    } else if (filters.car_parking === '1' || filters.car_parking === '2' || filters.car_parking === '3+') {
+      baseFrom += ' AND p.car_parking = 1';
+    }
+
+    const sort = String(filters.sort || 'date').trim();
+    let orderBy = 'p.id DESC';
+    if (sort === 'price_asc') orderBy = 'p.price ASC, p.id DESC';
+    else if (sort === 'price_desc') orderBy = 'p.price DESC, p.id DESC';
+    else if (sort === 'relevance') orderBy = 'p.featured DESC, p.id DESC';
+
     const [countRows] = await db.execute(`SELECT COUNT(*) AS total ${baseFrom}`, params);
     const total = Number(countRows[0]?.total) || 0;
 
@@ -499,7 +537,7 @@ export const propertyModel = {
       SELECT p.*, u.name as owner_name, u.role as owner_role, u.phone_number as owner_phone
       ${SQL_BROKER_FIELDS}
       ${baseFrom}
-      ORDER BY p.id DESC
+      ORDER BY ${orderBy}
       LIMIT ${limit} OFFSET ${offset}`;
 
     const [rows] = await db.execute(query, params);

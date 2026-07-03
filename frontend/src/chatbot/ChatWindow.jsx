@@ -16,12 +16,12 @@ const ChatWindow = ({
         <button
           type="button"
           aria-label="Close chat"
-          className="htls-chat-backdrop fixed inset-0 z-[55] bg-slate-900/20 backdrop-blur-[1px]"
+          className="htls-chat-backdrop fixed inset-0 z-[88] bg-slate-900/20 backdrop-blur-[1px]"
           onClick={onClose}
         />
       ) : null}
       <div
-        className={`htls-chat-panel fixed z-[60] flex flex-col overflow-hidden bg-slate-50 shadow-2xl ring-1 ring-slate-200/80 ${
+        className={`htls-chat-panel fixed z-[92] flex flex-col overflow-hidden bg-slate-50 shadow-2xl ring-1 ring-slate-200/80 ${
           isMobile
             ? 'inset-0'
             : 'bottom-24 right-5 h-[min(560px,calc(100vh-7rem))] w-[min(400px,calc(100vw-2.5rem))] rounded-2xl sm:right-6 sm:bottom-28'
