@@ -69,6 +69,7 @@ import Privacy from './pages/Privacy';
 import OurPricing from './pages/OurPricing';
 import ChatWidget from './chatbot/ChatWidget';
 import FcmBootstrap from './components/notifications/FcmBootstrap';
+import DismissibleToastBar from './components/ui/DismissibleToastBar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -212,6 +213,8 @@ function App() {
               style: {
                 background: '#0F172A',
                 color: '#fff',
+                maxWidth: 'min(100vw - 2rem, 24rem)',
+                padding: '12px 14px',
               },
               success: {
                 iconTheme: {
@@ -219,8 +222,16 @@ function App() {
                   secondary: '#fff',
                 },
               },
+              error: {
+                iconTheme: {
+                  primary: '#f87171',
+                  secondary: '#fff',
+                },
+              },
             }}
-          />
+          >
+            {(t) => <DismissibleToastBar t={t} />}
+          </Toaster>
         </Router>
       </AuthProvider>
     </QueryClientProvider>
