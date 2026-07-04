@@ -29,13 +29,14 @@ const NotificationBell = ({ compact = false, small = false }) => {
     refetchInterval: 30000,
   });
 
-  const { data: listData, isLoading } = useQuery({
+  const { data: listData, isLoading, isError, refetch } = useQuery({
     queryKey: ['notifications', 'list'],
     queryFn: async () => {
       const res = await api.get('/notifications?limit=15');
       return res.data;
     },
     enabled: isAuthenticated && open,
+    retry: 1,
   });
 
   const markReadMutation = useMutation({
@@ -170,6 +171,17 @@ const NotificationBell = ({ compact = false, small = false }) => {
             <div className="max-h-80 overflow-y-auto">
               {isLoading ? (
                 <BrandLoader size="sm" className="!py-4" />
+              ) : isError ? (
+                <div className="p-6 text-center text-sm">
+                  <p className="text-gray">Could not load notifications.</p>
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="mt-2 text-xs font-semibold text-gold hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
               ) : listData?.notifications?.length ? (
                 listData.notifications.map((n) => (
                   <NotificationItem

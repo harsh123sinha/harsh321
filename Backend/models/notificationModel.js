@@ -1,5 +1,16 @@
 import db from '../config/database.js';
 
+function sqlLimit(limit, fallback = 20, max = 50) {
+  const n = Number.parseInt(String(limit), 10);
+  const safe = Number.isFinite(n) && n > 0 ? n : fallback;
+  return Math.min(safe, max);
+}
+
+function sqlOffset(page, limit) {
+  const p = Math.max(Number.parseInt(String(page), 10) || 1, 1);
+  return (p - 1) * limit;
+}
+
 export const notificationModel = {
   create: async ({ userId, type, title, body, data, referenceKey }) => {
     const dataJson = data ? JSON.stringify(data) : null;
@@ -28,12 +39,13 @@ export const notificationModel = {
   },
 
   listForUser: async (userId, { page = 1, limit = 20 } = {}) => {
-    const offset = (Math.max(1, page) - 1) * limit;
+    const lim = sqlLimit(limit);
+    const offset = sqlOffset(page, lim);
     const [rows] = await db.execute(
       `SELECT id, user_id, type, title, body, data_json, reference_key, is_read, push_sent, created_at
        FROM notifications WHERE user_id = ?
-       ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-      [userId, limit, offset]
+       ORDER BY created_at DESC LIMIT ${lim} OFFSET ${offset}`,
+      [userId]
     );
     const [countRows] = await db.execute(
       'SELECT COUNT(*) AS total FROM notifications WHERE user_id = ?',
@@ -47,7 +59,7 @@ export const notificationModel = {
       'SELECT COUNT(*) AS count FROM notifications WHERE user_id = ? AND is_read = 0',
       [userId]
     );
-    return rows[0].count;
+    return Number(rows[0].count) || 0;
   },
 
   markRead: async (userId, notificationId) => {
