@@ -13,7 +13,8 @@ import {
   ADD_PROPERTY_CATEGORIES,
   mapAddPropertyToApiType,
 } from '../../utils/propertyListingMap';
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, FACING_OPTIONS, ROAD_NO_SUGGESTIONS } from '../../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, FACING_OPTIONS, ROAD_NO_SUGGESTIONS, LISTING_CITIES } from '../../constants/propertyForm';
+import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import {
   CONTACT_VALIDATED_FIELDS,
   getContactFieldError,
@@ -53,7 +54,7 @@ const AddProperty = () => {
     katha: '',
     location: '',
     road_no: '',
-    city: '',
+    city: 'Patna',
     pincode: '',
     builtUpAreaSqft: '',
     balconies: '',
@@ -106,7 +107,11 @@ const AddProperty = () => {
       if (!draft) return;
 
       setListingMode(draft.listingMode);
-      setFormData((prev) => ({ ...prev, ...draft.formData }));
+      setFormData((prev) => ({
+        ...prev,
+        ...draft.formData,
+        city: draft.formData?.city || 'Patna',
+      }));
       setProjectData((prev) => ({ ...prev, ...draft.projectData }));
       setKathaPreset(draft.kathaPreset);
       setKathaDecimal(draft.kathaDecimal);
@@ -157,17 +162,9 @@ const AddProperty = () => {
 
   const handleIntegerChange = (e, maxLen = 6) => {
     const { name } = e.target;
-    const cleaned = String(e.target.value ?? '')
-      .replace(/\D/g, '')
-      .slice(0, maxLen);
+    const cleaned = digitsOnly(e.target.value, maxLen);
     setFormData((prev) => ({ ...prev, [name]: cleaned }));
     setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const blockNonDigitKeyDown = (e) => {
-    const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
-    if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
-    if (!/^\d$/.test(e.key)) e.preventDefault();
   };
 
   const handleRoadNoChange = (e) => {
@@ -637,15 +634,18 @@ const AddProperty = () => {
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Price (₹) *</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 name="price"
-                min="1"
                 value={formData.price}
-                onChange={handleChange}
+                onChange={(e) => handleIntegerChange(e, 12)}
+                onKeyDown={blockNonDigitKeyDown}
                 required
                 className={inputClass(fieldErrors.price)}
+                placeholder="e.g. 15000"
               />
-              <FieldHint error={fieldErrors.price} />
+              <FieldHint error={fieldErrors.price} onDismiss={() => clearFieldError('price')} />
             </div>
             <div>
               <label className="block text-sm font-medium text-navy mb-2 uppercase text-xs tracking-wide">
@@ -887,14 +887,20 @@ const AddProperty = () => {
                     <label className="block text-sm text-navy mb-1">Floor no. *</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       name="floor_no"
                       value={formData.floor_no}
-                      onChange={handleChange}
+                      onChange={(e) => handleIntegerChange(e, 3)}
+                      onKeyDown={blockNonDigitKeyDown}
                       required
-                      placeholder="e.g. 2, G, 5th"
+                      placeholder="e.g. 2 (0 for ground)"
                       className={inputClass(fieldErrors.floor_no)}
                     />
-                    <FieldHint error={fieldErrors.floor_no} />
+                    <FieldHint
+                      error={fieldErrors.floor_no}
+                      onDismiss={() => clearFieldError('floor_no')}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm text-navy mb-1">Facing</label>
@@ -1007,15 +1013,20 @@ const AddProperty = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-navy mb-2">City *</label>
-              <input
-                type="text"
+              <select
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
                 required
                 className={inputClass(fieldErrors.city)}
-              />
-              <FieldHint error={fieldErrors.city} />
+              >
+                {LISTING_CITIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <FieldHint error={fieldErrors.city} onDismiss={() => clearFieldError('city')} />
               <p className="text-xs text-gray mt-1">
                 District and state are set automatically from city for maps and search.
               </p>
@@ -1027,13 +1038,15 @@ const AddProperty = () => {
                 type="text"
                 name="pincode"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength={6}
                 value={formData.pincode}
-                onChange={handleChange}
+                onChange={(e) => handleIntegerChange(e, 6)}
+                onKeyDown={blockNonDigitKeyDown}
                 placeholder="e.g. 800001"
                 className={inputClass(fieldErrors.pincode)}
               />
-              <FieldHint error={fieldErrors.pincode} />
+              <FieldHint error={fieldErrors.pincode} onDismiss={() => clearFieldError('pincode')} />
             </div>
 
             <div className="md:col-span-2">

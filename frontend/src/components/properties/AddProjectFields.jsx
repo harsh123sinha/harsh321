@@ -1,5 +1,7 @@
 import FieldHint from '../common/FieldHint';
 import { getContactFieldError } from '../../utils/contactValidation';
+import { LISTING_CITIES } from '../../constants/propertyForm';
+import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import toast from 'react-hot-toast';
 
 const BHK_CHOICES = [1, 2, 3, 4, 5];
@@ -59,11 +61,17 @@ export default function AddProjectFields({
       <div>
         <label className="mb-2 block text-sm font-medium text-navy">Starting price (₹) *</label>
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           name="price"
-          min="1"
           value={formData.price}
-          onChange={handleChange}
+          onChange={(e) =>
+            handleChange({
+              target: { name: 'price', value: digitsOnly(e.target.value, 12), type: 'text' },
+            })
+          }
+          onKeyDown={blockNonDigitKeyDown}
           required
           placeholder="e.g. 3500000"
           className={inputClass(fieldErrors.price)}
@@ -193,14 +201,19 @@ export default function AddProjectFields({
 
       <div>
         <label className="mb-2 block text-sm font-medium text-navy">City *</label>
-        <input
-          type="text"
+        <select
           name="city"
-          value={formData.city}
+          value={formData.city || 'Patna'}
           onChange={handleChange}
           required
           className={inputClass(fieldErrors.city)}
-        />
+        >
+          {LISTING_CITIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
         <FieldHint error={fieldErrors.city} />
       </div>
       <div className="md:col-span-2">
@@ -228,6 +241,7 @@ export function validateAddProjectForm({ formData, projectData, images }) {
   if (!String(formData.title || '').trim()) errors.title = 'Project name is required.';
   if (!String(formData.description || '').trim()) errors.description = 'Description is required.';
   if (!String(formData.price || '').trim()) errors.price = 'Starting price is required.';
+  else if (!/^\d+$/.test(String(formData.price).trim())) errors.price = 'Price must be numbers only.';
   if (!String(formData.location || '').trim()) errors.location = 'Location is required.';
   if (!String(formData.city || '').trim()) errors.city = 'City is required.';
   if (!String(projectData.developerName || '').trim()) {

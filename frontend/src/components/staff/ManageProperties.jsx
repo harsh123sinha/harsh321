@@ -4,7 +4,8 @@ import api, { getImageUrl } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, Plus, X, Star } from 'lucide-react';
 import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCategoryForm } from '../../utils/propertyListingMap';
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, LISTING_CITIES } from '../../constants/propertyForm';
+import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
 import BrandLoader from '../ui/BrandLoader';
 import ImageCaptureInput from '../common/ImageCaptureInput';
@@ -32,7 +33,7 @@ function emptyForm() {
     kathaPreset: '1',
     kathaCustom: '',
     location: '',
-    city: '',
+    city: 'Patna',
     balconies: '',
     bathrooms: '',
     garden: false,
@@ -542,13 +543,14 @@ export default function ManageProperties({ variant }) {
                 <div>
                   <label className="block text-sm font-medium text-navy mb-1">Price (₹) *</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     required
-                    min="0"
-                    step="1"
                     className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
                     value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    onChange={(e) => setForm({ ...form, price: digitsOnly(e.target.value, 12) })}
+                    onKeyDown={blockNonDigitKeyDown}
                   />
                 </div>
                 <div>
@@ -699,9 +701,13 @@ export default function ManageProperties({ variant }) {
                         <label className="block text-xs text-navy mb-1">Floor no.</label>
                         <input
                           type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
                           value={form.floor_no}
-                          onChange={(e) => setForm({ ...form, floor_no: e.target.value })}
+                          onChange={(e) => setForm({ ...form, floor_no: digitsOnly(e.target.value, 3) })}
+                          onKeyDown={blockNonDigitKeyDown}
+                          placeholder="0–999"
                         />
                       </div>
                       <div className="flex flex-wrap gap-4 items-center pt-1">
@@ -830,12 +836,22 @@ export default function ManageProperties({ variant }) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-navy mb-1">City *</label>
-                  <input
+                  <select
                     required
                     className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
-                    value={form.city}
+                    value={form.city || 'Patna'}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  />
+                  >
+                    {LISTING_CITIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                    {form.city &&
+                      !LISTING_CITIES.some((c) => c.value === form.city) && (
+                        <option value={form.city}>{form.city}</option>
+                      )}
+                  </select>
                   <p className="text-xs text-gray mt-1">District &amp; state filled automatically from city.</p>
                 </div>
                 <div className="md:col-span-2 flex items-center gap-2">

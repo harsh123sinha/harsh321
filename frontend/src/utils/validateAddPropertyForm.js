@@ -19,6 +19,7 @@ export function validateAddPropertyForm({
   if (!String(formData.title || '').trim()) errors.title = 'Title is required.';
   if (!String(formData.description || '').trim()) errors.description = 'Description is required.';
   if (!String(formData.price || '').trim()) errors.price = 'Price is required.';
+  else if (!/^\d+$/.test(String(formData.price).trim())) errors.price = 'Price must be numbers only.';
   if (!String(formData.location || '').trim()) errors.location = 'Location is required.';
   if (!String(formData.city || '').trim()) errors.city = 'City is required.';
   if (!String(formData.road_no || '').trim()) errors.road_no = 'Road no. is required.';
@@ -73,6 +74,9 @@ export function validateAddPropertyForm({
       errors.bathrooms = 'Bathrooms must be numbers only.';
     }
     if (!String(formData.floor_no || '').trim()) errors.floor_no = 'Floor number is required.';
+    else if (!/^\d+$/.test(String(formData.floor_no).trim())) {
+      errors.floor_no = 'Floor must be numbers only (use 0 for ground).';
+    }
     if (showFurnishing && !String(formData.furnishing || '').trim()) {
       errors.furnishing = 'Furnishing status is required.';
     }
@@ -99,9 +103,7 @@ export function validateAddPropertyForm({
 
   const textFields = [
     'location',
-    'city',
     'otherDescription',
-    'floor_no',
     'shopRoadDistance',
   ];
 

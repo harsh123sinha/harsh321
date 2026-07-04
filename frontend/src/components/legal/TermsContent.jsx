@@ -81,7 +81,10 @@ export default function TermsContent() {
       <section>
         <h2 className="text-xl font-bold text-navy mb-2">7. Contact Us</h2>
         <p className="text-gray leading-relaxed text-sm sm:text-base">
-          If you have any questions about these Terms & Conditions, please contact us at info@realestate.com
+          If you have any questions about these Terms & Conditions, please contact us at{' '}
+          <a href="mailto:harshtoletservices@gmail.com" className="text-gold font-semibold hover:underline">
+            harshtoletservices@gmail.com
+          </a>
         </p>
       </section>
 

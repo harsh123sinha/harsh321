@@ -1,3 +1,6 @@
+/** Listing cities available in the add-property form */
+export const LISTING_CITIES = [{ value: 'Patna', label: 'Patna' }];
+
 /** Building subtype stored in `other_type` for rent/buy listings */
 export const BUILDING_SUBTYPES = [
   { value: '', label: 'Home / generic (use BHK)' },
