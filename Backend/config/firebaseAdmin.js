@@ -49,7 +49,7 @@ export function getFirebaseAdmin() {
   }
 
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.cert(serviceAccount),
   });
   initialized = true;
   return admin;
