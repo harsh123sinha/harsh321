@@ -90,3 +90,12 @@ export const validatePropertyFields = (type, fields) => {
 
   return errors;
 };
+
+/** Normalize to 10-digit Indian mobile for storage; empty string if invalid. */
+export function normalizeIndianMobile(raw) {
+  const d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 10 && /^[6-9]/.test(d)) return d;
+  if (d.length === 12 && d.startsWith('91')) return d.slice(2);
+  if (d.length === 11 && d.startsWith('0')) return d.slice(1);
+  return '';
+}

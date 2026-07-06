@@ -1,4 +1,5 @@
 import MobileCompactHeader from './MobileCompactHeader';
+import MobilePropertyQuickLinks from './MobilePropertyQuickLinks';
 import MobileBottomNav from './MobileBottomNav';
 import PropertyFilterSheet from '../search/PropertyFilterSheet';
 import { buildCatalogHeaderTitle } from '../../utils/catalogTitles';
@@ -22,6 +23,9 @@ const PropertyCatalogShell = ({
   return (
     <div className="min-h-screen bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <MobileCompactHeader title={title} locationHint={locationHint} />
+      <div className="lg:hidden">
+        <MobilePropertyQuickLinks variant="catalog" />
+      </div>
 
       {desktopHero ? <div className="hidden lg:block">{desktopHero}</div> : null}
 

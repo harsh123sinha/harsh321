@@ -5,7 +5,7 @@ import { propertyModel } from '../models/propertyModel.js';
 import { subAdminModel } from '../models/subAdminModel.js';
 import { verifyAdminCredentials } from '../middleware/auth.js';
 import { adminModel } from '../models/adminModel.js';
-import { parseImageUrls, stringifyImageUrls, validatePropertyFields, isValidIndianMobile } from '../utils/helpers.js';
+import { parseImageUrls, stringifyImageUrls, validatePropertyFields, isValidIndianMobile, normalizeIndianMobile } from '../utils/helpers.js';
 import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
 import {
@@ -223,7 +223,8 @@ export const adminGetAllProperties = async (req, res) => {
       katha: req.query.katha,
       other_type: req.query.other_type,
       shop_sqft_range: req.query.shop_sqft_range,
-      location: req.query.location
+      location: req.query.location,
+      listed_by_staff: req.query.listed_by_staff
     };
 
     const properties = await propertyModel.adminSearch(filters);
@@ -239,18 +240,14 @@ export const adminCreateProperty = async (req, res) => {
   try {
     const {
       title, description, price, type, bhk, katha, location, city,
-      district: districtBody, state: stateBody, pincode, other_type, featured, owner_id,
+      district: districtBody, state: stateBody, pincode, other_type, featured, belongs_to_phone,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, road_no
     } = req.body;
 
-    if (!owner_id) {
-      return res.status(400).json({ error: 'owner_id is required (listing owner user id)' });
-    }
-
-    const owner = await userModel.findById(owner_id);
-    if (!owner) {
-      return res.status(400).json({ error: 'Owner user not found' });
+    const belongsToPhoneDb = normalizeIndianMobile(belongs_to_phone);
+    if (!belongsToPhoneDb) {
+      return res.status(400).json({ error: 'Owner number: enter a valid 10-digit mobile number.' });
     }
 
     const isPlotListing = PLOT_TYPES.includes(type);
@@ -370,7 +367,8 @@ export const adminCreateProperty = async (req, res) => {
       pincode: pinFinal,
       image_url: stringifyImageUrls(imageUrls),
       other_type: other_type || null,
-      owner_id: parseInt(owner_id, 10),
+      owner_id: null,
+      belongs_to_phone: belongsToPhoneDb,
       featured: featured === 'true' || featured === true ? 1 : 0,
       listing_status: listingStatus,
       listed_by_staff: staffType,
@@ -379,7 +377,7 @@ export const adminCreateProperty = async (req, res) => {
     if (listingStatus === 'pending_review') {
       import('../services/staffAlertService.js')
         .then(({ notifyStaffPropertyListed }) =>
-          notifyStaffPropertyListed({ id: propertyId, title }, owner, staffType)
+          notifyStaffPropertyListed({ id: propertyId, title, belongs_to_phone: belongsToPhoneDb }, null, staffType)
         )
         .catch((err) => console.error('Staff alert (property):', err.message));
       return res.status(201).json({
@@ -396,7 +394,7 @@ export const adminCreateProperty = async (req, res) => {
 
     import('../services/staffAlertService.js')
       .then(({ notifyStaffPropertyListed }) =>
-        notifyStaffPropertyListed({ id: propertyId, title }, owner, staffType)
+        notifyStaffPropertyListed({ id: propertyId, title, belongs_to_phone: belongsToPhoneDb }, null, staffType)
       )
       .catch((err) => console.error('Staff alert (property):', err.message));
 
@@ -444,7 +442,7 @@ export const adminUpdateProperty = async (req, res) => {
     const { id } = req.params;
     const {
       title, description, price, type, bhk, katha, location, city,
-      district, state, pincode, other_type, featured, owner_id,
+      district, state, pincode, other_type, featured, belongs_to_phone,
       removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, road_no
@@ -454,6 +452,17 @@ export const adminUpdateProperty = async (req, res) => {
     if (!property) {
       return res.status(404).json({ error: 'Property not found' });
     }
+
+    const belongsToPhoneDb =
+      belongs_to_phone !== undefined
+        ? normalizeIndianMobile(belongs_to_phone)
+        : property.belongs_to_phone;
+    if (belongs_to_phone !== undefined && !belongsToPhoneDb) {
+      return res.status(400).json({ error: 'Owner number: enter a valid 10-digit mobile number.' });
+    }
+
+    const nextBelongsToPhone =
+      belongs_to_phone !== undefined ? belongsToPhoneDb : property.belongs_to_phone;
 
     assertListingTextAllowed({
       title: title || property.title,
@@ -601,7 +610,8 @@ export const adminUpdateProperty = async (req, res) => {
       image_url: stringifyImageUrls(existingImages),
       other_type: nextOther,
       featured: featured !== undefined ? (featured === 'true' || featured === true ? 1 : 0) : property.featured,
-      owner_id: owner_id || property.owner_id,
+      owner_id: property.owner_id,
+      belongs_to_phone: nextBelongsToPhone,
       listing_status: nextListingStatus,
     });
 

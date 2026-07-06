@@ -47,14 +47,21 @@ function emptyForm() {
     shopTokenAmount: '',
     furnishing: '',
     featured: false,
-    owner_id: ''
+    belongs_to_phone: ''
   };
 }
 
-export default function ManageProperties({ variant }) {
+export default function ManageProperties({ variant, staffFilter = null }) {
   const queryClient = useQueryClient();
   const { pickOptions: areaOptions } = useAreaOptions();
   const prefix = variant === 'admin' ? '/admin' : '/subadmin';
+  const isStaffView = staffFilter === 'admin' || staffFilter === 'subadmin';
+  const pageTitle =
+    staffFilter === 'admin'
+      ? 'Admin properties'
+      : staffFilter === 'subadmin'
+        ? 'Sub-admin properties'
+        : 'Manage properties';
   const [properties, setProperties] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,26 +78,26 @@ export default function ManageProperties({ variant }) {
   const loadProperties = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get(`${prefix}/properties`, {
-        params: search.trim() ? { search: search.trim() } : {}
-      });
+      const params = {};
+      if (search.trim()) params.search = search.trim();
+      if (isStaffView) params.listed_by_staff = staffFilter;
+      const { data } = await api.get(`${prefix}/properties`, { params });
       setProperties(data.properties || []);
     } catch (e) {
       toast.error(e.response?.data?.error || 'Failed to load properties');
     }
     setLoading(false);
-  }, [prefix, search]);
-
-  const loadUsers = async () => {
-    try {
-      const { data } = await api.get(`${prefix}/users`);
-      setUsers(data.users || []);
-    } catch {
-      /* optional */
-    }
-  };
+  }, [prefix, search, isStaffView, staffFilter]);
 
   useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const { data } = await api.get(`${prefix}/users`);
+        setUsers(data.users || []);
+      } catch {
+        setUsers([]);
+      }
+    };
     loadUsers();
   }, [prefix]);
 
@@ -157,7 +164,7 @@ export default function ManageProperties({ variant }) {
         p.shop_token_amount != null && p.shop_token_amount !== '' ? String(p.shop_token_amount) : '',
       furnishing: p.furnishing_status != null && String(p.furnishing_status).trim() !== '' ? String(p.furnishing_status) : '',
       featured: !!p.featured,
-      owner_id: String(p.owner_id || '')
+      belongs_to_phone: p.belongs_to_phone || p.owner_phone || ''
     });
     setEditingId(p.id);
     setExistingImages(parseImages(p.image_url));
@@ -201,7 +208,7 @@ export default function ManageProperties({ variant }) {
     fd.append('other_type', other_type);
     fd.append('shop_sqft_range', isShop ? form.shopSqftRange || '' : '');
     fd.append('featured', form.featured ? 'true' : 'false');
-    fd.append('owner_id', form.owner_id);
+    fd.append('belongs_to_phone', form.belongs_to_phone);
 
     if (showAmenities && isShop) {
       fd.append('balconies', '');
@@ -235,8 +242,8 @@ export default function ManageProperties({ variant }) {
 
   const save = async (e) => {
     e.preventDefault();
-    if (!form.owner_id) {
-      toast.error('Select listing owner');
+    if (!/^[6-9]\d{9}$/.test(String(form.belongs_to_phone || '').replace(/\D/g, '').slice(-10))) {
+      toast.error('Enter a valid 10-digit owner number');
       return;
     }
     if (form.category === 'other' && !String(form.otherDescription || '').trim()) {
@@ -346,7 +353,7 @@ export default function ManageProperties({ variant }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-navy">Manage properties</h1>
+        <h1 className="text-2xl font-bold text-navy">{pageTitle}</h1>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <input
             type="search"
@@ -375,13 +382,13 @@ export default function ManageProperties({ variant }) {
               <tr>
                 <th className="px-3 py-3">ID</th>
                 <th className="px-3 py-3">Title</th>
+                {isStaffView ? <th className="px-3 py-3 min-w-[160px]">Description</th> : null}
                 <th className="px-3 py-3">Type</th>
+                {isStaffView ? <th className="px-3 py-3">Location</th> : null}
                 <th className="px-3 py-3">City</th>
-                <th className="px-3 py-3">Owner</th>
-                <th className="px-3 py-3">User role</th>
-                <th className="px-3 py-3">User ID</th>
-                <th className="px-3 py-3">Broker ID</th>
-                <th className="px-3 py-3">Phone</th>
+                {isStaffView ? <th className="px-3 py-3">BHK</th> : null}
+                <th className="px-3 py-3">Owner number</th>
+                {!isStaffView ? <th className="px-3 py-3">Broker ID</th> : null}
                 <th className="px-3 py-3">Price</th>
                 <th className="px-3 py-3">Featured</th>
                 <th className="px-3 py-3">Status</th>
@@ -395,27 +402,40 @@ export default function ManageProperties({ variant }) {
                   <td className="px-3 py-2">{p.id}</td>
                   <td className="px-3 py-2 font-medium text-navy max-w-[200px] whitespace-normal break-words">
                     <div>{p.title}</div>
-                    {p.listed_by_staff && (
+                    {p.listed_by_staff && !isStaffView && (
                       <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gold/20 text-navy border border-gold/40">
                         Added by Harsh To Let Services
                       </span>
                     )}
                   </td>
+                  {isStaffView ? (
+                    <td className="px-3 py-2 max-w-[220px] whitespace-normal break-words text-xs text-stone-600">
+                      {p.description || '—'}
+                    </td>
+                  ) : null}
                   <td className="px-3 py-2 capitalize">{p.type}</td>
+                  {isStaffView ? (
+                    <td className="px-3 py-2 max-w-[140px] whitespace-normal break-words text-xs text-stone-600">
+                      {p.location || '—'}
+                    </td>
+                  ) : null}
                   <td className="px-3 py-2">{p.city}</td>
-                  <td className="px-3 py-2">{p.owner_name || p.owner_id}</td>
-                  <td className="px-3 py-2 capitalize">{p.owner_role || '—'}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{p.owner_id ?? '—'}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{p.broker_public_id || '—'}</td>
+                  {isStaffView ? <td className="px-3 py-2">{p.bhk ?? '—'}</td> : null}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {p.owner_phone ? (
-                      <a href={`tel:${p.owner_phone}`} className="font-semibold text-navy hover:underline">
-                        {p.owner_phone}
+                    {p.belongs_to_phone || p.owner_phone ? (
+                      <a
+                        href={`tel:${p.belongs_to_phone || p.owner_phone}`}
+                        className="font-semibold text-navy hover:underline"
+                      >
+                        {p.belongs_to_phone || p.owner_phone}
                       </a>
                     ) : (
                       '—'
                     )}
                   </td>
+                  {!isStaffView ? (
+                    <td className="px-3 py-2 font-mono text-xs">{p.broker_public_id || '—'}</td>
+                  ) : null}
                   <td className="px-3 py-2 whitespace-nowrap">{fmtPrice(p.price)}</td>
                   <td className="px-3 py-2">
                     <button
@@ -496,32 +516,24 @@ export default function ManageProperties({ variant }) {
             </div>
             <form onSubmit={save} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Listing owner *</label>
-                <select
+                <label className="block text-sm font-medium text-navy mb-1">Owner number *</label>
+                <input
+                  type="tel"
                   required
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  maxLength={10}
+                  placeholder="10-digit mobile number"
                   className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
-                  value={form.owner_id}
-                  onChange={(e) => setForm({ ...form, owner_id: e.target.value })}
-                >
-                  <option value="">Select user</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      #{u.id} {u.name} ({u.email}){u.phone_number ? ` · ${u.phone_number}` : ''} — {u.role}
-                    </option>
-                  ))}
-                </select>
-                {form.owner_id && (() => {
-                  const owner = users.find((u) => String(u.id) === String(form.owner_id));
-                  if (!owner?.phone_number) return null;
-                  return (
-                    <p className="mt-2 text-sm">
-                      <span className="text-stone-500">Owner phone: </span>
-                      <a href={`tel:${owner.phone_number}`} className="font-semibold text-navy hover:underline">
-                        {owner.phone_number}
-                      </a>
-                    </p>
-                  );
-                })()}
+                  value={form.belongs_to_phone}
+                  onChange={(e) =>
+                    setForm({ ...form, belongs_to_phone: digitsOnly(e.target.value, 10) })
+                  }
+                  onKeyDown={blockNonDigitKeyDown}
+                />
+                <p className="mt-1 text-xs text-stone-500">
+                  Property owner&apos;s contact number — saved with this listing.
+                </p>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">

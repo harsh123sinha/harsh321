@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase, Target } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase, Target, ClipboardList } from 'lucide-react';
 import StaffNotificationBell from './StaffNotificationBell';
 
 const linkClass = (active) =>
@@ -39,6 +39,13 @@ export default function StaffNav({ variant }) {
             <Link to={`${base}/properties`} className={linkClass(active(`${base}/properties`))}>
               <Building2 className="h-4 w-4" />
               Properties
+            </Link>
+            <Link
+              to={`${base}/${isAdmin ? 'admin' : 'subadmin'}-properties`}
+              className={linkClass(active(`${base}/${isAdmin ? 'admin' : 'subadmin'}-properties`))}
+            >
+              <ClipboardList className="h-4 w-4" />
+              {isAdmin ? 'Admin properties' : 'Sub-admin properties'}
             </Link>
             <Link to={`${base}/mission`} className={linkClass(active(`${base}/mission`))}>
               <Target className="h-4 w-4" />

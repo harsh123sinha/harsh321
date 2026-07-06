@@ -52,6 +52,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminProperties from './pages/admin/AdminProperties';
+import AdminStaffProperties from './pages/admin/AdminStaffProperties';
 import AdminSubAdmins from './pages/admin/AdminSubAdmins';
 import AdminWorkers from './pages/admin/AdminWorkers';
 import AdminMission from './pages/admin/AdminMission';
@@ -61,6 +62,7 @@ import SubAdminLogin from './pages/subadmin/SubAdminLogin';
 import SubAdminDashboard from './pages/subadmin/SubAdminDashboard';
 import SubAdminUsers from './pages/subadmin/SubAdminUsers';
 import SubAdminProperties from './pages/subadmin/SubAdminProperties';
+import SubAdminStaffProperties from './pages/subadmin/SubAdminStaffProperties';
 import SubAdminMission from './pages/subadmin/SubAdminMission';
 
 // Static pages
@@ -193,6 +195,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/properties" element={<AdminProperties />} />
+            <Route path="/admin/admin-properties" element={<AdminStaffProperties />} />
             <Route path="/admin/workers" element={<AdminWorkers />} />
             <Route path="/admin/mission" element={<AdminMission />} />
             <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
@@ -202,6 +205,7 @@ function App() {
             <Route path="/subadmin/dashboard" element={<SubAdminDashboard />} />
             <Route path="/subadmin/users" element={<SubAdminUsers />} />
             <Route path="/subadmin/properties" element={<SubAdminProperties />} />
+            <Route path="/subadmin/subadmin-properties" element={<SubAdminStaffProperties />} />
             <Route path="/subadmin/mission" element={<SubAdminMission />} />
           </Routes>
           <ChatWidget />

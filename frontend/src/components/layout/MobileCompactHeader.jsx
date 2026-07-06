@@ -1,7 +1,6 @@
 import { ChevronLeft, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMobileCatalog } from '../../context/MobileCatalogContext';
-import MobilePropertyQuickLinks from './MobilePropertyQuickLinks';
 
 const MobileCompactHeader = ({ title, locationHint }) => {
   const navigate = useNavigate();
@@ -36,7 +35,6 @@ const MobileCompactHeader = ({ title, locationHint }) => {
           <MapPin className="h-5 w-5" aria-hidden />
         </button>
       </div>
-      <MobilePropertyQuickLinks variant="light" />
       {locationHint ? (
         <p className="border-t border-stone-100 px-3 py-1.5 text-[11px] text-stone-500">{locationHint}</p>
       ) : null}

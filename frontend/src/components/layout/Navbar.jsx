@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
 import BrandMark from '../brand/BrandMark';
 import MobileMenu from './MobileMenu';
-import MobilePropertyQuickLinks from './MobilePropertyQuickLinks';
 
 const DESKTOP_NAV_MIN_PX = 1280;
 
@@ -293,8 +292,6 @@ const Navbar = () => {
             </MobileQuickLink>
             <JobApplyButton compact />
           </div>
-
-          <MobilePropertyQuickLinks variant="dark" />
         </div>
 
         {/* Desktop navbar (1280px+) */}

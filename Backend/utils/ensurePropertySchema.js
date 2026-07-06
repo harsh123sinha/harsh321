@@ -139,6 +139,12 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.road_no`);
   }
+  if (!(await hasColumn(t, 'belongs_to_phone'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN belongs_to_phone VARCHAR(15) NULL DEFAULT NULL AFTER owner_id`
+    );
+    console.log(`✅ DB: added ${t}.belongs_to_phone`);
+  }
 
   try {
     await db.execute(`ALTER TABLE \`${t}\` MODIFY COLUMN district VARCHAR(100) NULL`);

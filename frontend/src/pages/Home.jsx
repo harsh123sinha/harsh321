@@ -66,7 +66,7 @@ const Home = () => {
         <HeroReachHomeAnimation heroRef={heroRef} groundRef={servicesGroundRef} />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" aria-hidden />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 pt-14 sm:px-6 sm:pb-12 sm:pt-16 md:px-8 md:pb-14 md:pt-20">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-10 pt-[4.75rem] sm:px-6 sm:pb-12 sm:pt-16 md:px-8 md:pb-14 md:pt-20">
           <div className="mx-auto mb-7 max-w-4xl text-center sm:mb-9 md:mb-11">
             <span className="htls-hero-fade-up htls-hero-fade-up-1 mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80 backdrop-blur-md sm:mb-5 sm:px-4 sm:py-1.5 sm:text-[11px]">
               <span className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(212,175,55,0.9)]" />

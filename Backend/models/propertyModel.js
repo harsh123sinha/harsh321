@@ -60,7 +60,7 @@ export const propertyModel = {
       title, description, price, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
-      location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured,
+      location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured,
       listing_status, listing_review_reason, listed_by_staff,
       listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to,
       enclave_pdf_url,
@@ -71,10 +71,10 @@ export const propertyModel = {
       (title, description, price, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
        shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
-       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, featured, listing_status,
+       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured, listing_status,
        listing_review_reason, listed_by_staff,
        listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -99,7 +99,7 @@ export const propertyModel = {
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,
-      other_type || null, owner_id, featured || 0,
+      other_type || null, owner_id, belongs_to_phone || null, featured || 0,
       listing_status || 'active',
       listing_review_reason || null,
       listed_by_staff || null,
@@ -561,9 +561,9 @@ export const propertyModel = {
     const params = [];
 
     if (filters.search) {
-      query += ' AND (p.title LIKE ? OR p.description LIKE ? OR p.location LIKE ?)';
+      query += ' AND (p.title LIKE ? OR p.description LIKE ? OR p.location LIKE ? OR p.belongs_to_phone LIKE ?)';
       const searchPattern = `%${filters.search}%`;
-      params.push(searchPattern, searchPattern, searchPattern);
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     const plotTypeFilter = (t) =>
@@ -613,6 +613,11 @@ export const propertyModel = {
       }
     }
 
+    if (filters.listed_by_staff === 'admin' || filters.listed_by_staff === 'subadmin') {
+      query += ' AND p.listed_by_staff = ?';
+      params.push(filters.listed_by_staff);
+    }
+
     query += ' ORDER BY p.id DESC';
 
     const [rows] = await db.execute(query, params);
@@ -626,6 +631,7 @@ export const propertyModel = {
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, featured, owner_id,
+      belongs_to_phone,
       listing_status, listing_review_reason,
     } = propertyData;
 
@@ -639,7 +645,7 @@ export const propertyModel = {
           shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, facing = ?,
           built_up_area_sqft = ?,
           location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
-          image_url = ?, other_type = ?, featured = ?, owner_id = ?,
+          image_url = ?, other_type = ?, featured = ?, owner_id = ?, belongs_to_phone = ?,
           listing_status = COALESCE(?, listing_status),
           listing_review_reason = COALESCE(?, listing_review_reason),
           enclave_pdf_url = COALESCE(?, enclave_pdf_url)
@@ -667,7 +673,7 @@ export const propertyModel = {
       location,
       road_no ?? null,
       city, district, state, pincode || null, image_url,
-      other_type || null, featured || 0, owner_id,
+      other_type || null, featured || 0, owner_id, belongs_to_phone ?? null,
       listing_status || null,
       listing_review_reason ?? null,
       enclavePdfUrl ?? null,

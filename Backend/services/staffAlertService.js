@@ -51,10 +51,13 @@ export async function notifyMissionRegistration(reg) {
 }
 
 export async function notifyStaffPropertyListed(property, owner, staffType) {
+  const contactPhone =
+    property?.belongs_to_phone || owner?.phone_number || '—';
+  const contactName = owner?.name || 'Client owner';
   await notifyStaffAlert({
     category: 'property',
     title: 'Property listed by staff',
-    body: `${property?.title || 'Listing'} · Owner: ${owner?.name || '—'} · ${owner?.phone_number || '—'}`,
+    body: `${property?.title || 'Listing'} · Belongs to: ${contactName} · ${contactPhone}`,
     linkPath: staffType === 'subadmin' ? '/subadmin/properties' : '/admin/properties',
     referenceId: property?.id,
   });
