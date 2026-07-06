@@ -40,7 +40,7 @@ export default function AddProjectFields({
     if (file && file.size > PDF_MAX_BYTES) {
       e.target.value = '';
       onProjectPdfChange(null);
-      toast.error('PDF is too large. Maximum size is 50MB (it will be compressed after upload).');
+      toast.error('PDF is too large. Maximum size is 50MB.');
       return;
     }
     onProjectPdfChange(file);
@@ -81,7 +81,6 @@ export default function AddProjectFields({
           className={inputClass(fieldErrors.price)}
         />
         <FieldHint error={fieldErrors.price} />
-        <p className="mt-1 text-xs text-stone-500">Shown as “₹ X onwards” on the home page</p>
       </div>
 
       <div className="md:col-span-2">
@@ -234,12 +233,6 @@ export default function AddProjectFields({
           className={inputClass(fieldErrors.projectPdf)}
         />
         <FieldHint error={fieldErrors.projectPdf} />
-        {projectPdf && (
-          <p className="mt-1 text-xs text-stone-500">Selected: {projectPdf.name}</p>
-        )}
-        <p className="mt-1 text-xs text-stone-500">
-          PDF up to 50MB. File is compressed automatically before storage. Shown as &quot;See project PDF&quot; on the project page when uploaded.
-        </p>
       </div>
     </>
   );

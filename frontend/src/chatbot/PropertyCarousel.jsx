@@ -50,9 +50,6 @@ const PropertyCarousel = ({ properties, onAfterPropertyNavigate }) => {
 
   return (
     <div className="-mx-0.5 min-w-0 sm:-mx-1">
-      <p className="mb-1.5 text-xs font-medium text-slate-600">
-        Swipe or use arrows for more →
-      </p>
       <div className="relative px-0.5 sm:px-9">
         {scrollable && (
           <>

@@ -33,7 +33,6 @@ export default function DismissibleToastBar({ t }) {
           >
             <span className="block text-sm font-medium leading-snug whitespace-nowrap sm:whitespace-normal">
               {message}
-              <span className="sm:hidden ml-1.5 text-[10px] font-normal opacity-60">← swipe →</span>
             </span>
           </div>
           <button

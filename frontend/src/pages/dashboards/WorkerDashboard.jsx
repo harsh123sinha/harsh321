@@ -286,7 +286,6 @@ export default function WorkerDashboard() {
             <AlertCircle className="h-6 w-6 shrink-0" style={{ color: JOB_RED }} />
             <div>
               <p className="font-semibold text-navy">Complete your profile</p>
-              <p className="text-sm text-gray mt-1">Fill in all details to appear on Our Vendors page and get job offers.</p>
             </div>
           </div>
         )}
@@ -418,9 +417,7 @@ export default function WorkerDashboard() {
                     if (!f) return;
                     setHallPhoto(f);
                     setHallPreview(URL.createObjectURL(f));
-                  }}
-                  hint="Upload a clear photo of the hall or garden area."
-                />
+                  />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Area (sq ft) *" icon={Briefcase}>
                     <input name="area_sqft" type="number" min="1" value={form.area_sqft} onChange={handleChange} required className="input-field" />
@@ -462,7 +459,6 @@ export default function WorkerDashboard() {
                       />
                     </Field>
                   </div>
-                  <p className="text-xs text-stone-500">Enter at least one. Leave blank if not offered.</p>
                 </div>
               </>
             )}
@@ -480,7 +476,6 @@ export default function WorkerDashboard() {
                   setWorkerPhoto(f);
                   setWorkerPhotoPreview(URL.createObjectURL(f));
                 }}
-                hint="After saving, add car or material listings with photos and rates below."
               />
             )}
 
@@ -597,9 +592,6 @@ function ProfileView({ worker, onEdit }) {
         )}
         <ProfileRow icon={Mail} label="Email" value={worker.email} />
         <ProfileRow icon={Phone} label="Your mobile" value={worker.phone_number} />
-        <p className="sm:col-span-2 text-xs text-stone-500 -mt-2">
-          Customers on Our Services see your Employee ID and contact our office numbers — not your personal mobile.
-        </p>
         {isHall ? (
           <>
             <ProfileRow icon={Briefcase} label="Area" value={`${Number(worker.area_sqft).toLocaleString('en-IN')} sq ft`} />

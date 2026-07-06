@@ -654,9 +654,6 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                   }
                   onKeyDown={blockNonDigitKeyDown}
                 />
-                <p className="mt-1 text-xs text-stone-500">
-                  Owner&apos;s contact number — saved with this listing.
-                </p>
               </div>
 
               {modal === 'add' && (
@@ -685,7 +682,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                     onChange={(e) => setForm({ ...form, featured: e.target.checked })}
                   />
                   <label htmlFor="featured-project-staff" className="text-sm font-medium text-navy">
-                    Feature on home page (subject to approval)
+                    Feature on home page
                   </label>
                 </div>
                 </>
@@ -1027,7 +1024,6 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                         <option value={form.city}>{form.city}</option>
                       )}
                   </select>
-                  <p className="text-xs text-gray mt-1">District &amp; state filled automatically from city.</p>
                 </div>
                 <div className="md:col-span-2 flex items-center gap-2">
                   <input

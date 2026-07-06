@@ -8,7 +8,6 @@ import {
   CAROUSEL_ARROW_RIGHT,
   CAROUSEL_SCROLLER,
   CAROUSEL_SCROLLER_PAD,
-  CAROUSEL_SCROLL_HINT,
   scrollCarouselByDir,
   CAROUSEL_SLIDE,
 } from '../../constants/carouselLayout';
@@ -128,12 +127,6 @@ export default function FeaturedPropertiesCarousel({ properties }) {
           </div>
         ))}
       </div>
-
-      {scrollable && (
-        <p className="mt-2 text-center text-[11px] text-stone-500 sm:text-xs">
-          {CAROUSEL_SCROLL_HINT}
-        </p>
-      )}
     </div>
   );
 }

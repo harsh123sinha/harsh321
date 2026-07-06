@@ -334,11 +334,6 @@ export default function WorkerListingsPanel({ listings: initial = [], onChange, 
           {isVehicle ? <Car className="h-5 w-5 text-gold" /> : <Package className="h-5 w-5 text-gold" />}
           {isVehicle ? 'Your vehicles' : 'Your materials'}
         </h2>
-        <p className="text-sm text-gray mt-1">
-          {isVehicle
-            ? 'Add cars or bikes with self-drive or with-driver pricing, km limits, and photos.'
-            : 'Add building materials (Gitti, Balu, Cement, etc.) with rates and photos.'}
-        </p>
       </div>
 
       {listings.length > 0 && (
@@ -493,16 +488,6 @@ export default function WorkerListingsPanel({ listings: initial = [], onChange, 
                   />
                 )}
             </div>
-            <p className="text-xs text-stone-500">
-              {vehicleForm.rental_mode === 'self_drive' &&
-                'Self drive: vehicle cost with included km and extra charge after that.'}
-              {vehicleForm.rental_mode === 'with_driver' &&
-                vehicleForm.driver_fuel_option === 'with_fuel' &&
-                'Driver + vehicle + fuel: package cost, then km included and extra charge after included km.'}
-              {vehicleForm.rental_mode === 'with_driver' &&
-                vehicleForm.driver_fuel_option === 'without_fuel' &&
-                'Driver + vehicle: base cost plus separate fuel charge per km.'}
-            </p>
           </>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -530,13 +515,6 @@ export default function WorkerListingsPanel({ listings: initial = [], onChange, 
               required
               disabled={!materialForm.material_type}
             />
-            {selectedMaterial && (
-              <p className="text-xs text-stone-500 sm:col-span-2">
-                {selectedMaterial.price_type === 'per_bag'
-                  ? 'Rate is per bag (cement).'
-                  : 'Rate is per trolley (Balu, Gitti, Brick).'}
-              </p>
-            )}
           </div>
         )}
 
@@ -558,7 +536,6 @@ export default function WorkerListingsPanel({ listings: initial = [], onChange, 
               required={totalVehicleImages < 1}
               multiple
               captureFacing="environment"
-              hint="Up to 4 images allowed. Add photos from different angles."
               onChange={handleVehicleImages}
             />
             {(keptImageUrls.length > 0 || newImagePreviews.length > 0) && (

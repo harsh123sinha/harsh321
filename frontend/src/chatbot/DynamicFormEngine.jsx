@@ -214,7 +214,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
     return (
       <div className="space-y-3">
         <p className="text-xs font-medium text-slate-600">Approx. shop size (sq ft)</p>
-        <p className="text-[11px] text-slate-500">Choose a range — we match listings in the same band.</p>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CHAT_SHOP_AREA_OPTIONS.map((o) => (
             <button
@@ -391,7 +390,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <p className="text-[11px] text-slate-500">Tip: just tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -435,7 +433,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder={plotUnit === 'acres' ? 'e.g. 2' : 'e.g. 2400'}
         />
-        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -458,7 +455,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder="e.g. 30 ft"
         />
-        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -522,7 +518,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to search.</p>
       </div>
     );
   }
@@ -563,7 +558,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
             className="min-h-[44px] flex-1 rounded-xl border border-slate-200 px-2 text-sm"
           />
         </div>
-        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -586,7 +580,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3 text-sm"
           placeholder="Describe size"
         />
-        <p className="text-[11px] text-slate-500">Tip: tap outside (or press Enter) to continue.</p>
       </div>
     );
   }
@@ -603,7 +596,6 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm touch-manipulation"
           placeholder="Tell us what you need…"
         />
-        <p className="text-[11px] text-slate-500">Tip: tap outside to search.</p>
       </div>
     );
   }

@@ -610,8 +610,7 @@ const AddProperty = () => {
         </p>
         {!isAuthenticated && (
           <p className="mb-6 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-navy">
-            You can fill in everything now. When you submit, we&apos;ll ask you to sign up or log in — your
-            details will be saved and restored automatically.
+            Sign up or log in to publish your listing.
           </p>
         )}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-6">
@@ -639,12 +638,9 @@ const AddProperty = () => {
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className={inputClass(fieldErrors.title || fieldErrors.listingProse)}
-              />
-              <p className="mt-1 text-xs text-stone-500">
-                Descriptive title only (max {LISTING_TITLE_MAX_WORDS} words). Put BHK, price, area, pincode, and floor in their fields below.
-              </p>
-              <FieldHint
+                    className={inputClass(fieldErrors.title || fieldErrors.listingProse)}
+                  />
+                  <FieldHint
                 error={fieldErrors.title || fieldErrors.listingProse}
                 onDismiss={() => clearFieldError('title', 'listingProse')}
               />
@@ -1062,9 +1058,6 @@ const AddProperty = () => {
                 ))}
               </select>
               <FieldHint error={fieldErrors.city} onDismiss={() => clearFieldError('city')} />
-              <p className="text-xs text-gray mt-1">
-                District and state are set automatically from city for maps and search.
-              </p>
             </div>
 
             <div>
@@ -1105,7 +1098,7 @@ const AddProperty = () => {
                 className="rounded border-gray-light"
               />
               <label htmlFor="featured-add" className="text-sm font-medium text-navy">
-                Request featured listing (optional — subject to admin approval)
+                Request featured listing
               </label>
             </div>
               </>
@@ -1134,7 +1127,7 @@ const AddProperty = () => {
                     className="rounded border-gray-light"
                   />
                   <label htmlFor="featured-project" className="text-sm font-medium text-navy">
-                    Feature on home page (subject to admin approval)
+                    Feature on home page
                   </label>
                 </div>
               </>

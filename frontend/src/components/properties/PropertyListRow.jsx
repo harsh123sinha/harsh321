@@ -12,7 +12,6 @@ import {
   CAROUSEL_SCROLLER,
   CAROUSEL_SCROLLER_PAD,
   CAROUSEL_SCROLLER_PAD_FULL,
-  CAROUSEL_SCROLL_HINT,
   scrollCarouselByDir,
   CAROUSEL_SLIDE,
 } from '../../constants/carouselLayout';
@@ -140,12 +139,6 @@ const PropertyListRow = ({ properties, renderCard, fullWidth = false }) => {
           </div>
         ))}
       </div>
-
-      {scrollable && (
-        <p className="mt-2 text-center text-[11px] text-stone-500 sm:text-xs">
-          {CAROUSEL_SCROLL_HINT}
-        </p>
-      )}
     </div>
   );
 };

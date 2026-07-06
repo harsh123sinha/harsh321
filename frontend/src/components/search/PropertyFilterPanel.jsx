@@ -76,9 +76,6 @@ const PropertyFilterPanel = ({ presetLocation = '', presetType = '', onApply }) 
           dropUp
           emptyLabel="All areas"
         />
-        <p className="mt-2 text-xs text-stone-500">
-          Tap to open the area list above the field. Pick a locality in Patna.
-        </p>
       </div>
 
       <Section title="Bathrooms" index={1}>

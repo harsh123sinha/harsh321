@@ -287,8 +287,6 @@ const Signup = () => {
                   placeholder="9876543210"
                 />
               </div>
-              <p className="text-xs text-gray mt-1">10-digit Indian mobile number</p>
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-navy mb-2">I am a</label>
@@ -314,7 +312,6 @@ const Signup = () => {
                   previewUrl={agentPhotoPreview}
                   previewShape="circle"
                   onChange={handleAgentPhoto}
-                  hint="Take a selfie or choose from gallery."
                 />
 
                 <div>

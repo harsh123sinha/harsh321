@@ -117,12 +117,6 @@ const EditProperty = () => {
                 }}
                 className="w-full px-4 py-3 border-2 border-gray-light rounded-lg focus:border-gold focus:outline-none"
               />
-              {projectPdf && (
-                <p className="mt-1 text-xs text-stone-500">New file: {projectPdf.name}</p>
-              )}
-              <p className="mt-1 text-xs text-stone-500">
-                PDF up to 50MB (compressed automatically). Upload a new PDF to replace the existing one.
-              </p>
             </div>
           )}
           <button type="submit" disabled={loading}

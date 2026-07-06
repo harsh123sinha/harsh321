@@ -1,6 +1,6 @@
 const MODES = [
-  { id: 'property', label: 'Property', hint: 'Single home, plot, shop…' },
-  { id: 'project', label: 'Project', hint: 'Enclave or apartment development' },
+  { id: 'property', label: 'Property' },
+  { id: 'project', label: 'Project' },
 ];
 
 export default function AddListingModeToggle({ mode, onChange }) {
@@ -22,7 +22,6 @@ export default function AddListingModeToggle({ mode, onChange }) {
               }`}
             >
               <span className="block text-sm font-bold text-navy">{m.label}</span>
-              <span className="mt-0.5 block text-xs text-stone-600">{m.hint}</span>
             </button>
           );
         })}

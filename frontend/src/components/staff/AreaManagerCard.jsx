@@ -27,7 +27,6 @@ export default function AreaManagerCard({ apiPrefix }) {
     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow">
       <MapPin className="h-12 w-12 text-gold mb-4" />
       <h3 className="text-xl font-bold text-navy">Add new area</h3>
-      <p className="text-sm text-gray mt-2">This area will appear in all dropdowns (chatbot, search, add property).</p>
       <form onSubmit={submit} className="mt-4 flex gap-2">
         <input
           value={name}

@@ -29,9 +29,6 @@ export default function VendorContactSection({
         workerId={vendor?.id}
         className="!text-[8px] sm:!text-[11px] !px-1 sm:!px-2 !py-px sm:!py-0.5 max-[499px]:!text-[6px] max-[499px]:!px-0.5 max-[399px]:!text-[5px] max-[399px]:!leading-none lg:!text-sm lg:!px-3 lg:!py-1"
       />
-      <p className="hidden sm:block text-[9px] sm:text-[11px] text-stone-500 leading-snug">
-        Contact Harsh To Let Services — employee numbers stay private.
-      </p>
       <div className={`flex w-full flex-col gap-1 max-[499px]:gap-0.5 max-[399px]:gap-px ${compact ? '' : 'sm:grid sm:grid-cols-2 sm:gap-2'}`}>
         {phones.map((phone, index) => (
           <div key={phone} className={index > 0 ? 'max-[399px]:hidden w-full' : 'w-full'}>

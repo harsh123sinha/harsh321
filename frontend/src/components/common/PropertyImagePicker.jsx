@@ -160,12 +160,6 @@ export default function PropertyImagePicker({
         </div>
       )}
 
-      {hasRejected && (
-        <p className="mt-2 text-xs font-medium text-red-600">
-          Remove flagged images (×) or replace them before submitting.
-        </p>
-      )}
-
       <input
         ref={cameraRef}
         type="file"

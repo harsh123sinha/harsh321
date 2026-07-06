@@ -9,7 +9,6 @@ const ACCEPT_IMAGES = 'image/jpeg,image/jpg,image/png,image/webp,image/*';
  */
 export default function ImageCaptureInput({
   label,
-  hint,
   required = false,
   multiple = false,
   captureFacing = 'environment',
@@ -76,8 +75,6 @@ export default function ImageCaptureInput({
           {multiple ? 'Choose images' : 'Choose from gallery'}
         </button>
       </div>
-
-      {hint && <p className="mt-2 text-xs text-gray">{hint}</p>}
 
       <input
         ref={cameraRef}

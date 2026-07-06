@@ -23,9 +23,6 @@ export const CAROUSEL_SCROLLER =
 
 export const CAROUSEL_SLIDE = 'shrink-0 snap-start';
 
-export const CAROUSEL_SCROLL_HINT =
-  'Swipe left or right, drag with mouse, or use the arrows';
-
 /** Scroll carousel by one card in direction (-1 | 1). */
 export function scrollCarouselByDir(scrollerEl, dir) {
   if (!scrollerEl || !dir) return;

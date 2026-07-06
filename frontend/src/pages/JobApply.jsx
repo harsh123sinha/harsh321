@@ -268,9 +268,6 @@ export default function JobApply() {
           </Link>
         </p>
 
-        <p className={`mt-2 text-center text-[10px] text-stone-500 sm:mt-4 sm:text-xs ${fieldAnim(5)}`}>
-          Service provider registration for other services — coming soon.
-        </p>
       </div>
     </div>
   );

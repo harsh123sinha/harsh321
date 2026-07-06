@@ -141,15 +141,6 @@ const LocationSearchDropdown = ({
 
   return (
     <div className="relative w-full space-y-2">
-      <p className="text-xs text-slate-600">
-        {value === '' ? (
-          <span>Pick a locality from the list above the field</span>
-        ) : (
-          <span>
-            Selected: <span className="font-semibold text-navy">{selectedLabel}</span>
-          </span>
-        )}
-      </p>
       <input
         ref={inputRef}
         id={id}

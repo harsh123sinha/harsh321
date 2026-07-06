@@ -39,7 +39,6 @@ const FieldHint = ({ error, onDismiss }) => {
       >
         <p className="text-xs text-red-700 font-medium leading-snug pr-1 whitespace-nowrap sm:whitespace-normal">
           {error}
-          <span className="sm:hidden ml-2 text-[10px] text-red-500/80 font-normal">← swipe →</span>
         </p>
       </div>
       <button
