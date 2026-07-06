@@ -1,3 +1,10 @@
+/** Values that mean “whole Patna / any area” — excluded from pick lists in forms. */
+export const BROAD_PATNA_LOCATION_VALUES = new Set(['', 'Patna']);
+
+export function withoutBroadPatnaOptions(options) {
+  return (options || []).filter((o) => !BROAD_PATNA_LOCATION_VALUES.has(o.value));
+}
+
 /**
  * Common localities & areas in Patna (for search dropdown).
  * Chip label is "Location"; these labels appear only inside the dropdown.
@@ -56,3 +63,6 @@ export const PATNA_LOCATION_OPTIONS = [
   { value: 'Barh', label: 'Barh (near Patna)' },
   { value: 'Munger', label: 'Munger (near Patna)' },
 ];
+
+/** Locality list for forms — no “whole Patna” / “any area”. */
+export const PATNA_AREA_PICK_OPTIONS = withoutBroadPatnaOptions(PATNA_LOCATION_OPTIONS);

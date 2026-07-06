@@ -6,7 +6,7 @@ import { subAdminModel } from '../models/subAdminModel.js';
 import { verifyAdminCredentials } from '../middleware/auth.js';
 import { adminModel } from '../models/adminModel.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields, isValidIndianMobile } from '../utils/helpers.js';
-import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb } from '../utils/propertyConstants.js';
+import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
 import {
   parseOptionalInt,
@@ -253,12 +253,23 @@ export const adminCreateProperty = async (req, res) => {
       return res.status(400).json({ error: 'Owner user not found' });
     }
 
-    if (!title || !description || !price || !type || !location || !city || road_no == null || String(road_no).trim() === '') {
+    const isPlotListing = PLOT_TYPES.includes(type);
+    if (!title || !description || !price || !type || !location || !city) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+    if (!isPlotListing && (road_no == null || String(road_no).trim() === '')) {
       return res.status(400).json({ error: 'Required fields missing' });
     }
 
-    const roadNoDb = parseRoadNo(road_no);
-    if (roadNoDb == null) {
+    const roadNoDb = isPlotListing
+      ? String(road_no ?? '').trim() === ''
+        ? null
+        : parseRoadNo(road_no)
+      : parseRoadNo(road_no);
+    if (!isPlotListing && roadNoDb == null) {
+      return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
+    }
+    if (isPlotListing && String(road_no ?? '').trim() !== '' && roadNoDb == null) {
       return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
     }
 

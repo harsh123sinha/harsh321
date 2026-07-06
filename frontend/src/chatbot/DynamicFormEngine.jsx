@@ -20,7 +20,7 @@ const Btn = ({ children, onClick, active, type = 'button' }) => (
 );
 
 const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }) => {
-  const { options: areaOptions } = useAreaOptions();
+  const { pickOptions: areaOptions } = useAreaOptions();
   const [listingType, setListingType] = useState('');
   const [location, setLocation] = useState('');
   const [budgetMin, setBudgetMin] = useState('');
@@ -58,7 +58,7 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
   };
 
   const handleLocation = () => {
-    const label = location === '' ? 'Any area / Patna' : location;
+    const label = location === '' ? 'Not specified' : location;
     submitOnce(`Location: ${label}`, { location: location || '' });
   };
 
@@ -198,7 +198,7 @@ const DynamicFormEngine = ({ stepKey, category, onSubmit, disabled, isLastStep }
           value={location}
           onChange={(v) => {
             setLocation(v);
-            const label = v === '' ? 'Any area / Patna' : v;
+            const label = v === '' ? 'Not specified' : v;
             submitOnce(`Location: ${label}`, { location: v || '' });
           }}
           options={areaOptions}

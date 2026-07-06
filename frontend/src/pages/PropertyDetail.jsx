@@ -21,6 +21,7 @@ import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 import BookmarkButton from '../components/properties/BookmarkButton';
+import PropertyShareButton from '../components/properties/PropertyShareButton';
 import AgentListingInfo, { getAgentListingInfo } from '../components/properties/AgentListingInfo';
 import BrandLoader from '../components/ui/BrandLoader';
 import { usePageSeo } from '../hooks/usePageSeo';
@@ -218,11 +219,18 @@ const PropertyDetail = () => {
               </span>
             )}
             </div>
-            <BookmarkButton
-              propertyId={property.id}
-              showLabel
-              className="border-2 border-gold/40 text-navy px-4 py-2 hover:bg-gold/10"
-            />
+            <div className="flex flex-col items-end gap-2">
+              <BookmarkButton
+                propertyId={property.id}
+                showLabel
+                className="border-2 border-gold/40 text-navy px-4 py-2 hover:bg-gold/10"
+              />
+              <PropertyShareButton
+                property={property}
+                showLabel
+                className="border-2 border-gold/40 text-navy px-4 py-2 hover:bg-gold/10"
+              />
+            </div>
           </div>
           <h1 className="text-xl font-bold text-navy mb-1.5 leading-snug lg:text-2xl xl:text-3xl 2xl:text-4xl lg:mb-3">
             {property.title}

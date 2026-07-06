@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { PATNA_LOCATION_OPTIONS } from '../constants/patnaLocations';
+import { PATNA_AREA_PICK_OPTIONS } from '../constants/patnaLocations';
 
 /**
  * Location step: search field + suggestions panel portaled above the field (chatbot)
@@ -10,7 +10,7 @@ const LocationSearchDropdown = ({
   value,
   onChange,
   id,
-  options = PATNA_LOCATION_OPTIONS,
+  options = PATNA_AREA_PICK_OPTIONS,
   openOnMount = false,
   dropUp = true,
 }) => {
@@ -21,7 +21,7 @@ const LocationSearchDropdown = ({
   const [menuStyle, setMenuStyle] = useState(null);
 
   const selectedLabel =
-    options.find((o) => o.value === value)?.label || 'Any area';
+    options.find((o) => o.value === value)?.label || 'Select area';
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -143,7 +143,7 @@ const LocationSearchDropdown = ({
     <div className="relative w-full space-y-2">
       <p className="text-xs text-slate-600">
         {value === '' ? (
-          <span>Whole Patna / any locality — pick from the list above the field</span>
+          <span>Pick a locality from the list above the field</span>
         ) : (
           <span>
             Selected: <span className="font-semibold text-navy">{selectedLabel}</span>

@@ -6,6 +6,7 @@ import { formatListingCardTitle } from '../../utils/listingTitleUtils';
 import { saveListScroll } from '../../utils/listScrollRestore';
 import PropertyCardImageCarousel from './PropertyCardImageCarousel';
 import BookmarkButton from './BookmarkButton';
+import PropertyShareButton from './PropertyShareButton';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
 import MaskedPhoneActionButton from './MaskedPhoneActionButton';
 import {
@@ -83,7 +84,7 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
               <p className="min-w-0 text-[1.1rem] font-bold leading-tight tracking-tight text-[#0a1020] sm:text-xl lg:text-2xl lg:font-black">
                 {formatIndianPrice(property.price)}
               </p>
-              <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
+              <div className="flex shrink-0 flex-col items-center gap-1 lg:gap-1.5">
                 {postedLabel ? (
                   <span className="text-[9px] font-semibold uppercase tracking-wide text-stone-400 sm:text-[10px] lg:text-[11px]">
                     {postedLabel}
@@ -91,6 +92,11 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
                 ) : null}
                 <BookmarkButton
                   propertyId={property.id}
+                  size="sm"
+                  className="shrink-0 text-stone-400 hover:text-navy"
+                />
+                <PropertyShareButton
+                  property={property}
                   size="sm"
                   className="shrink-0 text-stone-400 hover:text-navy"
                 />

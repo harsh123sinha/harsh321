@@ -9,6 +9,8 @@ import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
 import BrandLoader from '../ui/BrandLoader';
 import ImageCaptureInput from '../common/ImageCaptureInput';
+import LocationSearchCombobox from '../search/LocationSearchCombobox';
+import { useAreaOptions } from '../../hooks/useAreas';
 
 function parseImages(imageUrl) {
   if (!imageUrl) return [];
@@ -51,6 +53,7 @@ function emptyForm() {
 
 export default function ManageProperties({ variant }) {
   const queryClient = useQueryClient();
+  const { pickOptions: areaOptions } = useAreaOptions();
   const prefix = variant === 'admin' ? '/admin' : '/subadmin';
   const [properties, setProperties] = useState([]);
   const [users, setUsers] = useState([]);
@@ -827,12 +830,17 @@ export default function ManageProperties({ variant }) {
                 )}
                 <div>
                   <label className="block text-sm font-medium text-navy mb-1">Location *</label>
-                  <input
-                    required
-                    className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
-                    value={form.location}
-                    onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  />
+                  <div className="rounded-lg border-2 border-gray-light bg-white !p-0">
+                    <LocationSearchCombobox
+                      value={form.location}
+                      onChange={(v) => setForm({ ...form, location: v })}
+                      options={areaOptions}
+                      triggerClassName="w-full px-3 py-2 text-left text-sm"
+                      tone="light"
+                      dropUp
+                      emptyLabel="Select location / area"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-navy mb-1">City *</label>

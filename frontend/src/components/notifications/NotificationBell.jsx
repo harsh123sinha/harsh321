@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCheck } from 'lucide-react';
@@ -13,8 +14,10 @@ import BrandLoader from '../ui/BrandLoader';
 const NotificationBell = ({ compact = false, small = false }) => {
   const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState(null);
   const [brokerReviewModal, setBrokerReviewModal] = useState(null);
   const [workerReviewModal, setWorkerReviewModal] = useState(null);
+  const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,11 +56,44 @@ const NotificationBell = ({ compact = false, small = false }) => {
     },
   });
 
+  const updatePanelPosition = () => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const margin = 12;
+    const viewportW = window.innerWidth;
+    const isMobile = viewportW < 640;
+    const width = isMobile ? viewportW - margin * 2 : Math.min(384, viewportW - margin * 2);
+    const left = isMobile
+      ? margin
+      : Math.max(margin, Math.min(rect.right - width, viewportW - width - margin));
+    setPanelStyle({
+      top: rect.bottom + 8,
+      left,
+      width,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelStyle(null);
+      return;
+    }
+    updatePanelPosition();
+    const onReflow = () => updatePanelPosition();
+    window.addEventListener('resize', onReflow);
+    window.addEventListener('scroll', onReflow, true);
+    return () => {
+      window.removeEventListener('resize', onReflow);
+      window.removeEventListener('scroll', onReflow, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onClickOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        setOpen(false);
-      }
+      if (triggerRef.current?.contains(e.target)) return;
+      if (panelRef.current?.contains(e.target)) return;
+      setOpen(false);
     };
     if (open) document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
@@ -125,8 +161,9 @@ const NotificationBell = ({ compact = false, small = false }) => {
 
   return (
     <>
-      <div className="relative" ref={panelRef}>
+      <div className="relative">
         <button
+          ref={triggerRef}
           type="button"
           onClick={handleBellClick}
           className={`relative inline-flex items-center justify-center text-white hover:text-gold transition-colors touch-target ${
@@ -152,8 +189,17 @@ const NotificationBell = ({ compact = false, small = false }) => {
           )}
         </button>
 
-        {open && isAuthenticated && (
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-xl bg-white shadow-xl border border-gray-100 z-50">
+        {open && isAuthenticated && panelStyle &&
+          createPortal(
+            <div
+              ref={panelRef}
+              className="fixed z-[10050] max-h-[70vh] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl"
+              style={{
+                top: panelStyle.top,
+                left: panelStyle.left,
+                width: panelStyle.width,
+              }}
+            >
             <div className="flex items-center justify-between px-4 py-3 border-b bg-navy text-white">
               <span className="font-semibold">Notifications</span>
               {unread > 0 && (
@@ -208,8 +254,9 @@ const NotificationBell = ({ compact = false, small = false }) => {
                 View all notifications
               </button>
             </div>
-          </div>
-        )}
+          </div>,
+          document.body,
+          )}
       </div>
 
       <BrokerReviewModal

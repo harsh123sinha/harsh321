@@ -3,6 +3,8 @@ import { getContactFieldError } from '../../utils/contactValidation';
 import { LISTING_CITIES } from '../../constants/propertyForm';
 import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import toast from 'react-hot-toast';
+import LocationSearchCombobox from '../search/LocationSearchCombobox';
+import { useAreaOptions } from '../../hooks/useAreas';
 
 const BHK_CHOICES = [1, 2, 3, 4, 5];
 const PDF_MAX_BYTES = 50 * 1024 * 1024;
@@ -17,6 +19,8 @@ export default function AddProjectFields({
   projectPdf,
   onProjectPdfChange,
 }) {
+  const { pickOptions: areaOptions } = useAreaOptions();
+
   const toggleBhk = (n) => {
     setProjectData((prev) => {
       const set = new Set(prev.bhkSelected);
@@ -188,14 +192,19 @@ export default function AddProjectFields({
 
       <div>
         <label className="mb-2 block text-sm font-medium text-navy">Location / area *</label>
-        <input
-          type="text"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-          className={inputClass(fieldErrors.location)}
-        />
+        <div className={`${inputClass(fieldErrors.location)} !p-0`}>
+          <LocationSearchCombobox
+            value={formData.location}
+            onChange={(v) =>
+              handleChange({ target: { name: 'location', value: v } })
+            }
+            options={areaOptions}
+            triggerClassName="w-full px-4 py-3 text-left"
+            tone="light"
+            dropUp
+            emptyLabel="Select location / area"
+          />
+        </div>
         <FieldHint error={fieldErrors.location} />
       </div>
 

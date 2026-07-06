@@ -156,10 +156,59 @@ export const getSiteOrigin = () => {
   return String(import.meta.env.VITE_PUBLIC_SITE_URL || '').replace(/\/$/, '');
 };
 
-export const getPropertyListingUrl = (propertyId) => {
+export const getPropertyDetailPath = (property) => {
+  if (!property?.id) return '';
+  return property.listing_kind === 'project' ? `/projects/${property.id}` : `/property/${property.id}`;
+};
+
+export const getPropertyListingUrl = (propertyOrId) => {
   const base = getSiteOrigin();
-  if (!base || !propertyId) return '';
-  return `${base}/property/${propertyId}`;
+  if (!base) return '';
+  if (propertyOrId != null && typeof propertyOrId === 'object') {
+    const path = getPropertyDetailPath(propertyOrId);
+    return path ? `${base}${path}` : '';
+  }
+  if (!propertyOrId) return '';
+  return `${base}/property/${propertyOrId}`;
+};
+
+/** Short text + link for WhatsApp, Telegram, Gmail, etc. */
+export const buildPropertyShareText = (property) => {
+  if (!property) return '';
+  const url = getPropertyListingUrl(property);
+  const price = formatIndianPrice(property.price);
+  const loc = [property.location, property.city].filter(Boolean).join(', ');
+  const lines = [
+    'Check out this property on Harsh To Let Services:',
+    '',
+    property.title,
+    price,
+  ];
+  if (loc) lines.push(loc);
+  if (url) lines.push('', url);
+  return lines.join('\n');
+};
+
+export const getPropertyShareMailto = (property) => {
+  const url = getPropertyListingUrl(property);
+  const subject = encodeURIComponent(
+    `Property: ${property?.title || 'Listing'} | Harsh To Let Services`,
+  );
+  const body = encodeURIComponent(buildPropertyShareText(property));
+  return `mailto:?subject=${subject}&body=${body}`;
+};
+
+export const getPropertyShareWhatsAppHref = (property) => {
+  const text = buildPropertyShareText(property);
+  if (!text) return '';
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+};
+
+export const getPropertyShareTelegramHref = (property) => {
+  const url = getPropertyListingUrl(property);
+  if (!url) return '';
+  const text = property?.title || 'Property on Harsh To Let Services';
+  return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 };
 
 /** Default 10-digit mobile for all public property inquiries when env vars are unset. */

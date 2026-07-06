@@ -65,7 +65,7 @@ const emptyForm = {
 
 export default function WorkerDashboard() {
   const { user, setUser } = useAuth();
-  const { options: areaOptions } = useAreaOptions();
+  const { pickOptions: areaOptions } = useAreaOptions();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileComplete, setProfileComplete] = useState(false);
@@ -503,6 +503,8 @@ export default function WorkerDashboard() {
                   options={areaOptions}
                   triggerClassName="w-full px-2 py-2 text-left text-sm"
                   tone="light"
+                  dropUp
+                  emptyLabel="Select service area"
                 />
               </div>
             </Field>

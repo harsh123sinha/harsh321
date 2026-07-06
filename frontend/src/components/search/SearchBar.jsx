@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { PATNA_LOCATION_OPTIONS } from '../../constants/patnaLocations';
+import { useAreaOptions } from '../../hooks/useAreas';
 import { SHOP_SQFT_RANGES } from '../../constants/propertyForm';
 import LocationSearchCombobox from './LocationSearchCombobox';
 import { saveSearchSession } from '../../utils/searchSession';
@@ -32,6 +32,7 @@ const darkInput =
  */
 const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', presetType = '' }) => {
   const resolvedVariant = variant ?? (expanded ? 'boxed' : 'underline');
+  const { pickOptions: areaOptions } = useAreaOptions();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -271,9 +272,11 @@ const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', p
     <LocationSearchCombobox
       value={location}
       onChange={setLocation}
-      options={PATNA_LOCATION_OPTIONS}
+      options={areaOptions}
       tone={resolvedVariant === 'underline' ? 'dark' : 'light'}
       triggerClassName={resolvedVariant === 'underline' ? darkSelect : boxedSelect}
+      dropUp
+      emptyLabel="All areas"
     />
   );
 

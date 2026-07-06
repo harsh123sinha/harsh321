@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -29,6 +30,8 @@ function formatWhen(iso) {
 export default function StaffNotificationBell({ variant }) {
   const prefix = variant === 'admin' ? '/admin' : '/subadmin';
   const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState(null);
+  const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -45,9 +48,44 @@ export default function StaffNotificationBell({ variant }) {
   const alerts = data?.alerts || [];
   const unreadCount = data?.unreadCount || 0;
 
+  const updatePanelPosition = () => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const margin = 12;
+    const viewportW = window.innerWidth;
+    const isMobile = viewportW < 640;
+    const width = isMobile ? viewportW - margin * 2 : Math.min(352, viewportW - margin * 2);
+    const left = isMobile
+      ? margin
+      : Math.max(margin, Math.min(rect.right - width, viewportW - width - margin));
+    setPanelStyle({
+      top: rect.bottom + 8,
+      left,
+      width,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelStyle(null);
+      return;
+    }
+    updatePanelPosition();
+    const onReflow = () => updatePanelPosition();
+    window.addEventListener('resize', onReflow);
+    window.addEventListener('scroll', onReflow, true);
+    return () => {
+      window.removeEventListener('resize', onReflow);
+      window.removeEventListener('scroll', onReflow, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onDoc = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+      if (triggerRef.current?.contains(e.target)) return;
+      if (panelRef.current?.contains(e.target)) return;
+      setOpen(false);
     };
     if (open) document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -79,68 +117,85 @@ export default function StaffNotificationBell({ variant }) {
     return path || `${prefix}/dashboard`;
   };
 
+  const panel =
+    open &&
+    panelStyle &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <div
+        ref={panelRef}
+        className="fixed z-[10050] overflow-hidden rounded-xl border border-gray-light bg-white shadow-xl"
+        style={{
+          top: panelStyle.top,
+          left: panelStyle.left,
+          width: panelStyle.width,
+          maxHeight: 'min(70vh, 24rem)',
+        }}
+      >
+        <div className="flex items-center justify-between border-b border-gray-light bg-navy px-4 py-3 text-white">
+          <span className="text-sm font-semibold">New activity</span>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="text-xs text-gold hover:underline"
+            >
+              Mark all read
+            </button>
+          )}
+        </div>
+        <ul className="max-h-80 divide-y divide-gray-light overflow-y-auto">
+          {alerts.length === 0 ? (
+            <li className="px-4 py-6 text-center text-sm text-gray">No alerts yet</li>
+          ) : (
+            alerts.map((a) => (
+              <li key={a.id}>
+                <Link
+                  to={resolveLink(a)}
+                  onClick={() => {
+                    if (!a.is_read) markRead(a.id);
+                    setOpen(false);
+                  }}
+                  className={`block px-4 py-3 transition-colors hover:bg-gray-50 ${a.is_read ? 'opacity-70' : 'bg-gold/5'}`}
+                >
+                  <div className="mb-0.5 flex items-center gap-2">
+                    <span className="rounded bg-navy px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gold">
+                      {CATEGORY_LABELS[a.category] || a.category}
+                    </span>
+                    {!a.is_read && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-navy">{a.title}</p>
+                  {a.body && <p className="mt-0.5 line-clamp-2 text-xs text-gray">{a.body}</p>}
+                  <p className="mt-1 text-[10px] text-stone-400">{formatWhen(a.created_at)}</p>
+                </Link>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>,
+      document.body,
+    );
+
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative p-2 rounded-lg text-navy hover:bg-gray-light/80 transition-colors"
+        className="relative rounded-lg p-2 text-navy transition-colors hover:bg-gray-light/80"
         aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+        aria-expanded={open}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute -right-0.5 -top-0.5 flex h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-bold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-[min(22rem,calc(100vw-2rem))] bg-white rounded-xl shadow-xl border border-gray-light z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-light bg-navy text-white">
-            <span className="font-semibold text-sm">New activity</span>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={markAllRead}
-                className="text-xs text-gold hover:underline"
-              >
-                Mark all read
-              </button>
-            )}
-          </div>
-          <ul className="max-h-80 overflow-y-auto divide-y divide-gray-light">
-            {alerts.length === 0 ? (
-              <li className="px-4 py-6 text-sm text-gray text-center">No alerts yet</li>
-            ) : (
-              alerts.map((a) => (
-                <li key={a.id}>
-                  <Link
-                    to={resolveLink(a)}
-                    onClick={() => {
-                      if (!a.is_read) markRead(a.id);
-                      setOpen(false);
-                    }}
-                    className={`block px-4 py-3 hover:bg-gray-50 transition-colors ${a.is_read ? 'opacity-70' : 'bg-gold/5'}`}
-                  >
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-navy text-gold">
-                        {CATEGORY_LABELS[a.category] || a.category}
-                      </span>
-                      {!a.is_read && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-gold shrink-0" aria-hidden />
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold text-navy">{a.title}</p>
-                    {a.body && <p className="text-xs text-gray mt-0.5 line-clamp-2">{a.body}</p>}
-                    <p className="text-[10px] text-stone-400 mt-1">{formatWhen(a.created_at)}</p>
-                  </Link>
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-      )}
+      {panel}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { getImageUrl } from '../../utils/api';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
 import BookmarkButton from './BookmarkButton';
+import PropertyShareButton from './PropertyShareButton';
 import { getAgentListingInfo } from './AgentListingInfo';
 
 const PropertyCard = ({ property }) => {
@@ -65,15 +66,20 @@ const PropertyCard = ({ property }) => {
             )}
           </div>
 
-          <div className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3">
+          <div className="absolute right-2 top-2 z-10 flex flex-col items-center gap-1 sm:right-3 sm:top-3">
             <BookmarkButton
               propertyId={property.id}
+              className="bg-white/95 p-1.5 text-navy shadow-md hover:bg-white sm:p-2"
+            />
+            <PropertyShareButton
+              property={property}
+              size="sm"
               className="bg-white/95 p-1.5 text-navy shadow-md hover:bg-white sm:p-2"
             />
           </div>
 
           {property.featured && (
-            <div className="absolute right-2 top-10 flex items-center space-x-0.5 rounded-full bg-gold px-2 py-0.5 text-[9px] font-semibold text-navy sm:right-3 sm:top-14 sm:space-x-1 sm:px-3 sm:py-1 sm:text-xs">
+            <div className="absolute right-2 top-[4.75rem] flex items-center space-x-0.5 rounded-full bg-gold px-2 py-0.5 text-[9px] font-semibold text-navy sm:right-3 sm:top-[5.25rem] sm:space-x-1 sm:px-3 sm:py-1 sm:text-xs">
               <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               <span>Featured</span>
             </div>

@@ -41,7 +41,7 @@ const inputClass = (err) =>
   `w-full px-4 py-3 border-2 rounded-lg focus:outline-none ${fieldErrorClass(err)}`;
 
 const AddProperty = () => {
-  const { options: areaOptions } = useAreaOptions();
+  const { pickOptions: areaOptions } = useAreaOptions();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -216,6 +216,7 @@ const AddProperty = () => {
       if (name === 'category') {
         if (v === 'plot') {
           Object.assign(next, {
+            road_no: '',
             bhk: '',
             builtUpAreaSqft: '',
             balconies: '',
@@ -291,6 +292,9 @@ const AddProperty = () => {
     }
     if (name === 'no_parking' || name === 'car_parking' || name === 'bike_parking') {
       setFieldErrors((prev) => ({ ...prev, parking: '' }));
+    }
+    if (name === 'category' && v === 'plot') {
+      setFieldErrors((prev) => ({ ...prev, road_no: '' }));
     }
   };
 
@@ -440,7 +444,7 @@ const AddProperty = () => {
     data.append('bhk', isPlot || isOther || isShop ? '' : formData.bhk);
     data.append('katha', isPlot ? kathaVal : '');
     data.append('location', formData.location.trim());
-    data.append('road_no', formData.road_no);
+    if (!isPlot) data.append('road_no', formData.road_no);
     data.append('city', formData.city.trim());
     data.append('pincode', String(formData.pincode || '').trim());
     data.append('built_up_area_sqft', formData.builtUpAreaSqft || '');
@@ -984,10 +988,13 @@ const AddProperty = () => {
                   options={areaOptions}
                   triggerClassName="w-full px-4 py-3 text-left"
                   tone="light"
+                  dropUp
+                  emptyLabel="Select location / area"
                 />
               </div>
               <FieldHint error={fieldErrors.location} />
             </div>
+            {!isPlot && (
             <div>
               <label className="block text-sm font-medium text-navy mb-2">Road no. *</label>
               <input
@@ -1011,6 +1018,7 @@ const AddProperty = () => {
               </datalist>
               <FieldHint error={fieldErrors.road_no} />
             </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-navy mb-2">City *</label>
               <select

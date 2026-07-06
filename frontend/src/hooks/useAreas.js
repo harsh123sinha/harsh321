@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
-import { PATNA_LOCATION_OPTIONS } from '../constants/patnaLocations';
+import { PATNA_LOCATION_OPTIONS, withoutBroadPatnaOptions } from '../constants/patnaLocations';
 
 function mergeAreaOptions(base, extra) {
   const map = new Map();
@@ -24,9 +24,12 @@ export function useAreaOptions() {
     staleTime: 1000 * 60 * 10,
   });
 
+  const options = mergeAreaOptions(PATNA_LOCATION_OPTIONS, q.data);
+
   return {
     ...q,
-    options: mergeAreaOptions(PATNA_LOCATION_OPTIONS, q.data),
+    options,
+    pickOptions: withoutBroadPatnaOptions(options),
   };
 }
 

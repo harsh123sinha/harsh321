@@ -22,9 +22,11 @@ export function validateAddPropertyForm({
   else if (!/^\d+$/.test(String(formData.price).trim())) errors.price = 'Price must be numbers only.';
   if (!String(formData.location || '').trim()) errors.location = 'Location is required.';
   if (!String(formData.city || '').trim()) errors.city = 'City is required.';
-  if (!String(formData.road_no || '').trim()) errors.road_no = 'Road no. is required.';
-  const roadErr = getRoadNoFieldError(formData.road_no);
-  if (formData.road_no && roadErr) errors.road_no = roadErr;
+  if (!isPlot) {
+    if (!String(formData.road_no || '').trim()) errors.road_no = 'Road no. is required.';
+    const roadErr = getRoadNoFieldError(formData.road_no);
+    if (formData.road_no && roadErr) errors.road_no = roadErr;
+  }
   if (!images?.length) errors.images = 'At least one property image is required.';
 
   const titleWordErr = getTitleWordLimitError(formData.title);
