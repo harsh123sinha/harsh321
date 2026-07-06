@@ -20,7 +20,11 @@ import {
   getContactFieldError,
   fieldErrorClass,
 } from '../../utils/contactValidation';
-import ImageCaptureInput from '../../components/common/ImageCaptureInput';
+import PropertyImagePicker, {
+  filesFromImageItems,
+  hasCheckingImageItems,
+  hasRejectedImageItems,
+} from '../../components/common/PropertyImagePicker';
 import FieldHint from '../../components/common/FieldHint';
 import { validateAddPropertyForm } from '../../utils/validateAddPropertyForm';
 import { containsPhoneNumber, getListingProseCombined } from '../../utils/containsPhoneNumber';
@@ -73,7 +77,7 @@ const AddProperty = () => {
   });
   const [kathaPreset, setKathaPreset] = useState('1');
   const [kathaDecimal, setKathaDecimal] = useState('');
-  const [images, setImages] = useState([]);
+  const [imageItems, setImageItems] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitPhase, setSubmitPhase] = useState(null);
@@ -115,7 +119,17 @@ const AddProperty = () => {
       setProjectData((prev) => ({ ...prev, ...draft.projectData }));
       setKathaPreset(draft.kathaPreset);
       setKathaDecimal(draft.kathaDecimal);
-      if (draft.images?.length) setImages(draft.images);
+      if (draft.images?.length) {
+        setImageItems(
+          draft.images.map((file) => ({
+            id: `${file.name}-${file.size}-${file.lastModified}`,
+            file,
+            previewUrl: URL.createObjectURL(file),
+            issue: null,
+            checking: false,
+          }))
+        );
+      }
       if (draft.projectPdf) setProjectPdf(draft.projectPdf);
 
       toast.success('Your listing details have been restored. Review and submit when ready.');
@@ -172,7 +186,7 @@ const AddProperty = () => {
     setFormData((prev) => ({ ...prev, road_no: cleaned }));
     setFieldErrors((prev) => ({
       ...prev,
-      road_no: cleaned ? getRoadNoFieldError(cleaned) : getRoadNoFieldError(''),
+      road_no: cleaned ? getRoadNoFieldError(cleaned) : '',
     }));
   };
 
@@ -307,25 +321,40 @@ const AddProperty = () => {
     }));
   };
 
-  const handleImagesAdd = (files) => {
-    const next = [...images, ...files];
-    setImages(next);
+  const handleImageItemsChange = (next) => {
+    setImageItems(next);
+    const files = filesFromImageItems(next);
     setFieldErrors((prev) => ({
       ...prev,
-      images: next.length ? '' : 'At least one property image is required.',
+      images: files.length ? '' : 'At least one property image is required.',
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const uploadImages = filesFromImageItems(imageItems);
+
+    if (hasCheckingImageItems(imageItems)) {
+      toast.error('Please wait — images are still being checked.');
+      return;
+    }
+    if (hasRejectedImageItems(imageItems)) {
+      toast.error('Remove flagged images (×) before submitting.');
+      setFieldErrors((prev) => ({
+        ...prev,
+        images: 'Remove images with red warnings before submitting.',
+      }));
+      return;
+    }
+
     const errors = isProject
-      ? validateAddProjectForm({ formData, projectData, images })
+      ? validateAddProjectForm({ formData, projectData, images: uploadImages })
       : validateAddPropertyForm({
           formData,
           kathaPreset,
           kathaDecimal,
-          images,
+          images: uploadImages,
           isPlot,
           isOther,
           isShop,
@@ -348,7 +377,7 @@ const AddProperty = () => {
         projectData,
         kathaPreset,
         kathaDecimal,
-        images,
+        images: uploadImages,
         projectPdf,
       });
       if (!saved.ok) {
@@ -395,7 +424,7 @@ const AddProperty = () => {
       data.append('city', formData.city.trim());
       data.append('featured', formData.featured ? 'true' : 'false');
       if (projectPdf) data.append('project_pdf', projectPdf);
-      images.forEach((img) => data.append('images', img));
+      uploadImages.forEach((img) => data.append('images', img));
 
       try {
         const response = await api.post('/properties', data, {
@@ -479,7 +508,7 @@ const AddProperty = () => {
 
     data.append('furnishing_status', showFurnishing ? formData.furnishing : '');
     data.append('facing', formData.facing || '');
-    images.forEach((img) => data.append('images', img));
+    uploadImages.forEach((img) => data.append('images', img));
 
     try {
       const response = await api.post('/properties', data, {
@@ -739,7 +768,7 @@ const AddProperty = () => {
 
             {showBhkAndAmenities && !isShop && !isPlot && !isOther && (
               <div>
-                <label className="block text-sm font-medium text-navy mb-2">Built-up area (sq ft) *</label>
+                <label className="block text-sm font-medium text-navy mb-2">Built-up area (sq ft)</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -748,9 +777,8 @@ const AddProperty = () => {
                   value={formData.builtUpAreaSqft}
                   onChange={(e) => handleIntegerChange(e, 8)}
                   onKeyDown={blockNonDigitKeyDown}
-                  required
                   className={inputClass(fieldErrors.builtUpAreaSqft)}
-                  placeholder="e.g. 1200"
+                  placeholder="Optional — e.g. 1200"
                 />
                 <FieldHint
                   error={fieldErrors.builtUpAreaSqft}
@@ -996,7 +1024,7 @@ const AddProperty = () => {
             </div>
             {!isPlot && (
             <div>
-              <label className="block text-sm font-medium text-navy mb-2">Road no. *</label>
+              <label className="block text-sm font-medium text-navy mb-2">Road no.</label>
               <input
                 type="text"
                 name="road_no"
@@ -1006,8 +1034,7 @@ const AddProperty = () => {
                 value={formData.road_no}
                 onChange={handleRoadNoChange}
                 onKeyDown={handleRoadNoKeyDown}
-                required
-                placeholder="Select or type 1–999"
+                placeholder="Optional — 1–999"
                 maxLength={3}
                 className={inputClass(fieldErrors.road_no)}
               />
@@ -1058,17 +1085,13 @@ const AddProperty = () => {
             </div>
 
             <div className="md:col-span-2">
-              <ImageCaptureInput
+              <PropertyImagePicker
                 label="Images"
                 required
                 multiple
-                captureFacing="environment"
-                onChange={handleImagesAdd}
-                hint={
-                  images.length
-                    ? `${images.length} image(s) selected. Take more photos or add from gallery.`
-                    : 'Take photos with your camera or choose from gallery.'
-                }
+                items={imageItems}
+                onChange={handleImageItemsChange}
+                moderatePath="/properties/moderate-images"
               />
               <FieldHint error={fieldErrors.images} />
             </div>
@@ -1091,17 +1114,13 @@ const AddProperty = () => {
             {isProject && (
               <>
                 <div className="md:col-span-2">
-                  <ImageCaptureInput
+                  <PropertyImagePicker
                     label="Project images"
                     required
                     multiple
-                    captureFacing="environment"
-                    onChange={handleImagesAdd}
-                    hint={
-                      images.length
-                        ? `${images.length} image(s) selected. Take more photos or add from gallery.`
-                        : 'Take photos with your camera or choose from gallery.'
-                    }
+                    items={imageItems}
+                    onChange={handleImageItemsChange}
+                    moderatePath="/properties/moderate-images"
                   />
                   <FieldHint error={fieldErrors.images} />
                 </div>

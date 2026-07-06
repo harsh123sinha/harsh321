@@ -254,19 +254,10 @@ export const adminCreateProperty = async (req, res) => {
     if (!title || !description || !price || !type || !location || !city) {
       return res.status(400).json({ error: 'Required fields missing' });
     }
-    if (!isPlotListing && (road_no == null || String(road_no).trim() === '')) {
-      return res.status(400).json({ error: 'Required fields missing' });
-    }
 
-    const roadNoDb = isPlotListing
-      ? String(road_no ?? '').trim() === ''
-        ? null
-        : parseRoadNo(road_no)
-      : parseRoadNo(road_no);
-    if (!isPlotListing && roadNoDb == null) {
-      return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
-    }
-    if (isPlotListing && String(road_no ?? '').trim() !== '' && roadNoDb == null) {
+    const roadNoDb =
+      String(road_no ?? '').trim() === '' ? null : parseRoadNo(road_no);
+    if (String(road_no ?? '').trim() !== '' && roadNoDb == null) {
       return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
     }
 

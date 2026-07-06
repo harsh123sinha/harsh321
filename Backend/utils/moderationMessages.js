@@ -11,7 +11,7 @@ const MESSAGES = {
   contact_phrase: 'Listings containing external contact details cannot be published.',
   image_contact: 'Please remove contact information from images.',
   image_person:
-    'Property photos must show rooms, buildings, or plots only. Images with people are not allowed.',
+    'This image shows a person or body part (face, hand, leg, etc.). Use photos of rooms, buildings, or plots only.',
   image_explicit: 'This image cannot be published. Please upload appropriate property photos only.',
   image_pending: 'Your listing is under review. We will notify you after admin approval.',
   generic: 'This content cannot be published. Please contact Harsh To Let Services for assistance.',

@@ -34,6 +34,7 @@ import {
 } from '../utils/propertyListingGuard.js';
 import { compressPdfForUpload } from '../utils/pdfPrep.js';
 import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
+import { moderatePropertyImage } from '../utils/moderation.js';
 
 function getUploadedImages(req) {
   if (!req.files) return [];
@@ -347,19 +348,10 @@ export const addProperty = async (req, res) => {
     if (!title || !description || !price || !type || !location || !city) {
       return res.status(400).json({ error: 'Required fields missing' });
     }
-    if (!isPlotListing && (road_no == null || String(road_no).trim() === '')) {
-      return res.status(400).json({ error: 'Required fields missing' });
-    }
 
-    const roadNoDb = isPlotListing
-      ? String(road_no ?? '').trim() === ''
-        ? null
-        : parseRoadNo(road_no)
-      : parseRoadNo(road_no);
-    if (!isPlotListing && roadNoDb == null) {
-      return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
-    }
-    if (isPlotListing && String(road_no ?? '').trim() !== '' && roadNoDb == null) {
+    const roadNoDb =
+      String(road_no ?? '').trim() === '' ? null : parseRoadNo(road_no);
+    if (String(road_no ?? '').trim() !== '' && roadNoDb == null) {
       return res.status(400).json({ error: 'Road no. must be a number from 1 to 999 (max 3 digits).' });
     }
 
@@ -760,5 +752,34 @@ export const deleteProperty = async (req, res) => {
   } catch (error) {
     console.error('Delete property error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/** Check images before upload — returns per-file moderation result (no S3 save). */
+export const previewModerateImages = async (req, res) => {
+  try {
+    const files = req.files?.length ? req.files : [];
+    if (!files.length) {
+      return res.status(400).json({ error: 'No images provided' });
+    }
+
+    const results = [];
+    for (const file of files) {
+      const mod = await moderatePropertyImage(file.buffer, file.mimetype);
+      results.push({
+        filename: file.originalname,
+        rejected: Boolean(mod.rejected),
+        pending: Boolean(mod.pending),
+        approved: Boolean(mod.approved),
+        code: mod.code || null,
+        userMessage: mod.userMessage || null,
+        confidence: mod.confidence || 0,
+      });
+    }
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Preview moderate images error:', error);
+    res.status(500).json({ error: 'Image check failed' });
   }
 };

@@ -27,6 +27,7 @@ import {
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
+import { previewModerateImages } from '../controllers/propertyController.js';
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post('/users', createUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 
+router.post('/moderate-images', uploadMultipleImages, previewModerateImages);
 router.get('/properties', adminGetAllProperties);
 router.post('/properties', uploadMultipleImages, adminCreateProperty);
 router.post('/properties/:id/toggle-featured', toggleFeatured);

@@ -22,10 +22,9 @@ export function validateAddPropertyForm({
   else if (!/^\d+$/.test(String(formData.price).trim())) errors.price = 'Price must be numbers only.';
   if (!String(formData.location || '').trim()) errors.location = 'Location is required.';
   if (!String(formData.city || '').trim()) errors.city = 'City is required.';
-  if (!isPlot) {
-    if (!String(formData.road_no || '').trim()) errors.road_no = 'Road no. is required.';
+  if (!isPlot && formData.road_no) {
     const roadErr = getRoadNoFieldError(formData.road_no);
-    if (formData.road_no && roadErr) errors.road_no = roadErr;
+    if (roadErr) errors.road_no = roadErr;
   }
   if (!images?.length) errors.images = 'At least one property image is required.';
 
@@ -47,9 +46,9 @@ export function validateAddPropertyForm({
     errors.shopSqftRange = 'Shop size is required.';
   }
 
-  if (showBhkAndAmenities && !isShop && !isPlot && !isOther) {
-    if (!String(formData.builtUpAreaSqft || '').trim()) {
-      errors.builtUpAreaSqft = 'Built-up area (sq ft) is required.';
+  if (showBhkAndAmenities && !isShop && !isPlot && !isOther && formData.builtUpAreaSqft) {
+    if (!/^\d+$/.test(String(formData.builtUpAreaSqft).trim())) {
+      errors.builtUpAreaSqft = 'Built-up area must be numbers only.';
     }
   }
 

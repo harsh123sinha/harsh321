@@ -8,7 +8,11 @@ import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, LISTING_CITIES } from '../../cons
 import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
 import BrandLoader from '../ui/BrandLoader';
-import ImageCaptureInput from '../common/ImageCaptureInput';
+import PropertyImagePicker, {
+  filesFromImageItems,
+  hasCheckingImageItems,
+  hasRejectedImageItems,
+} from '../common/PropertyImagePicker';
 import LocationSearchCombobox from '../search/LocationSearchCombobox';
 import { useAreaOptions } from '../../hooks/useAreas';
 
@@ -69,7 +73,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
   const [modal, setModal] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [newFiles, setNewFiles] = useState([]);
+  const [newImageItems, setNewImageItems] = useState([]);
   const [removeFilenames, setRemoveFilenames] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
@@ -110,7 +114,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     setModal(null);
     setEditingId(null);
     setForm(emptyForm());
-    setNewFiles([]);
+    setNewImageItems([]);
     setRemoveFilenames([]);
     setExistingImages([]);
   };
@@ -118,7 +122,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
   const openAdd = () => {
     setForm(emptyForm());
     setEditingId(null);
-    setNewFiles([]);
+    setNewImageItems([]);
     setRemoveFilenames([]);
     setExistingImages([]);
     setModal('add');
@@ -168,7 +172,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     });
     setEditingId(p.id);
     setExistingImages(parseImages(p.image_url));
-    setNewFiles([]);
+    setNewImageItems([]);
     setRemoveFilenames([]);
     setModal('edit');
   };
@@ -237,11 +241,20 @@ export default function ManageProperties({ variant, staffFilter = null }) {
 
     fd.append('furnishing_status', showFurnishing ? form.furnishing || '' : '');
 
+    const newFiles = filesFromImageItems(newImageItems);
     newFiles.forEach((f) => fd.append('images', f));
   };
 
   const save = async (e) => {
     e.preventDefault();
+    if (hasCheckingImageItems(newImageItems)) {
+      toast.error('Please wait — new images are still being checked.');
+      return;
+    }
+    if (hasRejectedImageItems(newImageItems)) {
+      toast.error('Remove flagged images (×) before saving.');
+      return;
+    }
     if (!/^[6-9]\d{9}$/.test(String(form.belongs_to_phone || '').replace(/\D/g, '').slice(-10))) {
       toast.error('Enter a valid 10-digit owner number');
       return;
@@ -905,16 +918,12 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                 </div>
               )}
 
-              <ImageCaptureInput
+              <PropertyImagePicker
                 label={modal === 'add' ? 'Photos' : 'Add more photos'}
                 multiple
-                captureFacing="environment"
-                onChange={(files) => setNewFiles((prev) => [...prev, ...files])}
-                hint={
-                  newFiles.length
-                    ? `${newFiles.length} new photo(s) selected.`
-                    : 'Take photos with camera or choose from gallery.'
-                }
+                items={newImageItems}
+                onChange={setNewImageItems}
+                moderatePath={`${prefix}/moderate-images`}
               />
 
               <div className="flex gap-2 pt-2">

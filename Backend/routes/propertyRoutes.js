@@ -8,7 +8,8 @@ import {
   searchProperties,
   addProperty,
   updateProperty,
-  deleteProperty
+  deleteProperty,
+  previewModerateImages,
 } from '../controllers/propertyController.js';
 import { isAuthenticated, isOwnerOrAgent } from '../middleware/auth.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
@@ -28,6 +29,7 @@ router.get('/:id', apiLimiter, getPropertyById);
 router.get('/user/my-properties', isAuthenticated, getMyProperties);
 
 // Protected routes (owner/agent only)
+router.post('/moderate-images', isAuthenticated, uploadMultipleImages, previewModerateImages);
 router.post('/', isAuthenticated, isOwnerOrAgent, uploadListingAssets, addProperty);
 router.put('/:id', isAuthenticated, isOwnerOrAgent, uploadListingAssets, updateProperty);
 router.delete('/:id', isAuthenticated, deleteProperty); // Owner or admin

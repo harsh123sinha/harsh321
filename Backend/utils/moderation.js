@@ -22,18 +22,40 @@ const EXPLICIT_PARENTS = new Set([
 const REJECT_CONFIDENCE = 80;
 const PENDING_CONFIDENCE_MIN = 55;
 
-/** Rekognition label names that indicate a person (not a room/building photo). */
+/** Rekognition label names that indicate a person or body part in property photos. */
 const PERSON_LABELS = new Set([
   'Person',
   'Human',
+  'Human Body',
+  'Body',
   'Face',
   'Head',
   'Portrait',
   'Selfie',
+  'Adult',
+  'Child',
+  'Baby',
+  'Infant',
+  'Arm',
+  'Hand',
+  'Finger',
+  'Fingers',
+  'Thumb',
+  'Leg',
+  'Foot',
+  'Feet',
+  'Toe',
+  'Shoulder',
+  'Torso',
+  'Standing',
+  'Sitting',
+  'Walking',
+  'Crowd',
+  'People',
 ]);
 
-const PERSON_REJECT_CONFIDENCE = 75;
-const PERSON_PENDING_CONFIDENCE_MIN = 60;
+const PERSON_REJECT_CONFIDENCE = 38;
+const PERSON_PENDING_CONFIDENCE_MIN = 22;
 
 let rekognitionClient;
 
@@ -94,10 +116,24 @@ function mergeAdjacentDigitWords(blocks) {
   return merged.join(' ');
 }
 
+function isPersonRelatedLabel(name) {
+  if (!name) return false;
+  if (PERSON_LABELS.has(name)) return true;
+  const n = String(name).toLowerCase();
+  return (
+    n.includes('person') ||
+    n.includes('human') ||
+    n.includes('face') ||
+    n.includes('selfie') ||
+    n.includes('portrait') ||
+    /\b(hand|hands|finger|arm|leg|foot|feet|toe|shoulder|torso|body)\b/.test(n)
+  );
+}
+
 function findTopPersonLabel(labels) {
   let top = null;
   for (const label of labels || []) {
-    if (!PERSON_LABELS.has(label.Name)) continue;
+    if (!isPersonRelatedLabel(label.Name)) continue;
     const confidence = label.Confidence || 0;
     if (!top || confidence > top.confidence) {
       top = { name: label.Name, confidence };
@@ -142,8 +178,8 @@ export async function moderatePropertyImage(buffer, mimetype) {
       client.send(
         new DetectLabelsCommand({
           Image: { Bytes: bytes },
-          MinConfidence: 50,
-          MaxLabels: 50,
+          MinConfidence: 35,
+          MaxLabels: 80,
         })
       ),
     ]);
