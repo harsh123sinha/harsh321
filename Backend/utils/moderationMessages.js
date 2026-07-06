@@ -9,7 +9,8 @@ const MESSAGES = {
   website: 'External website links are not allowed.',
   social: 'Social media or off-platform contact details are not allowed.',
   contact_phrase: 'Listings containing external contact details cannot be published.',
-  image_contact: 'Please remove contact information from images.',
+  image_contact:
+    'This image contains a phone number, email, or other contact details. Remove them from the image (RERA numbers are fine).',
   image_person:
     'This image shows a person or body part (face, hand, leg, etc.). Use photos of rooms, buildings, or plots only.',
   image_explicit: 'This image cannot be published. Please upload appropriate property photos only.',
