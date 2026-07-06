@@ -417,7 +417,8 @@ export default function WorkerDashboard() {
                     if (!f) return;
                     setHallPhoto(f);
                     setHallPreview(URL.createObjectURL(f));
-                  />
+                  }}
+                />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Area (sq ft) *" icon={Briefcase}>
                     <input name="area_sqft" type="number" min="1" value={form.area_sqft} onChange={handleChange} required className="input-field" />

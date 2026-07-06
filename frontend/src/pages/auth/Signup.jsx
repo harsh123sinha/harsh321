@@ -287,6 +287,7 @@ const Signup = () => {
                   placeholder="9876543210"
                 />
               </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-navy mb-2">I am a</label>
