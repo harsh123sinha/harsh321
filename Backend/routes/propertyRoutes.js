@@ -13,7 +13,7 @@ import {
 } from '../controllers/propertyController.js';
 import { isAuthenticated, isOwnerOrAgent } from '../middleware/auth.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
-import { uploadListingAssets } from '../middleware/upload.js';
+import { uploadListingAssets, uploadMultipleImages } from '../middleware/upload.js';
 import { apiLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
