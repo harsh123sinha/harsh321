@@ -25,7 +25,7 @@ import {
   markAllStaffAlertsRead,
 } from '../controllers/staffAlertController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
-import { uploadMultipleImages } from '../middleware/upload.js';
+import { uploadMultipleImages, uploadListingAssets } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { previewModerateImages } from '../controllers/propertyController.js';
 
@@ -44,7 +44,7 @@ router.delete('/users/:id', deleteUser);
 
 router.post('/moderate-images', uploadMultipleImages, previewModerateImages);
 router.get('/properties', adminGetAllProperties);
-router.post('/properties', uploadMultipleImages, adminCreateProperty);
+router.post('/properties', uploadListingAssets, adminCreateProperty);
 router.post('/properties/:id/toggle-featured', toggleFeatured);
 router.put('/properties/:id', uploadMultipleImages, adminUpdateProperty);
 router.post('/properties/:id/approve', approvePropertyListing);

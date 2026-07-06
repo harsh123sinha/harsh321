@@ -15,6 +15,30 @@ import PropertyImagePicker, {
 } from '../common/PropertyImagePicker';
 import LocationSearchCombobox from '../search/LocationSearchCombobox';
 import { useAreaOptions } from '../../hooks/useAreas';
+import AddListingModeToggle from '../properties/AddListingModeToggle';
+import AddProjectFields, { validateAddProjectForm } from '../properties/AddProjectFields';
+
+const staffInputClass = (err) =>
+  `w-full border-2 rounded-lg px-3 py-2 ${err ? 'border-red-400' : 'border-gray-light'}`;
+
+function emptyProjectData() {
+  return {
+    projectType: 'apartment',
+    developerName: '',
+    marketedBy: '',
+    bhkSelected: [],
+    sqftFrom: '',
+    sqftTo: '',
+  };
+}
+
+function parseBhkOptions(raw) {
+  if (!raw) return [];
+  return String(raw)
+    .split(/[,/]/)
+    .map((s) => parseInt(s.trim(), 10))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
 
 function parseImages(imageUrl) {
   if (!imageUrl) return [];
@@ -78,6 +102,12 @@ export default function ManageProperties({ variant, staffFilter = null }) {
   const [existingImages, setExistingImages] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
   const [doneProperty, setDoneProperty] = useState(null);
+  const [listingMode, setListingMode] = useState('property');
+  const [projectData, setProjectData] = useState(emptyProjectData);
+  const [projectPdf, setProjectPdf] = useState(null);
+  const [projectFieldErrors, setProjectFieldErrors] = useState({});
+
+  const isProject = listingMode === 'project';
 
   const loadProperties = useCallback(async () => {
     setLoading(true);
@@ -117,6 +147,10 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     setNewImageItems([]);
     setRemoveFilenames([]);
     setExistingImages([]);
+    setListingMode('property');
+    setProjectData(emptyProjectData());
+    setProjectPdf(null);
+    setProjectFieldErrors({});
   };
 
   const openAdd = () => {
@@ -125,10 +159,31 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     setNewImageItems([]);
     setRemoveFilenames([]);
     setExistingImages([]);
+    setListingMode('property');
+    setProjectData(emptyProjectData());
+    setProjectPdf(null);
+    setProjectFieldErrors({});
     setModal('add');
   };
 
   const openEdit = (p) => {
+    const isProjectRow = p.listing_kind === 'project';
+    setListingMode(isProjectRow ? 'project' : 'property');
+    if (isProjectRow) {
+      setProjectData({
+        projectType: p.project_type || 'apartment',
+        developerName: p.developer_name || '',
+        marketedBy: p.marketed_by || '',
+        bhkSelected: parseBhkOptions(p.bhk_options),
+        sqftFrom: p.sqft_from != null ? String(p.sqft_from) : '',
+        sqftTo: p.sqft_to != null ? String(p.sqft_to) : '',
+      });
+      setProjectPdf(null);
+    } else {
+      setProjectData(emptyProjectData());
+      setProjectPdf(null);
+    }
+
     const rawType = p.type || 'rent';
     const cat = mapPropertyRowToCategoryForm(p);
 
@@ -245,6 +300,31 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     newFiles.forEach((f) => fd.append('images', f));
   };
 
+  const appendProjectForm = (fd) => {
+    fd.append('listing_kind', 'project');
+    fd.append('project_type', projectData.projectType);
+    fd.append('title', form.title);
+    fd.append('description', form.description);
+    fd.append('price', form.price);
+    fd.append('developer_name', projectData.developerName.trim());
+    fd.append('marketed_by', projectData.marketedBy.trim());
+    fd.append('bhk_options', projectData.bhkSelected.join(','));
+    fd.append('sqft_from', projectData.sqftFrom || '');
+    fd.append('sqft_to', projectData.sqftTo || '');
+    fd.append('location', form.location);
+    fd.append('city', form.city);
+    fd.append('featured', form.featured ? 'true' : 'false');
+    fd.append('belongs_to_phone', form.belongs_to_phone);
+    if (projectPdf) fd.append('project_pdf', projectPdf);
+    const newFiles = filesFromImageItems(newImageItems);
+    newFiles.forEach((f) => fd.append('images', f));
+  };
+
+  const handleProjectFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const save = async (e) => {
     e.preventDefault();
     if (hasCheckingImageItems(newImageItems)) {
@@ -259,35 +339,63 @@ export default function ManageProperties({ variant, staffFilter = null }) {
       toast.error('Enter a valid 10-digit owner number');
       return;
     }
-    if (form.category === 'other' && !String(form.otherDescription || '').trim()) {
-      toast.error('Enter a description for “Other” type');
-      return;
-    }
-    if (form.category === 'shop' && !String(form.shopSqftRange || '').trim()) {
-      toast.error('Select a shop size (sq ft range)');
-      return;
-    }
-    const isPlot = form.category === 'plot';
-    if (isPlot) {
-      const kf = form.kathaPreset === 'custom' ? form.kathaCustom.trim() : form.kathaPreset;
-      if (!kf) {
-        toast.error('Select katha or enter a decimal value for plot listings');
+    if (!isProject) {
+      if (form.category === 'other' && !String(form.otherDescription || '').trim()) {
+        toast.error('Enter a description for “Other” type');
         return;
       }
+      if (form.category === 'shop' && !String(form.shopSqftRange || '').trim()) {
+        toast.error('Select a shop size (sq ft range)');
+        return;
+      }
+      const isPlot = form.category === 'plot';
+      if (isPlot) {
+        const kf = form.kathaPreset === 'custom' ? form.kathaCustom.trim() : form.kathaPreset;
+        if (!kf) {
+          toast.error('Select katha or enter a decimal value for plot listings');
+          return;
+        }
+      }
     }
+
+    if (isProject && modal === 'add') {
+      const uploadImages = filesFromImageItems(newImageItems);
+      const projErrors = validateAddProjectForm({
+        formData: form,
+        projectData,
+        images: uploadImages,
+      });
+      if (Object.keys(projErrors).length > 0) {
+        setProjectFieldErrors(projErrors);
+        toast.error(Object.values(projErrors)[0]);
+        return;
+      }
+      setProjectFieldErrors({});
+    }
+
     try {
       if (modal === 'add') {
         const fd = new FormData();
-        appendForm(fd);
+        if (isProject) {
+          appendProjectForm(fd);
+        } else {
+          appendForm(fd);
+        }
         const res = await api.post(`${prefix}/properties`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success(
           res.data?.pendingReview
             ? res.data.message || 'Listing submitted for admin review.'
-            : 'Property created'
+            : isProject
+              ? 'Project created'
+              : 'Property created'
         );
       } else {
+        if (isProject) {
+          toast.error('Project edit from this panel is coming soon. Delete and re-add if urgent.');
+          return;
+        }
         const fd = new FormData();
         appendForm(fd);
         if (removeFilenames.length > 0) {
@@ -381,7 +489,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
             className="inline-flex items-center justify-center gap-2 bg-gold text-navy px-4 py-2 rounded-lg font-semibold hover:bg-gold/90"
           >
             <Plus className="h-5 w-5" />
-            Add property
+            Add listing
           </button>
         </div>
       </div>
@@ -522,7 +630,9 @@ export default function ManageProperties({ variant, staffFilter = null }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-navy">{modal === 'add' ? 'Add property' : 'Edit property'}</h2>
+              <h2 className="text-lg font-bold text-navy">
+                {modal === 'add' ? 'Add listing' : isProject ? 'Edit project' : 'Edit property'}
+              </h2>
               <button type="button" onClick={closeModal} className="p-1 rounded hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
@@ -545,9 +655,41 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                   onKeyDown={blockNonDigitKeyDown}
                 />
                 <p className="mt-1 text-xs text-stone-500">
-                  Property owner&apos;s contact number — saved with this listing.
+                  Owner&apos;s contact number — saved with this listing.
                 </p>
               </div>
+
+              {modal === 'add' && (
+                <AddListingModeToggle mode={listingMode} onChange={setListingMode} />
+              )}
+
+              {isProject ? (
+                <>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <AddProjectFields
+                    projectData={projectData}
+                    setProjectData={setProjectData}
+                    formData={form}
+                    handleChange={handleProjectFormChange}
+                    fieldErrors={projectFieldErrors}
+                    inputClass={staffInputClass}
+                    projectPdf={projectPdf}
+                    onProjectPdfChange={setProjectPdf}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="featured-project-staff"
+                    checked={form.featured}
+                    onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                  />
+                  <label htmlFor="featured-project-staff" className="text-sm font-medium text-navy">
+                    Feature on home page (subject to approval)
+                  </label>
+                </div>
+                </>
+              ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-navy mb-1">Title *</label>
@@ -899,8 +1041,9 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                   </label>
                 </div>
               </div>
+              )}
 
-              {modal === 'edit' && existingImages.length > 0 && (
+              {!isProject && modal === 'edit' && existingImages.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-navy mb-2">Remove existing photos (checked = delete on save)</p>
                   <div className="flex flex-wrap gap-3">
@@ -919,7 +1062,14 @@ export default function ManageProperties({ variant, staffFilter = null }) {
               )}
 
               <PropertyImagePicker
-                label={modal === 'add' ? 'Photos' : 'Add more photos'}
+                label={
+                  modal === 'add'
+                    ? isProject
+                      ? 'Project images'
+                      : 'Photos'
+                    : 'Add more photos'
+                }
+                required={modal === 'add'}
                 multiple
                 items={newImageItems}
                 onChange={setNewImageItems}

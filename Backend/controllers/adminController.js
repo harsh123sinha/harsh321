@@ -25,19 +25,35 @@ import {
   uploadProcessedFilesToS3,
   resolvePropertyImageUrls,
   deleteAllPropertyImages,
+  uploadPdfToS3,
 } from '../utils/s3.js';
 import {
   assertListingTextAllowed,
   processPropertyImagesForUpload,
   assertNoRejectedImagesOnCreate,
   resolveListingStatus,
+  getProseReviewFlag,
+  buildReviewReasons,
 } from '../utils/propertyListingGuard.js';
+import { compressPdfForUpload } from '../utils/pdfPrep.js';
 import { buildPendingReviewSuccess } from '../utils/moderationMessages.js';
 import { workerModel } from '../models/workerModel.js';
 import { enrichWorkersWithServiceDetails } from '../models/serviceDetailModel.js';
 import { workerCustomerReviewModel } from '../models/workerCustomerReviewModel.js';
 import { formatEmployeeId } from '../utils/employeeId.js';
 import { findCategoryIdByProfession } from '../utils/workerProfessions.js';
+
+function getUploadedImages(req) {
+  if (!req.files) return [];
+  if (Array.isArray(req.files)) return req.files;
+  return req.files.images || [];
+}
+
+function getUploadedProjectPdf(req) {
+  if (!req.files || Array.isArray(req.files)) return null;
+  const pdfs = req.files.project_pdf;
+  return pdfs?.[0] || null;
+}
 
 // Admin login
 export const adminLogin = async (req, res) => {
@@ -238,6 +254,128 @@ export const adminGetAllProperties = async (req, res) => {
 // Create property on behalf of a user (admin / sub-admin)
 export const adminCreateProperty = async (req, res) => {
   try {
+    const listingKind = req.body.listing_kind === 'project' ? 'project' : 'property';
+    const staffType = req.user?.isSubAdmin ? 'subadmin' : 'admin';
+
+    if (listingKind === 'project') {
+      const {
+        title,
+        description,
+        price,
+        location,
+        city,
+        featured,
+        belongs_to_phone,
+        project_type,
+        developer_name,
+        marketed_by,
+        bhk_options,
+        sqft_from,
+        sqft_to,
+      } = req.body;
+
+      const belongsToPhoneDb = normalizeIndianMobile(belongs_to_phone);
+      if (!belongsToPhoneDb) {
+        return res.status(400).json({ error: 'Owner number: enter a valid 10-digit mobile number.' });
+      }
+
+      if (
+        !title ||
+        !description ||
+        !price ||
+        !location ||
+        !city ||
+        !project_type ||
+        !developer_name ||
+        !bhk_options
+      ) {
+        return res.status(400).json({ error: 'Required project fields missing' });
+      }
+
+      if (!['enclave', 'apartment'].includes(String(project_type))) {
+        return res.status(400).json({ error: 'Invalid project type' });
+      }
+
+      assertListingTextAllowed(req.body);
+      const proseReview = getProseReviewFlag(req.body);
+
+      const imageFiles = getUploadedImages(req);
+      if (!imageFiles.length) {
+        return res.status(400).json({ error: 'At least one project image is required' });
+      }
+
+      const processed = await processPropertyImagesForUpload(imageFiles);
+      assertNoRejectedImagesOnCreate(processed.rejected);
+      const imageNeedsReview = processed.needsReview;
+      const imageUrls = await uploadProcessedFilesToS3(processed.files);
+
+      let enclavePdfUrl = null;
+      const pdfFile = getUploadedProjectPdf(req);
+      if (pdfFile) {
+        const compressedPdf = await compressPdfForUpload(pdfFile.buffer);
+        enclavePdfUrl = await uploadPdfToS3(compressedPdf, pdfFile.originalname);
+      }
+
+      const needsReview = imageNeedsReview || Boolean(proseReview);
+      const listingStatus = resolveListingStatus(needsReview);
+      const listingReviewReason = buildReviewReasons({ imageNeedsReview, proseReview });
+      const loc = normalizeListingLocation(city);
+
+      const propertyId = await propertyModel.create({
+        title,
+        description,
+        price: parseFloat(price),
+        type: 'buy',
+        bhk: null,
+        katha: null,
+        balconies: null,
+        bathrooms: null,
+        garden: 0,
+        car_parking: 0,
+        floor_no: null,
+        bike_parking: 0,
+        shop_sqft_range: null,
+        shop_road_distance: null,
+        shop_token_amount: null,
+        furnishing_status: null,
+        location,
+        road_no: null,
+        city,
+        district: loc.district,
+        state: loc.state,
+        pincode: loc.pincode,
+        image_url: stringifyImageUrls(imageUrls),
+        other_type: project_type === 'enclave' ? 'Enclave' : 'Apartment',
+        owner_id: null,
+        belongs_to_phone: belongsToPhoneDb,
+        featured: featured === 'true' || featured === true ? 1 : 0,
+        listing_status: listingStatus,
+        listing_review_reason: listingReviewReason,
+        listed_by_staff: staffType,
+        listing_kind: 'project',
+        project_type,
+        developer_name: String(developer_name).trim(),
+        marketed_by: marketed_by ? String(marketed_by).trim() : null,
+        bhk_options: String(bhk_options).trim(),
+        sqft_from: sqft_from != null && String(sqft_from).trim() !== '' ? Number(sqft_from) : null,
+        sqft_to: sqft_to != null && String(sqft_to).trim() !== '' ? Number(sqft_to) : null,
+        enclave_pdf_url: enclavePdfUrl,
+      });
+
+      if (listingStatus === 'pending_review') {
+        return res.status(201).json({
+          ...buildPendingReviewSuccess(),
+          propertyId,
+        });
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Project created successfully',
+        propertyId,
+      });
+    }
+
     const {
       title, description, price, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured, belongs_to_phone,
@@ -287,8 +425,9 @@ export const adminCreateProperty = async (req, res) => {
 
     let imageUrls = [];
     let needsReview = false;
-    if (req.files && req.files.length > 0) {
-      const processed = await processPropertyImagesForUpload(req.files);
+    const imageFiles = getUploadedImages(req);
+    if (imageFiles.length > 0) {
+      const processed = await processPropertyImagesForUpload(imageFiles);
       assertNoRejectedImagesOnCreate(processed.rejected);
       needsReview = processed.needsReview;
       imageUrls = await uploadProcessedFilesToS3(processed.files);
@@ -330,8 +469,6 @@ export const adminCreateProperty = async (req, res) => {
     const floorNoFinal = isShopListing ? null : floorNo;
 
     const furnishDb = parseFurnishingForDb(type, otherTrim, furnishing_status);
-
-    const staffType = req.user?.isSubAdmin ? 'subadmin' : 'admin';
 
     const propertyId = await propertyModel.create({
       title,
