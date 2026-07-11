@@ -82,7 +82,12 @@ const AreaFlatsForRent = () => {
           return `/properties/search?${params.toString()}`;
         }}
         emptyTitle={`No listings in ${area.name} right now`}
-        emptyMessage="New rentals are added regularly. Browse all Patna properties or check a nearby area."
+        emptyMessage="New rentals are added regularly — or tell us what you need"
+        demandPrefill={{
+          category: 'homes',
+          listing_type: 'rent',
+          location: area.searchLocation || area.name || '',
+        }}
         countLabel={({ total, showing }) => (
           <p>
             <span className="font-semibold text-navy">{total.toLocaleString('en-IN')}</span> results

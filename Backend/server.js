@@ -23,8 +23,10 @@ import savedPropertyRoutes from './routes/savedPropertyRoutes.js';
 import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './routes/brokerRoutes.js';
 import workerRoutes, { reviewRouter as workerCustomerReviewRoutes } from './routes/workerRoutes.js';
 import missionRoutes from './routes/missionRoutes.js';
+import demandRoutes from './routes/demandRoutes.js';
 import { registerMissionInterest } from './controllers/missionController.js';
 import { ensureMissionSchema } from './utils/ensureMissionSchema.js';
+import { ensureDemandSchema } from './utils/ensureDemandSchema.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -85,6 +87,7 @@ app.use('/api/broker-customer-reviews', brokerCustomerReviewRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/worker-customer-reviews', workerCustomerReviewRoutes);
 app.use('/api/mission', missionRoutes);
+app.use('/api/demands', demandRoutes);
 app.post('/api/register', registerMissionInterest);
 
 // 404 handler
@@ -166,6 +169,12 @@ async function start() {
     await ensureMissionSchema();
   } catch (e) {
     console.error('⚠️ ensureMissionSchema failed:', e.message);
+  }
+
+  try {
+    await ensureDemandSchema();
+  } catch (e) {
+    console.error('⚠️ ensureDemandSchema failed:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

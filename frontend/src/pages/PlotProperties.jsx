@@ -25,6 +25,8 @@ const PlotProperties = () => {
         queryKey={['properties', 'plot']}
         buildUrl={(limit, offset) => `/properties/type/plot?limit=${limit}&offset=${offset}`}
         emptyTitle="No Plots Found"
+        emptyMessage="Try adjusting your filters — or tell us what you need"
+        demandPrefill={{ category: 'plot', listing_type: 'plot_buy' }}
         countLabel={({ total, showing }) => (
           <p>
             <span className="font-semibold text-navy">{total.toLocaleString('en-IN')}</span> plots

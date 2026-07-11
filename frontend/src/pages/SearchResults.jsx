@@ -108,6 +108,46 @@ const SearchResults = () => {
     return <Navigate to="/shop" replace />;
   }
 
+  const demandPrefill = useMemo(() => {
+    const other = String(filters.other_type || '').toLowerCase();
+    let category = 'homes';
+    let listing_type = 'rent';
+
+    if (filters.type === 'plot' || filters.type === 'plot_lease' || filters.type === 'plot_buy') {
+      category = 'plot';
+      listing_type = filters.type === 'plot_lease' ? 'plot_lease' : 'plot_buy';
+    } else if (other === 'shop') {
+      category = 'shop';
+      listing_type = filters.type === 'buy' ? 'buy' : 'rent';
+    } else if (other === 'flat') {
+      category = 'flat';
+      listing_type = filters.type === 'buy' ? 'buy' : 'rent';
+    } else if (other === 'apartment') {
+      category = 'apartment';
+      listing_type = filters.type === 'buy' ? 'buy' : 'rent';
+    } else if (filters.type === 'other') {
+      category = 'other';
+      listing_type = '';
+    } else if (filters.type === 'buy') {
+      listing_type = 'buy';
+    } else if (filters.type === 'rent') {
+      listing_type = 'rent';
+    }
+
+    return {
+      category,
+      listing_type,
+      location: filters.location || '',
+      bhk: filters.bhk || '',
+      facing: filters.facing || '',
+      furnishing: filters.furnishing_status || '',
+      shop_sqft_range: filters.shop_sqft_range || '',
+      katha: filters.katha || '',
+      budget_min: filters.minPrice || '',
+      budget_max: filters.maxPrice || '',
+    };
+  }, [filters]);
+
   const desktopHero = (
     <div className="bg-[#0a1020] text-white pb-8 pt-8 sm:pb-10 sm:pt-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -138,7 +178,8 @@ const SearchResults = () => {
         queryKey={['search', filters]}
         buildUrl={buildSearchUrl}
         emptyTitle="No Properties Found"
-        emptyMessage="Try different search criteria"
+        emptyMessage="Try different search criteria — or tell us what you need"
+        demandPrefill={demandPrefill}
         onPropertiesChange={setMainProperties}
         countLabel={({ total, showing }) => (
           <p>

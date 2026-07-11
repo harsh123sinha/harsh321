@@ -12,6 +12,7 @@ const CATEGORY_LABELS = {
   buyer: 'Buyer',
   mission: 'Mission',
   property: 'Property',
+  demand: 'Demand',
 };
 
 function formatWhen(iso) {

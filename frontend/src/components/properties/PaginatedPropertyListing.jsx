@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   useInfinitePropertyList,
@@ -7,6 +7,7 @@ import {
 import { consumeListScroll } from '../../utils/listScrollRestore';
 import PropertyListSection from './PropertyListSection';
 import BrandLoader from '../ui/BrandLoader';
+import MyDemandModal from './MyDemandModal';
 import { Building2 } from 'lucide-react';
 
 /**
@@ -21,11 +22,14 @@ const PaginatedPropertyListing = ({
   emptyMessage = 'Try adjusting your search filters',
   countLabel,
   onPropertiesChange,
+  demandPrefill = null,
+  showDemandCta = true,
 }) => {
   const location = useLocation();
   const scrollKey = listKey || location.pathname;
   const restoreRef = useRef(null);
   const restoredRef = useRef(false);
+  const [demandOpen, setDemandOpen] = useState(false);
 
   const {
     data,
@@ -96,11 +100,27 @@ const PaginatedPropertyListing = ({
 
   if (!properties.length) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
-        <Building2 className="h-16 w-16 sm:h-20 sm:w-20 text-gray mx-auto mb-4" />
-        <h3 className="text-xl sm:text-2xl font-bold text-navy mb-2">{emptyTitle}</h3>
-        <p className="text-gray mb-6">{emptyMessage}</p>
-      </div>
+      <>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
+          <Building2 className="h-16 w-16 sm:h-20 sm:w-20 text-gray mx-auto mb-4" />
+          <h3 className="text-xl sm:text-2xl font-bold text-navy mb-2">{emptyTitle}</h3>
+          <p className="text-gray mb-6">{emptyMessage}</p>
+          {showDemandCta && (
+            <button
+              type="button"
+              onClick={() => setDemandOpen(true)}
+              className="inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-bold text-navy shadow-sm hover:bg-gold/90"
+            >
+              My Demand
+            </button>
+          )}
+        </div>
+        <MyDemandModal
+          open={demandOpen}
+          onClose={() => setDemandOpen(false)}
+          prefill={demandPrefill || {}}
+        />
+      </>
     );
   }
 

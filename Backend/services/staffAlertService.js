@@ -7,6 +7,7 @@ const CATEGORY_LABELS = {
   buyer: 'Buyer',
   mission: 'Mission',
   property: 'Property',
+  demand: 'User demand',
 };
 
 export function staffCategoryLabel(category) {
@@ -47,6 +48,16 @@ export async function notifyMissionRegistration(reg) {
     body: `${reg.name} · ${reg.mobile} · ${reg.bhk} · ${reg.group_mode === 'group' ? 'Own group' : 'Match me'}`,
     linkPath: '/admin/mission',
     referenceId: reg.id,
+  });
+}
+
+export async function notifyUserDemand(demand) {
+  await notifyStaffAlert({
+    category: 'demand',
+    title: 'New user property demand',
+    body: `${demand.contact_phone} · ${demand.category}${demand.location ? ` · ${demand.location}` : ''}`,
+    linkPath: '/admin/demands',
+    referenceId: demand.id,
   });
 }
 

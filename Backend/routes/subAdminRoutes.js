@@ -20,6 +20,10 @@ import {
   adminUpdateMissionStatus,
 } from '../controllers/missionController.js';
 import {
+  adminListUserDemands,
+  adminUpdateUserDemandStatus,
+} from '../controllers/demandController.js';
+import {
   getStaffAlerts,
   markStaffAlertRead,
   markAllStaffAlertsRead,
@@ -58,6 +62,9 @@ router.post('/areas', addArea);
 
 router.get('/mission/registrations', adminListMissionRegistrations);
 router.patch('/mission/registrations/:id', adminUpdateMissionStatus);
+
+router.get('/demands', adminListUserDemands);
+router.patch('/demands/:id', adminUpdateUserDemandStatus);
 
 router.get('/staff-alerts', getStaffAlerts);
 router.patch('/staff-alerts/read-all', markAllStaffAlertsRead);

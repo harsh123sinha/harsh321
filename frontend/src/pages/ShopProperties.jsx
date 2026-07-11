@@ -43,7 +43,8 @@ const ShopProperties = () => {
           `/properties/search?type=rent&other_type=Shop&limit=${limit}&offset=${offset}`
         }
         emptyTitle="No Shops Found"
-        emptyMessage="Try adjusting your filters or check back later."
+        emptyMessage="Try adjusting your filters — or tell us what you need"
+        demandPrefill={{ category: 'shop', listing_type: 'rent' }}
         countLabel={({ total, showing }) => (
           <p>
             <span className="font-semibold text-navy">{total.toLocaleString('en-IN')}</span> shops

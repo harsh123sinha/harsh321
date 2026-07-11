@@ -24,6 +24,8 @@ const RentProperties = () => {
       <PaginatedPropertyListing
         queryKey={['properties', 'rent']}
         buildUrl={(limit, offset) => `/properties/type/rent?limit=${limit}&offset=${offset}`}
+        demandPrefill={{ category: 'homes', listing_type: 'rent' }}
+        emptyMessage="Try adjusting your filters — or tell us what you need"
         countLabel={({ total, showing }) => (
           <p>
             <span className="font-semibold text-navy">{total.toLocaleString('en-IN')}</span> results

@@ -56,6 +56,7 @@ import AdminStaffProperties from './pages/admin/AdminStaffProperties';
 import AdminSubAdmins from './pages/admin/AdminSubAdmins';
 import AdminWorkers from './pages/admin/AdminWorkers';
 import AdminMission from './pages/admin/AdminMission';
+import AdminDemands from './pages/admin/AdminDemands';
 
 // Sub-admin pages
 import SubAdminLogin from './pages/subadmin/SubAdminLogin';
@@ -64,6 +65,7 @@ import SubAdminUsers from './pages/subadmin/SubAdminUsers';
 import SubAdminProperties from './pages/subadmin/SubAdminProperties';
 import SubAdminStaffProperties from './pages/subadmin/SubAdminStaffProperties';
 import SubAdminMission from './pages/subadmin/SubAdminMission';
+import SubAdminDemands from './pages/subadmin/SubAdminDemands';
 
 // Static pages
 import Terms from './pages/Terms';
@@ -198,6 +200,7 @@ function App() {
             <Route path="/admin/admin-properties" element={<AdminStaffProperties />} />
             <Route path="/admin/workers" element={<AdminWorkers />} />
             <Route path="/admin/mission" element={<AdminMission />} />
+            <Route path="/admin/demands" element={<AdminDemands />} />
             <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
 
             {/* Sub-admin routes (no layout) */}
@@ -207,6 +210,7 @@ function App() {
             <Route path="/subadmin/properties" element={<SubAdminProperties />} />
             <Route path="/subadmin/subadmin-properties" element={<SubAdminStaffProperties />} />
             <Route path="/subadmin/mission" element={<SubAdminMission />} />
+            <Route path="/subadmin/demands" element={<SubAdminDemands />} />
           </Routes>
           <ChatWidget />
           <FcmBootstrap />

@@ -29,6 +29,10 @@ import {
   adminUpdateMissionStatus,
 } from '../controllers/missionController.js';
 import {
+  adminListUserDemands,
+  adminUpdateUserDemandStatus,
+} from '../controllers/demandController.js';
+import {
   getStaffAlerts,
   markStaffAlertRead,
   markAllStaffAlertsRead,
@@ -81,6 +85,10 @@ router.post('/areas', addArea);
 // Mission co-ownership registrations
 router.get('/mission/registrations', adminListMissionRegistrations);
 router.patch('/mission/registrations/:id', adminUpdateMissionStatus);
+
+// User property demands (no-login leads)
+router.get('/demands', adminListUserDemands);
+router.patch('/demands/:id', adminUpdateUserDemandStatus);
 
 // Staff notification bell
 router.get('/staff-alerts', getStaffAlerts);
