@@ -106,6 +106,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
   const [projectData, setProjectData] = useState(emptyProjectData);
   const [projectPdf, setProjectPdf] = useState(null);
   const [projectFieldErrors, setProjectFieldErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const isProject = listingMode === 'project';
 
@@ -151,6 +152,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     setProjectData(emptyProjectData());
     setProjectPdf(null);
     setProjectFieldErrors({});
+    setSaving(false);
   };
 
   const openAdd = () => {
@@ -374,6 +376,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     }
 
     try {
+      setSaving(true);
       if (modal === 'add') {
         const fd = new FormData();
         if (isProject) {
@@ -418,6 +421,8 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     } catch (err) {
       const data = err.response?.data;
       toast.error(data?.imageModeration?.userMessage || data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -1073,10 +1078,29 @@ export default function ManageProperties({ variant, staffFilter = null }) {
               />
 
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-gold text-navy py-2 rounded-lg font-bold">
-                  Save
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-gold text-navy py-2 rounded-lg font-bold disabled:opacity-60"
+                >
+                  {saving
+                    ? modal === 'add'
+                      ? 'Adding...'
+                      : 'Updating...'
+                    : modal === 'add'
+                      ? isProject
+                        ? 'Add project'
+                        : 'Add property'
+                      : isProject
+                        ? 'Update project'
+                        : 'Update property'}
                 </button>
-                <button type="button" onClick={closeModal} className="flex-1 border-2 border-gray-light py-2 rounded-lg">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={saving}
+                  className="flex-1 border-2 border-gray-light py-2 rounded-lg disabled:opacity-60"
+                >
                   Cancel
                 </button>
               </div>

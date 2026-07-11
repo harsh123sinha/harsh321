@@ -111,7 +111,7 @@ const PaginatedPropertyListing = ({
               onClick={() => setDemandOpen(true)}
               className="inline-flex items-center justify-center rounded-lg bg-gold px-6 py-3 text-sm font-bold text-navy shadow-sm hover:bg-gold/90"
             >
-              My Demand
+              Send my demand
             </button>
           )}
         </div>
