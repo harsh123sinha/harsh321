@@ -53,7 +53,7 @@ export const stringifyImageUrls = (imageArray) => {
   return JSON.stringify(imageArray);
 };
 
-import { PLOT_TYPES, SHOP_SQFT_RANGE_VALUES } from './propertyConstants.js';
+import { PLOT_TYPES, SHOP_SQFT_RANGE_VALUES, isShopLikeOtherType } from './propertyConstants.js';
 
 // Validate property type-specific fields
 export const validatePropertyFields = (type, fields) => {
@@ -69,10 +69,10 @@ export const validatePropertyFields = (type, fields) => {
 
   if (t === 'rent' || t === 'buy') {
     const ot = String(fields.other_type ?? '').trim();
-    if (ot === 'Shop') {
+    if (isShopLikeOtherType(ot)) {
       const r = String(fields.shop_sqft_range ?? '').trim();
       if (!SHOP_SQFT_RANGE_VALUES.includes(r)) {
-        errors.push('Select a shop size range (sq ft)');
+        errors.push('Select a size range (sq ft)');
       }
       return errors;
     }

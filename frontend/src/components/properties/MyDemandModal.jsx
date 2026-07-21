@@ -14,10 +14,11 @@ import LocationSearchCombobox from '../search/LocationSearchCombobox';
 import { useAreaOptions } from '../../hooks/useAreas';
 
 const CATEGORIES = [
-  { id: 'homes', label: 'Homes' },
+  { id: 'homes', label: 'House' },
   { id: 'flat', label: 'Flat' },
   { id: 'apartment', label: 'Apartment' },
   { id: 'shop', label: 'Shop' },
+  { id: 'commercial', label: 'Commercial space' },
   { id: 'plot', label: 'Plot' },
   { id: 'other', label: 'Other' },
 ];
@@ -97,7 +98,7 @@ export default function MyDemandModal({ open, onClose, prefill = {} }) {
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
   const isHomeLike = ['homes', 'flat', 'apartment'].includes(form.category);
-  const isShop = form.category === 'shop';
+  const isShop = form.category === 'shop' || form.category === 'commercial';
   const isPlot = form.category === 'plot';
 
   const selectCategory = (id) => {

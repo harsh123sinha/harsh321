@@ -50,6 +50,7 @@ const AddProperty = () => {
     title: '',
     description: '',
     price: '',
+    priceUnit: 'total',
     category: 'homes',
     transaction: 'rent',
     plotTransaction: 'lease',
@@ -157,7 +158,8 @@ const AddProperty = () => {
   const isProject = listingMode === 'project';
   const isPlot = !isProject && formData.category === 'plot';
   const isOther = !isProject && formData.category === 'other';
-  const isShop = !isProject && formData.category === 'shop';
+  const isShop =
+    !isProject && (formData.category === 'shop' || formData.category === 'commercial');
   const showBhkAndAmenities = !isProject && !isPlot && !isOther;
   const showFurnishing =
     showBhkAndAmenities &&
@@ -478,6 +480,7 @@ const AddProperty = () => {
     data.append('pincode', String(formData.pincode || '').trim());
     data.append('built_up_area_sqft', formData.builtUpAreaSqft || '');
     data.append('other_type', other_type);
+    data.append('price_unit', isShop && formData.priceUnit === 'per_sqft' ? 'per_sqft' : 'total');
     data.append('shop_sqft_range', isShop ? formData.shopSqftRange : '');
     data.append('featured', formData.featured ? 'true' : 'false');
 
@@ -661,19 +664,58 @@ const AddProperty = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-navy mb-2">Price (₹) *</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                name="price"
-                value={formData.price}
-                onChange={(e) => handleIntegerChange(e, 12)}
-                onKeyDown={blockNonDigitKeyDown}
-                required
-                className={inputClass(fieldErrors.price)}
-                placeholder="e.g. 15000"
-              />
+              <label className="block text-sm font-medium text-navy mb-2">
+                {isShop && formData.priceUnit === 'per_sqft' ? 'Price (₹ / sq ft) *' : 'Price (₹) *'}
+              </label>
+              {isShop ? (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, priceUnit: 'total' }))}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition ${
+                      formData.priceUnit !== 'per_sqft'
+                        ? 'bg-navy text-white border-navy'
+                        : 'bg-white text-navy border-gray-light hover:border-navy/40'
+                    }`}
+                  >
+                    Total price
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, priceUnit: 'per_sqft' }))}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition ${
+                      formData.priceUnit === 'per_sqft'
+                        ? 'bg-navy text-white border-navy'
+                        : 'bg-white text-navy border-gray-light hover:border-navy/40'
+                    }`}
+                  >
+                    Price per sq ft
+                  </button>
+                </div>
+              ) : null}
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  name="price"
+                  value={formData.price}
+                  onChange={(e) => handleIntegerChange(e, 12)}
+                  onKeyDown={blockNonDigitKeyDown}
+                  required
+                  className={`${inputClass(fieldErrors.price)} ${
+                    isShop && formData.priceUnit === 'per_sqft' ? 'pr-20' : ''
+                  }`}
+                  placeholder={
+                    isShop && formData.priceUnit === 'per_sqft' ? 'e.g. 70' : 'e.g. 15000'
+                  }
+                />
+                {isShop && formData.priceUnit === 'per_sqft' ? (
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray">
+                    /sq ft
+                  </span>
+                ) : null}
+              </div>
               <FieldHint error={fieldErrors.price} onDismiss={() => clearFieldError('price')} />
             </div>
             <div>

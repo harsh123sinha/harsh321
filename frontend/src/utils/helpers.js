@@ -27,6 +27,27 @@ export const formatIndianPrice = (price) => {
   }).format(numPrice);
 };
 
+/** Listing price with optional `/sq ft` when price_unit is per_sqft */
+export const formatPropertyPrice = (property) => {
+  if (property == null || typeof property !== 'object') {
+    return formatIndianPrice(property);
+  }
+  const base = formatIndianPrice(property.price);
+  if (String(property.price_unit || '') === 'per_sqft') {
+    return `${base}/sq ft`;
+  }
+  return base;
+};
+
+export const isShopLikeListing = (propertyOrOtherType) => {
+  const ot =
+    typeof propertyOrOtherType === 'object'
+      ? propertyOrOtherType?.other_type
+      : propertyOrOtherType;
+  const v = String(ot || '').trim().toLowerCase();
+  return v === 'shop' || v === 'commercial space';
+};
+
 // Validate Indian mobile number
 export const isValidIndianMobile = (phone) => {
   const indianMobileRegex = /^[6-9]\d{9}$/;
@@ -176,7 +197,7 @@ export const getPropertyListingUrl = (propertyOrId) => {
 export const buildPropertyShareText = (property) => {
   if (!property) return '';
   const url = getPropertyListingUrl(property);
-  const price = formatIndianPrice(property.price);
+  const price = formatPropertyPrice(property);
   const loc = [property.location, property.city].filter(Boolean).join(', ');
   const lines = [
     'Check out this property on Harsh To Let Services:',
@@ -313,7 +334,7 @@ export const buildPropertyWhatsAppMessage = (property, listingUrl) => {
     'Hi, I am interested in this property on HarshToLetServices:',
     '',
     `*Title:* ${property.title}`,
-    `*Price:* ${formatIndianPrice(property.price)}`,
+    `*Price:* ${formatPropertyPrice(property)}`,
     `*Listing type:* ${property.type || ''}`,
   ];
   if (property.bhk) lines.push(`*BHK:* ${property.bhk}`);

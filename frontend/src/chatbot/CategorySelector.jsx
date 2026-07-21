@@ -1,6 +1,7 @@
 const CATEGORIES = [
   { id: 'shop', label: 'Shop' },
-  { id: 'house_flat', label: 'House & Flat' },
+  { id: 'commercial', label: 'Commercial space' },
+  { id: 'house_flat', label: 'House' },
   { id: 'apartment', label: 'Apartment' },
   { id: 'plots', label: 'Plots' },
   { id: 'other', label: 'Other' },

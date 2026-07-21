@@ -40,6 +40,15 @@ export function buildSearchParams(category, answers) {
     return params;
   }
 
+  if (category === 'commercial') {
+    params.set('type', listingType);
+    params.set('other_type', 'Commercial space');
+    const range =
+      answers.shopSqftRange || mapNumericSqftToShopRange(answers.shopAreaSqft);
+    if (range) params.set('shop_sqft_range', range);
+    return params;
+  }
+
   if (category === 'house_flat') {
     params.set('type', listingType);
     if (answers.bhk) params.set('bhk', String(answers.bhk));
@@ -85,9 +94,17 @@ export function refineResults(category, answers, properties) {
     list = list.filter((p) => ot(p) === 'shop');
   }
 
+  if (category === 'commercial') {
+    list = list.filter((p) => ot(p) === 'commercial space');
+  }
+
   if (category === 'house_flat') {
     list = list.filter(
-      (p) => !isPlotRow(p) && ot(p) !== 'shop' && ot(p) !== 'apartment'
+      (p) =>
+        !isPlotRow(p) &&
+        ot(p) !== 'shop' &&
+        ot(p) !== 'commercial space' &&
+        ot(p) !== 'apartment'
     );
   }
 

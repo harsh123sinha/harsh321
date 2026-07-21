@@ -1,7 +1,7 @@
 import { userDemandModel } from '../models/userDemandModel.js';
 import { notifyUserDemand } from '../services/staffAlertService.js';
 
-const CATEGORIES = ['homes', 'flat', 'apartment', 'shop', 'plot', 'other'];
+const CATEGORIES = ['homes', 'flat', 'apartment', 'shop', 'commercial', 'plot', 'other'];
 const LISTING_TYPES = ['rent', 'buy', 'plot_lease', 'plot_buy'];
 
 function isValidMobile(mobile) {

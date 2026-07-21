@@ -103,7 +103,7 @@ const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', p
   }, [searchParams, presetLocation, presetType]);
 
   const isPlot = category === 'plot';
-  const isShop = category === 'shop';
+  const isShop = category === 'shop' || category === 'commercial';
   const transactionLabel = isPlot ? 'Lease / Buy' : 'Rent / Sell';
   const thirdLabel = isPlot ? 'Katha' : isShop ? 'Sq ft' : 'BHK';
 
@@ -116,7 +116,7 @@ const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', p
     } else if (v === 'other') {
       setTransaction('rent');
       setShopSqftRange('');
-    } else if (v === 'shop') {
+    } else if (v === 'shop' || v === 'commercial') {
       setBhk('');
     } else {
       setKatha('');
@@ -140,6 +140,9 @@ const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', p
     } else if (category === 'shop') {
       typeParam = transaction;
       otherTypeParam = 'Shop';
+    } else if (category === 'commercial') {
+      typeParam = transaction;
+      otherTypeParam = 'Commercial space';
     } else if (category === 'flat') {
       typeParam = transaction;
       otherTypeParam = 'Flat';
@@ -259,9 +262,10 @@ const SearchBar = ({ expanded = false, variant, onSearch, presetLocation = '', p
       onChange={(e) => onCategoryChange(e.target.value)}
       className={resolvedVariant === 'underline' ? darkSelect : boxedSelect}
     >
-      <option value="homes">Homes & flats</option>
+      <option value="homes">House</option>
       <option value="plot">Plot</option>
       <option value="shop">Shop</option>
+      <option value="commercial">Commercial space</option>
       <option value="flat">Flat</option>
       <option value="apartment">Apartment</option>
       <option value="other">Other</option>

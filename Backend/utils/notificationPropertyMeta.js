@@ -14,6 +14,9 @@ export function getDefaultPropertyImageUrl() {
 
 export function formatPropertyPriceLabel(property) {
   const formatted = formatIndianPrice(property?.price);
+  if (String(property?.price_unit || '') === 'per_sqft') {
+    return `${formatted}/sq ft`;
+  }
   if (property?.type && RENT_TYPES.has(property.type)) {
     return `${formatted}/month`;
   }

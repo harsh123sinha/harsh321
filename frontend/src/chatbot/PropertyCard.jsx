@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
-  formatIndianPrice,
+  formatPropertyPrice,
   parseImageUrls,
   truncateText,
   getPropertyTypeBadge,
@@ -57,7 +57,7 @@ const PropertyCard = ({ property, onAfterNavigate }) => {
         </div>
         <div className="space-y-1 p-2.5">
           <p className="text-sm font-bold text-navy line-clamp-1">
-            {formatIndianPrice(property.price)}
+            {formatPropertyPrice(property)}
           </p>
           <p className="flex items-start gap-1 text-[11px] text-slate-600 line-clamp-2">
             <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0 text-gold" />

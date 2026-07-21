@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { MapPin, Home, Star } from 'lucide-react';
 import {
   formatIndianPrice,
+  formatPropertyPrice,
   parseImageUrls,
   truncateText,
   getPropertyTypeBadge,
   getListingParty,
   getShopSqftRangeLabel,
   getFurnishingLabel,
+  isShopLikeListing,
 } from '../../utils/helpers';
 import { getImageUrl } from '../../utils/api';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
@@ -30,7 +32,7 @@ const PropertyCard = ({ property }) => {
   const listingParty = getListingParty(property.owner_role);
   const agentInfo = getAgentListingInfo(property);
 
-  const isShop = String(property.other_type || '').toLowerCase() === 'shop';
+  const isShop = isShopLikeListing(property);
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
 
@@ -179,7 +181,7 @@ const PropertyCard = ({ property }) => {
         <Link to={`/property/${property.id}`} className="shrink-0 hover:opacity-90">
           <p className="mb-0.5 text-[9px] text-gray sm:mb-1 sm:text-xs">Price</p>
           <p className="whitespace-nowrap text-base font-bold leading-tight text-gold sm:text-xl md:text-2xl">
-            {formatIndianPrice(property.price)}
+            {formatPropertyPrice(property)}
           </p>
         </Link>
 

@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { MapPin } from 'lucide-react';
-import { formatIndianPrice, formatListingPostedDate, parseImageUrls, DEFAULT_SITE_INQUIRY_PHONE } from '../../utils/helpers';
+import { formatPropertyPrice, formatListingPostedDate, parseImageUrls, DEFAULT_SITE_INQUIRY_PHONE } from '../../utils/helpers';
 import { formatListingCardTitle } from '../../utils/listingTitleUtils';
 import { saveListScroll } from '../../utils/listScrollRestore';
 import PropertyCardImageCarousel from './PropertyCardImageCarousel';
@@ -86,7 +86,7 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
           <div className="min-w-0 pb-2.5 lg:pb-3">
             <div className="flex items-start justify-between gap-1.5">
               <p className="min-w-0 text-[1.1rem] font-bold leading-tight tracking-tight text-[#0a1020] sm:text-xl lg:text-2xl lg:font-black">
-                {formatIndianPrice(property.price)}
+                {formatPropertyPrice(property)}
               </p>
               <div className="flex shrink-0 flex-col items-center gap-1 lg:gap-1.5">
                 {postedLabel ? (

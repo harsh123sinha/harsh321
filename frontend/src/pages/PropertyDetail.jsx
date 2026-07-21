@@ -5,6 +5,7 @@ import { MapPin, Home, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import api, { getImageUrl } from '../utils/api';
 import {
   formatIndianPrice,
+  formatPropertyPrice,
   parseImageUrls,
   getPropertyTypeBadge,
   getListingParty,
@@ -16,6 +17,7 @@ import {
   formatSqftRange,
   formatProjectPriceFrom,
   getProjectTypeLabel,
+  isShopLikeListing,
 } from '../utils/helpers';
 import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
@@ -102,7 +104,7 @@ const PropertyDetail = () => {
   const CONTACT_OFFICE_PHONE_2 =
     import.meta.env.VITE_CONTACT_OFFICE_2 || DEFAULT_SITE_INQUIRY_PHONE;
 
-  const isShop = String(property.other_type || '').toLowerCase() === 'shop';
+  const isShop = isShopLikeListing(property);
   const isProject = isProjectListing(property);
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
@@ -252,7 +254,7 @@ const PropertyDetail = () => {
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                 <span className="text-[11px] text-gray uppercase tracking-wide">Price</span>
                 <p className="text-xl font-bold text-gold leading-none tabular-nums">
-                  {isProject ? formatProjectPriceFrom(property.price) : formatIndianPrice(property.price)}
+                  {isProject ? formatProjectPriceFrom(property.price) : formatPropertyPrice(property)}
                 </p>
               </div>
 
@@ -289,7 +291,7 @@ const PropertyDetail = () => {
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <p className="text-sm text-gray mb-1">Price</p>
                 <p className="text-3xl sm:text-4xl font-bold text-gold">
-                  {isProject ? formatProjectPriceFrom(property.price) : formatIndianPrice(property.price)}
+                  {isProject ? formatProjectPriceFrom(property.price) : formatPropertyPrice(property)}
                 </p>
               </div>
 

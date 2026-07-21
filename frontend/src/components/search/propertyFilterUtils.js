@@ -27,10 +27,11 @@ export const FURNISHING_CHIPS = FURNISHING_OPTIONS.filter((o) => o.value).map((o
 }));
 
 export const PROPERTY_TYPE_CHIPS = [
-  { value: 'homes', label: 'Homes & flats', other_type: '' },
+  { value: 'homes', label: 'House', other_type: '' },
   { value: 'flat', label: 'Flats / Apartments', other_type: 'Flat' },
   { value: 'apartment', label: 'Apartments', other_type: 'Apartment' },
   { value: 'shop', label: 'Shop', other_type: 'Shop' },
+  { value: 'commercial', label: 'Commercial space', other_type: 'Commercial space' },
   { value: 'plot', label: 'Plot', other_type: '' },
 ];
 
@@ -81,6 +82,7 @@ export function searchParamsToFilterState(searchParams, presetLocation = '', pre
   let propertyKind = 'homes';
   if (type === 'plot' || type === 'plot_lease' || type === 'plot_buy') propertyKind = 'plot';
   else if (other.toLowerCase() === 'shop') propertyKind = 'shop';
+  else if (other.toLowerCase() === 'commercial space') propertyKind = 'commercial';
   else if (other.toLowerCase() === 'flat') propertyKind = 'flat';
   else if (other.toLowerCase() === 'apartment') propertyKind = 'apartment';
 
@@ -112,6 +114,9 @@ export function buildFilterPayload(state) {
   } else if (state.propertyKind === 'shop') {
     typeParam = state.type === 'buy' ? 'buy' : 'rent';
     otherTypeParam = 'Shop';
+  } else if (state.propertyKind === 'commercial') {
+    typeParam = state.type === 'buy' ? 'buy' : 'rent';
+    otherTypeParam = 'Commercial space';
   } else if (state.propertyKind === 'flat') {
     typeParam = state.type === 'buy' ? 'buy' : 'rent';
     otherTypeParam = 'Flat';

@@ -55,6 +55,7 @@ function emptyForm() {
     title: '',
     description: '',
     price: '',
+    priceUnit: 'total',
     category: 'homes',
     transaction: 'rent',
     plotTransaction: 'lease',
@@ -204,6 +205,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
       title: p.title || '',
       description: p.description || '',
       price: String(p.price ?? ''),
+      priceUnit: p.price_unit === 'per_sqft' ? 'per_sqft' : 'total',
       category: cat.category,
       transaction: cat.transaction,
       plotTransaction: cat.plotTransaction,
@@ -237,7 +239,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
   const appendForm = (fd) => {
     const isPlot = form.category === 'plot';
     const isOther = form.category === 'other';
-    const isShop = form.category === 'shop';
+    const isShop = form.category === 'shop' || form.category === 'commercial';
     const showAmenities = !isPlot && !isOther;
     const showFurnishing =
       showAmenities &&
@@ -261,6 +263,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     fd.append('title', form.title);
     fd.append('description', form.description);
     fd.append('price', form.price);
+    fd.append('price_unit', isShop && form.priceUnit === 'per_sqft' ? 'per_sqft' : 'total');
     fd.append('type', type);
     fd.append('bhk', isPlot || isOther || isShop ? '' : form.bhk || '');
     fd.append('katha', isPlot ? kathaFinal : '');
@@ -346,8 +349,8 @@ export default function ManageProperties({ variant, staffFilter = null }) {
         toast.error('Enter a description for “Other” type');
         return;
       }
-      if (form.category === 'shop' && !String(form.shopSqftRange || '').trim()) {
-        toast.error('Select a shop size (sq ft range)');
+      if ((form.category === 'shop' || form.category === 'commercial') && !String(form.shopSqftRange || '').trim()) {
+        toast.error('Select a size (sq ft range)');
         return;
       }
       const isPlot = form.category === 'plot';
@@ -713,17 +716,67 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-navy mb-1">Price (₹) *</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    required
-                    className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: digitsOnly(e.target.value, 12) })}
-                    onKeyDown={blockNonDigitKeyDown}
-                  />
+                  <label className="block text-sm font-medium text-navy mb-1">
+                    {(form.category === 'shop' || form.category === 'commercial') &&
+                    form.priceUnit === 'per_sqft'
+                      ? 'Price (₹ / sq ft) *'
+                      : 'Price (₹) *'}
+                  </label>
+                  {(form.category === 'shop' || form.category === 'commercial') ? (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, priceUnit: 'total' })}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold border ${
+                          form.priceUnit !== 'per_sqft'
+                            ? 'bg-navy text-white border-navy'
+                            : 'bg-white text-navy border-gray-light'
+                        }`}
+                      >
+                        Total price
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, priceUnit: 'per_sqft' })}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold border ${
+                          form.priceUnit === 'per_sqft'
+                            ? 'bg-navy text-white border-navy'
+                            : 'bg-white text-navy border-gray-light'
+                        }`}
+                      >
+                        Price per sq ft
+                      </button>
+                    </div>
+                  ) : null}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      required
+                      className={`w-full border-2 border-gray-light rounded-lg px-3 py-2 ${
+                        (form.category === 'shop' || form.category === 'commercial') &&
+                        form.priceUnit === 'per_sqft'
+                          ? 'pr-20'
+                          : ''
+                      }`}
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: digitsOnly(e.target.value, 12) })}
+                      onKeyDown={blockNonDigitKeyDown}
+                      placeholder={
+                        (form.category === 'shop' || form.category === 'commercial') &&
+                        form.priceUnit === 'per_sqft'
+                          ? 'e.g. 70'
+                          : ''
+                      }
+                    />
+                    {(form.category === 'shop' || form.category === 'commercial') &&
+                    form.priceUnit === 'per_sqft' ? (
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray">
+                        /sq ft
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-navy mb-1 uppercase text-xs tracking-wide">Type *</label>
@@ -746,7 +799,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                           next.car_parking = false;
                           next.bike_parking = false;
                           next.floor_no = '';
-                        } else if (v === 'shop') {
+                        } else if (v === 'shop' || v === 'commercial') {
                           next.bhk = '';
                           next.balconies = '';
                           next.bathrooms = '';
@@ -758,6 +811,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                           next.shopSqftRange = '';
                           next.shopRoadDistance = '';
                           next.shopTokenAmount = '';
+                          next.priceUnit = 'total';
                         }
                         return next;
                       });
@@ -825,9 +879,9 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                     </select>
                   </div>
                 )}
-                {form.category === 'shop' && (
+                {(form.category === 'shop' || form.category === 'commercial') && (
                   <div>
-                    <label className="block text-sm font-medium text-navy mb-1">Shop size (sq ft) *</label>
+                    <label className="block text-sm font-medium text-navy mb-1">Size (sq ft) *</label>
                     <select
                       required
                       className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
@@ -911,9 +965,9 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                     </div>
                   </div>
                 )}
-                {form.category === 'shop' && (
+                {(form.category === 'shop' || form.category === 'commercial') && (
                   <div className="md:col-span-2 rounded-lg border border-amber-100 bg-amber-50/40 p-3 space-y-3">
-                    <p className="text-sm font-semibold text-navy">Shop details (optional)</p>
+                    <p className="text-sm font-semibold text-navy">Shop / commercial details (optional)</p>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <div className="sm:col-span-2">
                         <label className="block text-xs text-navy mb-1">Road dist</label>

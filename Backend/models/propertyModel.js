@@ -57,7 +57,7 @@ export const propertyModel = {
   // Create new property
   create: async (propertyData) => {
     const {
-      title, description, price, type, bhk, katha,
+      title, description, price, price_unit, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured,
@@ -68,18 +68,18 @@ export const propertyModel = {
 
     const query = `
       INSERT INTO properties
-      (title, description, price, type, bhk, katha,
+      (title, description, price, price_unit, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
        shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
        location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured, listing_status,
        listing_review_reason, listed_by_staff,
        listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.execute(query, [
-      title, description, price, type, bhk || null, katha || null,
+      title, description, price, price_unit === 'per_sqft' ? 'per_sqft' : 'total', type, bhk || null, katha || null,
       balconies ?? null,
       bathrooms ?? null,
       garden ? 1 : 0,
@@ -627,7 +627,7 @@ export const propertyModel = {
   // Update property
   update: async (id, propertyData) => {
     const {
-      title, description, price, type, bhk, katha,
+      title, description, price, price_unit, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, featured, owner_id,
@@ -639,7 +639,7 @@ export const propertyModel = {
 
     const query = `
       UPDATE properties
-      SET title = ?, description = ?, price = ?, type = ?, bhk = ?, katha = ?,
+      SET title = ?, description = ?, price = ?, price_unit = ?, type = ?, bhk = ?, katha = ?,
           balconies = ?, bathrooms = ?, garden = ?, car_parking = ?, floor_no = ?,
           bike_parking = ?, shop_sqft_range = ?,
           shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, facing = ?,
@@ -653,7 +653,7 @@ export const propertyModel = {
     `;
 
     await db.execute(query, [
-      title, description, price, type, bhk || null, katha || null,
+      title, description, price, price_unit === 'per_sqft' ? 'per_sqft' : 'total', type, bhk || null, katha || null,
       balconies ?? null,
       bathrooms ?? null,
       garden ? 1 : 0,

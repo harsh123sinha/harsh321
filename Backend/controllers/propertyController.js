@@ -1,7 +1,7 @@
 import { propertyModel } from '../models/propertyModel.js';
 import { normEmail } from '../middleware/auth.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields } from '../utils/helpers.js';
-import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES } from '../utils/propertyConstants.js';
+import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES, isShopLikeOtherType, parsePriceUnitForDb } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
 import { getRecommendations, parseRecommendationQuery } from '../services/recommendationService.js';
 import {
@@ -337,7 +337,7 @@ export const addProperty = async (req, res) => {
     }
 
     const {
-      title, description, price, type, bhk, katha, location, city,
+      title, description, price, price_unit, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
@@ -363,7 +363,7 @@ export const addProperty = async (req, res) => {
     const otherTrim = String(other_type || '').trim();
     const shopSqftTrim = shop_sqft_range != null ? String(shop_sqft_range).trim() : '';
     const shopSqftForDb =
-      (type === 'rent' || type === 'buy') && otherTrim === 'Shop' && SHOP_SQFT_RANGE_VALUES.includes(shopSqftTrim)
+      (type === 'rent' || type === 'buy') && isShopLikeOtherType(otherTrim) && SHOP_SQFT_RANGE_VALUES.includes(shopSqftTrim)
         ? shopSqftTrim
         : null;
 
@@ -415,7 +415,7 @@ export const addProperty = async (req, res) => {
     const floorNo =
       floor_no != null && String(floor_no).trim() !== '' ? String(floor_no).trim() : null;
 
-    const isShopListing = (type === 'rent' || type === 'buy') && otherTrim === 'Shop';
+    const isShopListing = (type === 'rent' || type === 'buy') && isShopLikeOtherType(otherTrim);
     const shopRoadDb = isShopListing ? (String(shop_road_distance ?? '').trim() || null) : null;
     let shopTokenDb = null;
     if (isShopListing && shop_token_amount != null && String(shop_token_amount).trim() !== '') {
@@ -437,8 +437,9 @@ export const addProperty = async (req, res) => {
       title,
       description,
       price: parseFloat(price),
+      price_unit: parsePriceUnitForDb(otherTrim, price_unit),
       type,
-      bhk: otherTrim === 'Shop' ? null : bhk || null,
+      bhk: isShopLikeOtherType(otherTrim) ? null : bhk || null,
       katha: kathaTrimmed,
       balconies: balconiesFinal,
       bathrooms: bathroomsFinal,
@@ -500,7 +501,7 @@ export const updateProperty = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      title, description, price, type, bhk, katha, location, city,
+      title, description, price, price_unit, type, bhk, katha, location, city,
       district, state, pincode, other_type, featured, removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
       shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
@@ -577,16 +578,16 @@ export const updateProperty = async (req, res) => {
     const mergedShop = mergeShopSqftRange(shop_sqft_range, property.shop_sqft_range);
     const nextShopSqft =
       (nextType === 'rent' || nextType === 'buy') &&
-      effectiveOther === 'Shop' &&
+      isShopLikeOtherType(effectiveOther) &&
       SHOP_SQFT_RANGE_VALUES.includes(String(mergedShop || '').trim())
         ? String(mergedShop).trim()
         : null;
 
     const fieldErrors = validatePropertyFields(nextType, {
-      bhk: effectiveOther === 'Shop' ? null : nextBhk,
+      bhk: isShopLikeOtherType(effectiveOther) ? null : nextBhk,
       katha: nextKatha,
       other_type: nextOther,
-      shop_sqft_range: effectiveOther === 'Shop' ? String(mergedShop || '').trim() : ''
+      shop_sqft_range: isShopLikeOtherType(effectiveOther) ? String(mergedShop || '').trim() : ''
     });
     if (fieldErrors.length > 0) {
       return res.status(400).json({ error: fieldErrors.join(', ') });
@@ -615,10 +616,10 @@ export const updateProperty = async (req, res) => {
     const nextCarParking = mergeBool01(car_parking, property.car_parking);
     const nextBikeParking = mergeBool01(bike_parking, property.bike_parking);
     const nextFloorNo = mergeFloorNo(floor_no, property.floor_no);
-    const nextBhkDb = effectiveOther === 'Shop' ? null : nextBhk;
+    const nextBhkDb = isShopLikeOtherType(effectiveOther) ? null : nextBhk;
 
     const isShopListing =
-      (nextType === 'rent' || nextType === 'buy') && effectiveOther === 'Shop';
+      (nextType === 'rent' || nextType === 'buy') && isShopLikeOtherType(effectiveOther);
     const nextShopRoad = isShopListing
       ? mergeShopRoadDistance(shop_road_distance, property.shop_road_distance)
       : null;
@@ -675,6 +676,7 @@ export const updateProperty = async (req, res) => {
       title: title || property.title,
       description: description || property.description,
       price: price ? parseFloat(price) : property.price,
+      price_unit: parsePriceUnitForDb(effectiveOther, price_unit ?? property.price_unit),
       type: nextType,
       bhk: nextBhkDb,
       katha: nextKatha,

@@ -3,9 +3,10 @@
  */
 
 export const ADD_PROPERTY_CATEGORIES = [
-  { id: 'homes', label: 'Homes & flats' },
+  { id: 'homes', label: 'House' },
   { id: 'plot', label: 'Plot' },
   { id: 'shop', label: 'Shop' },
+  { id: 'commercial', label: 'Commercial space' },
   { id: 'flat', label: 'Flat' },
   { id: 'apartment', label: 'Apartment' },
   { id: 'other', label: 'Other' },
@@ -31,6 +32,8 @@ export function mapAddPropertyToApiType({
       return { type: 'other', other_type: ot };
     case 'shop':
       return { type: transaction === 'buy' ? 'buy' : 'rent', other_type: 'Shop' };
+    case 'commercial':
+      return { type: transaction === 'buy' ? 'buy' : 'rent', other_type: 'Commercial space' };
     case 'flat':
       return { type: transaction === 'buy' ? 'buy' : 'rent', other_type: 'Flat' };
     case 'apartment':
@@ -67,6 +70,9 @@ export function mapPropertyRowToCategoryForm(property) {
   const ot = String(property?.other_type || '').trim();
   const tx = t === 'buy' ? 'buy' : 'rent';
   if (ot === 'Shop') return { category: 'shop', transaction: tx, plotTransaction: 'lease', otherDescription: '' };
+  if (ot === 'Commercial space') {
+    return { category: 'commercial', transaction: tx, plotTransaction: 'lease', otherDescription: '' };
+  }
   if (ot === 'Flat') return { category: 'flat', transaction: tx, plotTransaction: 'lease', otherDescription: '' };
   if (ot === 'Apartment') return { category: 'apartment', transaction: tx, plotTransaction: 'lease', otherDescription: '' };
   if ((t === 'rent' || t === 'buy') && ot) {

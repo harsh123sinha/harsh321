@@ -27,10 +27,11 @@ function formatBudget(min, max) {
 
 function categoryLabel(cat) {
   const map = {
-    homes: 'Homes',
+    homes: 'House',
     flat: 'Flat',
     apartment: 'Apartment',
     shop: 'Shop',
+    commercial: 'Commercial space',
     plot: 'Plot',
     other: 'Other',
   };

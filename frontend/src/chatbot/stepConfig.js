@@ -21,6 +21,7 @@ export const STEP_KEYS = {
 export function getStepsForCategory(category) {
   switch (category) {
     case 'shop':
+    case 'commercial':
       return [
         STEP_KEYS.LISTING_TYPE,
         STEP_KEYS.LOCATION,
@@ -61,7 +62,8 @@ export function getStepsForCategory(category) {
 export function categoryLabel(cat) {
   const map = {
     shop: 'Shop',
-    house_flat: 'House & Flat',
+    commercial: 'Commercial space',
+    house_flat: 'House',
     apartment: 'Apartment',
     plots: 'Plots',
     other: 'Other',

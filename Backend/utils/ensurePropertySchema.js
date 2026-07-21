@@ -97,6 +97,12 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.shop_sqft_range`);
   }
+  if (!(await hasColumn(t, 'price_unit'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN price_unit ENUM('total','per_sqft') NOT NULL DEFAULT 'total' AFTER price`
+    );
+    console.log(`✅ DB: added ${t}.price_unit`);
+  }
   if (!(await hasColumn(t, 'shop_road_distance'))) {
     await db.execute(
       `ALTER TABLE \`${t}\` ADD COLUMN shop_road_distance VARCHAR(191) NULL DEFAULT NULL AFTER shop_sqft_range`
