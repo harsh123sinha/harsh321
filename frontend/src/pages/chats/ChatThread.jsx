@@ -29,6 +29,27 @@ export default function ChatThread() {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
+  const listRef = useRef(null);
+  const lastMsgIdRef = useRef(null);
+  const didInitialScrollRef = useRef(false);
+  const stickToBottomRef = useRef(true);
+
+  const scrollToBottom = useCallback((behavior = 'auto') => {
+    const el = listRef.current;
+    if (!el) return;
+    if (behavior === 'smooth') {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, []);
+
+  const onListScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distance < 80;
+  };
 
   const load = useCallback(async () => {
     try {
@@ -44,20 +65,43 @@ export default function ChatThread() {
 
   useEffect(() => {
     setLoading(true);
+    didInitialScrollRef.current = false;
+    lastMsgIdRef.current = null;
+    stickToBottomRef.current = true;
     load();
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
   }, [load]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!messages.length) return;
+    const lastId = messages[messages.length - 1]?.id;
+    const isNew = lastId !== lastMsgIdRef.current;
+    const prev = lastMsgIdRef.current;
+    lastMsgIdRef.current = lastId;
+
+    if (!didInitialScrollRef.current) {
+      didInitialScrollRef.current = true;
+      // Jump once after open — no smooth scroll fighting the page
+      requestAnimationFrame(() => scrollToBottom('auto'));
+      return;
+    }
+
+    // Poll refresh with same last message: do not yank scroll
+    if (!isNew) return;
+
+    // Only follow new messages if user is already near bottom (or they just sent)
+    if (stickToBottomRef.current || messages[messages.length - 1]?.isMine) {
+      requestAnimationFrame(() => scrollToBottom(prev == null ? 'auto' : 'smooth'));
+    }
+  }, [messages, scrollToBottom]);
 
   const send = async (e) => {
     e.preventDefault();
     const body = text.trim();
     if (!body || sending) return;
     setSending(true);
+    stickToBottomRef.current = true;
     try {
       const { data } = await api.post(`/chats/${id}/messages`, { body });
       setMessages(data.messages || []);
@@ -72,7 +116,8 @@ export default function ChatThread() {
 
   const property = chat?.property;
   const img = property?.imageUrl ? String(property.imageUrl).split(',')[0].trim() : '';
-  const propertyPath = property?.listingKind === 'project' ? `/projects/${property.id}` : `/property/${property.id}`;
+  const propertyPath =
+    property?.listingKind === 'project' ? `/projects/${property.id}` : `/property/${property.id}`;
   const isStaffChannel = chat?.channel === 'staff';
   const canReply = !(isStaffChannel && chat?.viewerRole === 'recipient');
 
@@ -99,12 +144,13 @@ export default function ChatThread() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-stone-50">
+      <div
+        ref={listRef}
+        onScroll={onListScroll}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-stone-50"
+      >
         {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}
-          >
+          <div key={msg.id} className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                 msg.isMine

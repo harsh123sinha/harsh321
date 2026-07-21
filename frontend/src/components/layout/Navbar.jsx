@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogIn, LogOut, User, Bookmark, Briefcase, MessageCircle } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, User, Bookmark, Briefcase } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
 import PropertyChatNavLink from '../chats/PropertyChatNavLink';
@@ -222,16 +222,7 @@ const Navbar = () => {
   const mobileNavIcons = (
     <div className="flex shrink-0 items-center h-8 gap-0.5">
       <NotificationBell compact small />
-      {isAuthenticated ? (
-        <Link
-          to="/chats"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 hover:text-gold touch-target"
-          title="Property chats"
-          aria-label="Property chats"
-        >
-          <MessageCircle className="h-4 w-4" />
-        </Link>
-      ) : null}
+      <PropertyChatNavLink iconOnly />
       <Link
         to={isAuthenticated ? '/saved' : '/login'}
         className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 hover:text-gold touch-target"

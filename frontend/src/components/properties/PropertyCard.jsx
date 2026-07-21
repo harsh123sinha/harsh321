@@ -251,7 +251,7 @@ const PropertyCard = ({ property }) => {
       </div>
 
       <div className="border-t border-gray-light bg-white px-2.5 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4 space-y-2">
-        <PropertyChatButton property={property} />
+        <PropertyChatButton property={property} size="card" />
         <WhatsAppInquiryButton property={property} />
       </div>
     </div>

@@ -84,6 +84,7 @@ const CHAT_TEASER_EXIT_AT_MS = 4500;
 const ChatWidget = () => {
   const location = useLocation();
   const isCatalog = useIsCatalogRoute();
+  const hideOnPropertyChat = location.pathname.startsWith('/chats');
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [fabTeaserMounted, setFabTeaserMounted] = useState(false);
@@ -104,6 +105,10 @@ const ChatWidget = () => {
   useEffect(() => {
     writePersistedChat(state, lastQs);
   }, [state, lastQs]);
+
+  useEffect(() => {
+    if (hideOnPropertyChat && open) setOpen(false);
+  }, [hideOnPropertyChat, open]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)');
@@ -319,6 +324,8 @@ const ChatWidget = () => {
   const fabPositionClass = isCatalog
     ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 sm:right-5'
     : 'bottom-5 right-5 sm:bottom-6 sm:right-6 md:bottom-10 md:right-14 lg:bottom-12 lg:right-24 xl:bottom-14 xl:right-32';
+
+  if (hideOnPropertyChat) return null;
 
   return (
     <>

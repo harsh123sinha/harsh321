@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { X, LogIn, LogOut, User, Bookmark, Briefcase, MessageCircle } from 'lucide-react';
 import NotificationBell from '../notifications/NotificationBell';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { usePropertyChatUnread } from '../../hooks/usePropertyChatUnread';
 
 const JOB_APPLY_COLOR = 'bg-[rgb(149,0,0)] hover:bg-[rgb(120,0,0)]';
 
@@ -24,6 +25,7 @@ export default function MobileMenu({
   const panelRef = useRef(null);
   const [isRendered, setIsRendered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const chatUnread = usePropertyChatUnread();
 
   useFocusTrap(panelRef, isOpen && isVisible);
 
@@ -117,7 +119,12 @@ export default function MobileMenu({
                   onClick={onClose}
                   className={`${navItemClass} flex items-center gap-2`}
                 >
-                  <MessageCircle className="h-4 w-4 shrink-0 text-gold" />
+                  <span className="relative shrink-0">
+                    <MessageCircle className="h-4 w-4 text-gold" />
+                    {chatUnread > 0 ? (
+                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-navy" aria-hidden />
+                    ) : null}
+                  </span>
                   Property chats
                 </Link>
                 <Link

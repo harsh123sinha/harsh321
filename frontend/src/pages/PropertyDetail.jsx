@@ -440,7 +440,7 @@ const PropertyDetail = () => {
                 </div>
 
                 <div className="pt-2 border-t border-gray-light space-y-2">
-                  <PropertyChatButton property={property} className="!py-2.5 text-sm lg:!py-3 lg:text-base" />
+                  <PropertyChatButton property={property} size="detail" className="!py-2.5 text-sm lg:!py-3 lg:text-base" />
                   <WhatsAppInquiryButton
                     property={property}
                     className="!py-2.5 text-sm lg:!py-3 lg:text-base"

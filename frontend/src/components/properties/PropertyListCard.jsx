@@ -57,8 +57,8 @@ const PropertyListCard = ({ property, listKey, listIndex }) => {
             />
           </Link>
 
-          <div className="mt-1 flex flex-col gap-1 rounded-sm border border-stone-200 bg-stone-50 px-1 py-0.5 lg:mt-1.5 lg:gap-1.5 lg:px-1.5 lg:py-1">
-            <PropertyChatButton property={property} iconOnly compact className="h-7 flex-1 rounded-md lg:h-9" variant="outline" />
+          <div className="mt-1 flex flex-col gap-1 rounded-sm border border-stone-200 bg-stone-50 px-1 py-0.5 lg:mt-1.5 lg:gap-1 lg:px-1.5 lg:py-1">
+            <PropertyChatButton property={property} size="list" variant="outline" />
             <div className="flex items-stretch gap-1">
               <WhatsAppInquiryButton
                 property={property}
