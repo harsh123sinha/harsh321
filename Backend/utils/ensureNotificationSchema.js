@@ -78,7 +78,10 @@ export async function ensureNotificationSchema() {
           'saved_price_drop',
           'saved_update',
           'saved_unavailable',
-          'saved_verified'
+          'saved_verified',
+          'broker_review_request',
+          'worker_review_request',
+          'property_chat'
         ) NOT NULL,
         title VARCHAR(255) NOT NULL,
         body TEXT NOT NULL,
@@ -94,6 +97,38 @@ export async function ensureNotificationSchema() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
     console.log('✅ DB: created notifications');
+  }
+
+  // Keep notification type ENUM in sync on existing DBs
+  if (await hasTable('notifications')) {
+    try {
+      const [cols] = await db.execute(
+        `SELECT COLUMN_TYPE AS ct FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notifications' AND COLUMN_NAME = 'type'`
+      );
+      const ct = String(cols[0]?.ct || '');
+      const needed = ['broker_review_request', 'worker_review_request', 'property_chat'];
+      if (needed.some((t) => !ct.includes(`'${t}'`))) {
+        await db.execute(`
+          ALTER TABLE notifications
+          MODIFY COLUMN type ENUM(
+            'welcome',
+            'search_match',
+            'daily_recommendation',
+            'saved_price_drop',
+            'saved_update',
+            'saved_unavailable',
+            'saved_verified',
+            'broker_review_request',
+            'worker_review_request',
+            'property_chat'
+          ) NOT NULL
+        `);
+        console.log('✅ DB: notifications.type ENUM updated');
+      }
+    } catch (e) {
+      console.warn('⚠️ notifications.type ENUM migrate:', e.message);
+    }
   }
 
   if (!(await hasTable('saved_properties'))) {

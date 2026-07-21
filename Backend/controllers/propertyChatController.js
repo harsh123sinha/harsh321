@@ -20,11 +20,6 @@ function isPropertyChatable(property) {
   return status === 'active';
 }
 
-function frontendBase() {
-  const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
-  return raw.split(',')[0].trim().replace(/\/$/, '');
-}
-
 function mapChatForUser(row, userId) {
   if (!row) return null;
   const isBuyer = Number(row.buyer_user_id) === Number(userId);
@@ -123,57 +118,64 @@ async function getChatForUserAccess(chatId, userId) {
 }
 
 async function notifyNewBuyerMessage(chat, property, firstMessage) {
-  const preview = firstMessage.slice(0, 120);
-  const propertyTitle = property.title || 'Property listing';
-  const buyerName = chat.buyer_name || 'A buyer';
+  try {
+    const preview = firstMessage.slice(0, 120);
+    const propertyTitle = property?.title || 'Property listing';
+    const buyerName = chat.buyer_name || 'A buyer';
 
-  if (chat.channel === 'staff') {
-    await notifyStaffPropertyChat({
-      chatId: chat.id,
-      propertyId: property.id,
-      buyerName,
-      buyerPhone: chat.buyer_phone,
-      propertyTitle,
-      preview,
-    });
-    return;
-  }
+    if (chat.channel === 'staff') {
+      await notifyStaffPropertyChat({
+        chatId: chat.id,
+        propertyId: property?.id,
+        buyerName,
+        buyerPhone: chat.buyer_phone,
+        propertyTitle,
+        preview,
+      });
+      return;
+    }
 
-  if (!chat.recipient_user_id) return;
+    if (!chat.recipient_user_id) return;
 
-  const link = `${frontendBase()}/chats/${chat.id}`;
-  await deliverNotification({
-    userId: chat.recipient_user_id,
-    type: 'property_chat',
-    title: 'New inquiry on your listing',
-    body: `${buyerName}: ${preview}`,
-    data: {
+    await deliverNotification({
+      userId: chat.recipient_user_id,
       type: 'property_chat',
-      chatId: chat.id,
-      propertyId: property.id,
-      link: `/chats/${chat.id}`,
-    },
-    referenceKey: `property_chat_new_${chat.id}_${Date.now()}`,
-    sendPush: true,
-  });
+      title: 'New inquiry on your listing',
+      body: `${buyerName}: ${preview}`,
+      data: {
+        type: 'property_chat',
+        chatId: chat.id,
+        propertyId: property?.id,
+        link: `/chats/${chat.id}`,
+      },
+      referenceKey: `property_chat_new_${chat.id}_${Date.now()}`,
+      sendPush: true,
+    });
+  } catch (err) {
+    console.error('notifyNewBuyerMessage:', err.message);
+  }
 }
 
 async function notifyBuyerReply(chat, property, body, senderLabel) {
-  const preview = body.slice(0, 120);
-  await deliverNotification({
-    userId: chat.buyer_user_id,
-    type: 'property_chat',
-    title: `Reply about ${property.title || 'listing'}`,
-    body: `${senderLabel}: ${preview}`,
-    data: {
+  try {
+    const preview = body.slice(0, 120);
+    await deliverNotification({
+      userId: chat.buyer_user_id,
       type: 'property_chat',
-      chatId: chat.id,
-      propertyId: property.id,
-      link: `/chats/${chat.id}`,
-    },
-    referenceKey: `property_chat_reply_${chat.id}_${Date.now()}`,
-    sendPush: true,
-  });
+      title: `Reply about ${property?.title || 'listing'}`,
+      body: `${senderLabel}: ${preview}`,
+      data: {
+        type: 'property_chat',
+        chatId: chat.id,
+        propertyId: property?.id,
+        link: `/chats/${chat.id}`,
+      },
+      referenceKey: `property_chat_reply_${chat.id}_${Date.now()}`,
+      sendPush: true,
+    });
+  } catch (err) {
+    console.error('notifyBuyerReply:', err.message);
+  }
 }
 
 export const startPropertyChat = async (req, res) => {
