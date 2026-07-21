@@ -33,9 +33,9 @@ import { ensurePropertyChatSchema } from './utils/ensurePropertyChatSchema.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Behind Nginx: required so express-rate-limit (login/signup) can read client IP from X-Forwarded-For.
-// Without this, auth routes throw ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and login/signup fail.
-app.set('trust proxy', 1);
+// Cloudflare → Nginx → Node: trust 2 hops so req.ip is the real client (not a CF edge IP).
+// With trust proxy=1, auth rate limits keyed off shared Cloudflare IPs and lock out admin login.
+app.set('trust proxy', 2);
 
 // CORS: comma-separated FRONTEND_URL values; in development also allow any localhost / 127.0.0.1 port (Vite may use 5174, etc.)
 const parseAllowedOrigins = () => {
