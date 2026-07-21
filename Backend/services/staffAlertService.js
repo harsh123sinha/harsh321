@@ -8,6 +8,7 @@ const CATEGORY_LABELS = {
   mission: 'Mission',
   property: 'Property',
   demand: 'User demand',
+  chat: 'Property chat',
 };
 
 export function staffCategoryLabel(category) {
@@ -58,6 +59,23 @@ export async function notifyUserDemand(demand) {
     body: `${demand.contact_phone} · ${demand.category}${demand.location ? ` · ${demand.location}` : ''}`,
     linkPath: '/admin/demands',
     referenceId: demand.id,
+  });
+}
+
+export async function notifyStaffPropertyChat({
+  chatId,
+  propertyId,
+  buyerName,
+  buyerPhone,
+  propertyTitle,
+  preview,
+}) {
+  await notifyStaffAlert({
+    category: 'chat',
+    title: 'New property chat inquiry',
+    body: `${buyerName || 'Buyer'} · ${buyerPhone || '—'} · ${propertyTitle || 'Listing'} · ${preview || ''}`,
+    linkPath: `/admin/property-chats/${chatId}`,
+    referenceId: chatId,
   });
 }
 

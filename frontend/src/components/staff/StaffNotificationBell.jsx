@@ -13,6 +13,7 @@ const CATEGORY_LABELS = {
   mission: 'Mission',
   property: 'Property',
   demand: 'Demand',
+  chat: 'Chat',
 };
 
 function formatWhen(iso) {

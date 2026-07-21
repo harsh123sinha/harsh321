@@ -30,6 +30,8 @@ import ServiceVendorDetail from './pages/ServiceVendorDetail';
 import PatnaAreasIndex from './pages/PatnaAreasIndex';
 import AreaFlatsForRent from './pages/AreaFlatsForRent';
 import MissionRegister from './pages/MissionRegister';
+import ChatsInbox from './pages/chats/ChatsInbox';
+import ChatThread from './pages/chats/ChatThread';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -57,6 +59,8 @@ import AdminSubAdmins from './pages/admin/AdminSubAdmins';
 import AdminWorkers from './pages/admin/AdminWorkers';
 import AdminMission from './pages/admin/AdminMission';
 import AdminDemands from './pages/admin/AdminDemands';
+import AdminPropertyChats from './pages/admin/AdminPropertyChats';
+import AdminPropertyChatDetail from './pages/admin/AdminPropertyChatDetail';
 
 // Sub-admin pages
 import SubAdminLogin from './pages/subadmin/SubAdminLogin';
@@ -66,6 +70,8 @@ import SubAdminProperties from './pages/subadmin/SubAdminProperties';
 import SubAdminStaffProperties from './pages/subadmin/SubAdminStaffProperties';
 import SubAdminMission from './pages/subadmin/SubAdminMission';
 import SubAdminDemands from './pages/subadmin/SubAdminDemands';
+import SubAdminPropertyChats from './pages/subadmin/SubAdminPropertyChats';
+import SubAdminPropertyChatDetail from './pages/subadmin/SubAdminPropertyChatDetail';
 
 // Static pages
 import Terms from './pages/Terms';
@@ -118,6 +124,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SavedProperties />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chats"
+                element={
+                  <ProtectedRoute>
+                    <ChatsInbox />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chats/:id"
+                element={
+                  <ProtectedRoute>
+                    <ChatThread />
                   </ProtectedRoute>
                 }
               />
@@ -201,6 +223,8 @@ function App() {
             <Route path="/admin/workers" element={<AdminWorkers />} />
             <Route path="/admin/mission" element={<AdminMission />} />
             <Route path="/admin/demands" element={<AdminDemands />} />
+            <Route path="/admin/property-chats" element={<AdminPropertyChats />} />
+            <Route path="/admin/property-chats/:id" element={<AdminPropertyChatDetail />} />
             <Route path="/admin/subadmins" element={<AdminSubAdmins />} />
 
             {/* Sub-admin routes (no layout) */}
@@ -211,6 +235,8 @@ function App() {
             <Route path="/subadmin/subadmin-properties" element={<SubAdminStaffProperties />} />
             <Route path="/subadmin/mission" element={<SubAdminMission />} />
             <Route path="/subadmin/demands" element={<SubAdminDemands />} />
+            <Route path="/subadmin/property-chats" element={<SubAdminPropertyChats />} />
+            <Route path="/subadmin/property-chats/:id" element={<SubAdminPropertyChatDetail />} />
           </Routes>
           <ChatWidget />
           <FcmBootstrap />

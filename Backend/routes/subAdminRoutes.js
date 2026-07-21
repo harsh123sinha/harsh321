@@ -28,6 +28,13 @@ import {
   markStaffAlertRead,
   markAllStaffAlertsRead,
 } from '../controllers/staffAlertController.js';
+import {
+  listStaffPropertyChats,
+  getStaffPropertyChatUnreadCount,
+  getStaffPropertyChat,
+  postStaffPropertyChatMessage,
+  markStaffPropertyChatRead,
+} from '../controllers/propertyChatController.js';
 import { isAuthenticated, isSubAdmin } from '../middleware/auth.js';
 import { uploadMultipleImages, uploadListingAssets } from '../middleware/upload.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -69,5 +76,11 @@ router.patch('/demands/:id', adminUpdateUserDemandStatus);
 router.get('/staff-alerts', getStaffAlerts);
 router.patch('/staff-alerts/read-all', markAllStaffAlertsRead);
 router.patch('/staff-alerts/:id/read', markStaffAlertRead);
+
+router.get('/property-chats/unread-count', getStaffPropertyChatUnreadCount);
+router.get('/property-chats', listStaffPropertyChats);
+router.get('/property-chats/:id', getStaffPropertyChat);
+router.post('/property-chats/:id/messages', postStaffPropertyChatMessage);
+router.patch('/property-chats/:id/read', markStaffPropertyChatRead);
 
 export default router;

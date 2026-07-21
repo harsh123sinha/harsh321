@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, LogIn, LogOut, User, Bookmark, Briefcase } from 'lucide-react';
+import { X, LogIn, LogOut, User, Bookmark, Briefcase, MessageCircle } from 'lucide-react';
 import NotificationBell from '../notifications/NotificationBell';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
@@ -111,6 +111,14 @@ export default function MobileMenu({
                 >
                   <Bookmark className="h-4 w-4 shrink-0 text-gold" />
                   Saved properties
+                </Link>
+                <Link
+                  to="/chats"
+                  onClick={onClose}
+                  className={`${navItemClass} flex items-center gap-2`}
+                >
+                  <MessageCircle className="h-4 w-4 shrink-0 text-gold" />
+                  Property chats
                 </Link>
                 <Link
                   to={getDashboardLink()}

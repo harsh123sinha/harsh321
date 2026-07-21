@@ -24,9 +24,11 @@ import brokerRoutes, { reviewRouter as brokerCustomerReviewRoutes } from './rout
 import workerRoutes, { reviewRouter as workerCustomerReviewRoutes } from './routes/workerRoutes.js';
 import missionRoutes from './routes/missionRoutes.js';
 import demandRoutes from './routes/demandRoutes.js';
+import propertyChatRoutes from './routes/propertyChatRoutes.js';
 import { registerMissionInterest } from './controllers/missionController.js';
 import { ensureMissionSchema } from './utils/ensureMissionSchema.js';
 import { ensureDemandSchema } from './utils/ensureDemandSchema.js';
+import { ensurePropertyChatSchema } from './utils/ensurePropertyChatSchema.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -88,6 +90,7 @@ app.use('/api/workers', workerRoutes);
 app.use('/api/worker-customer-reviews', workerCustomerReviewRoutes);
 app.use('/api/mission', missionRoutes);
 app.use('/api/demands', demandRoutes);
+app.use('/api/chats', propertyChatRoutes);
 app.post('/api/register', registerMissionInterest);
 
 // 404 handler
@@ -175,6 +178,12 @@ async function start() {
     await ensureDemandSchema();
   } catch (e) {
     console.error('⚠️ ensureDemandSchema failed:', e.message);
+  }
+
+  try {
+    await ensurePropertyChatSchema();
+  } catch (e) {
+    console.error('⚠️ ensurePropertyChatSchema failed:', e.message);
   }
 
   if (process.env.ENABLE_DAILY_RECOMMENDATIONS !== 'false') {

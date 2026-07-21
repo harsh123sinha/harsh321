@@ -19,6 +19,7 @@ import {
 } from '../utils/helpers';
 import PropertyListRow from '../components/properties/PropertyListRow';
 import WhatsAppInquiryButton from '../components/properties/WhatsAppInquiryButton';
+import PropertyChatButton from '../components/properties/PropertyChatButton';
 import MaskedPhoneActionButton from '../components/properties/MaskedPhoneActionButton';
 import BookmarkButton from '../components/properties/BookmarkButton';
 import PropertyShareButton from '../components/properties/PropertyShareButton';
@@ -438,7 +439,8 @@ const PropertyDetail = () => {
                   <MaskedPhoneActionButton phoneRaw={CONTACT_OFFICE_PHONE_2} />
                 </div>
 
-                <div className="pt-2 border-t border-gray-light">
+                <div className="pt-2 border-t border-gray-light space-y-2">
+                  <PropertyChatButton property={property} className="!py-2.5 text-sm lg:!py-3 lg:text-base" />
                   <WhatsAppInquiryButton
                     property={property}
                     className="!py-2.5 text-sm lg:!py-3 lg:text-base"

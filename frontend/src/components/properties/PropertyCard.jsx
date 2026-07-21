@@ -12,6 +12,7 @@ import {
 } from '../../utils/helpers';
 import { getImageUrl } from '../../utils/api';
 import WhatsAppInquiryButton from './WhatsAppInquiryButton';
+import PropertyChatButton from './PropertyChatButton';
 import BookmarkButton from './BookmarkButton';
 import PropertyShareButton from './PropertyShareButton';
 import { getAgentListingInfo } from './AgentListingInfo';
@@ -249,7 +250,8 @@ const PropertyCard = ({ property }) => {
         </div>
       </div>
 
-      <div className="border-t border-gray-light bg-white px-2.5 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4">
+      <div className="border-t border-gray-light bg-white px-2.5 py-2 sm:px-4 sm:py-3 md:px-5 md:py-4 space-y-2">
+        <PropertyChatButton property={property} />
         <WhatsAppInquiryButton property={property} />
       </div>
     </div>

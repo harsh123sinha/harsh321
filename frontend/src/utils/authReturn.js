@@ -48,3 +48,13 @@ export function buildContactLoginUrl() {
   if (returnPath) q.set('next', returnPath);
   return `/login?${q.toString()}`;
 }
+
+/** `/login?from=chat&next=…` for guest chat on a listing. */
+export function buildChatLoginUrl(propertyId) {
+  const base = propertyId ? `/property/${propertyId}` : `${window.location.pathname}${window.location.search || ''}`;
+  const returnPath = getSafeInternalReturnPath(base.split('#')[0]);
+  stashAuthReturnPath(returnPath);
+  const q = new URLSearchParams({ from: 'chat' });
+  if (returnPath) q.set('next', returnPath);
+  return `/login?${q.toString()}`;
+}

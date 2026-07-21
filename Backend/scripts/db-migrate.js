@@ -18,6 +18,7 @@ import { ensureWorkerSchema } from '../utils/ensureWorkerSchema.js';
 import { ensureServiceDetailSchema } from '../utils/ensureServiceDetailSchema.js';
 import { ensureMissionSchema } from '../utils/ensureMissionSchema.js';
 import { ensureDemandSchema } from '../utils/ensureDemandSchema.js';
+import { ensurePropertyChatSchema } from '../utils/ensurePropertyChatSchema.js';
 
 async function main() {
   const name = process.env.DB_NAME || 'realestate';
@@ -34,6 +35,7 @@ async function main() {
   await ensureServiceDetailSchema();
   await ensureMissionSchema();
   await ensureDemandSchema();
+  await ensurePropertyChatSchema();
 
   console.log('\nDone. You can start the API with: npm run dev');
   await db.end();

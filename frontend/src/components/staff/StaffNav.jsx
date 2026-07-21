@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase, Target, ClipboardList, HandHelping } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, UserCog, LogOut, Briefcase, Target, ClipboardList, HandHelping, MessageCircle } from 'lucide-react';
 import StaffNotificationBell from './StaffNotificationBell';
 
 const linkClass = (active) =>
@@ -50,6 +50,10 @@ export default function StaffNav({ variant }) {
             <Link to={`${base}/demands`} className={linkClass(active(`${base}/demands`))}>
               <HandHelping className="h-4 w-4" />
               User demands
+            </Link>
+            <Link to={`${base}/property-chats`} className={linkClass(active(`${base}/property-chats`))}>
+              <MessageCircle className="h-4 w-4" />
+              Property chats
             </Link>
             <Link to={`${base}/mission`} className={linkClass(active(`${base}/mission`))}>
               <Target className="h-4 w-4" />
