@@ -3,9 +3,12 @@ export function registerPwaServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
   const register = () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('PWA service worker registration failed:', err?.message || err);
-    });
+    navigator.serviceWorker
+      .register('/sw.js?v=3')
+      .then((reg) => reg.update().catch(() => {}))
+      .catch((err) => {
+        console.warn('PWA service worker registration failed:', err?.message || err);
+      });
   };
 
   if (document.readyState === 'complete') {

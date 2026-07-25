@@ -1,15 +1,8 @@
-/* Harsh To-Let PWA service worker — keeps the app installable; network-first. */
-const CACHE = 'htls-pwa-v1';
-const PRECACHE = ['/', '/manifest.webmanifest', '/pwa-192.png', '/pwa-512.png'];
+/* Harsh To-Let PWA service worker — network-first; required for Android install. */
+const CACHE = 'htls-pwa-v3';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
@@ -22,32 +15,16 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-
-  // Never cache API calls
-  if (url.pathname.startsWith('/api/')) return;
-
+  // Minimal fetch handler — Chrome Android needs this for a real app install (WebAPK)
   event.respondWith(
-    fetch(req)
-      .then((res) => {
-        const copy = res.clone();
-        if (res.ok && (req.mode === 'navigate' || url.pathname.match(/\.(js|css|png|svg|webmanifest)$/))) {
-          caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
-        }
-        return res;
-      })
-      .catch(async () => {
-        const cached = await caches.match(req);
+    fetch(event.request).catch(async () => {
+      if (event.request.mode === 'navigate') {
+        const cached = await caches.match('/');
         if (cached) return cached;
-        if (req.mode === 'navigate') {
-          const home = await caches.match('/');
-          if (home) return home;
-        }
-        throw new Error('offline');
-      })
+      }
+      const cached = await caches.match(event.request);
+      if (cached) return cached;
+      return Response.error();
+    })
   );
 });
