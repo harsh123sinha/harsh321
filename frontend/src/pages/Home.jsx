@@ -7,7 +7,6 @@ import ServiceCategoriesMarquee from '../components/home/ServiceCategoriesMarque
 import HeroReachHomeAnimation from '../components/home/HeroReachHomeAnimation';
 import EnquellPartnerBanner from '../components/home/EnquellPartnerBanner';
 import MissionCoDevBanner from '../components/home/MissionCoDevBanner';
-import DownloadAppSection from '../components/home/DownloadAppSection';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
@@ -260,8 +259,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      <DownloadAppSection />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import Footer from './Footer';
 import ScrollToTop from './ScrollToTop';
 import RouteSeo from '../seo/RouteSeo';
 import FirstTimePatnaModal from '../brokers/FirstTimePatnaModal';
+import GetOurAppStrip from '../home/GetOurAppStrip';
 import { MobileCatalogProvider } from '../../context/MobileCatalogContext';
 import { useIsCatalogRoute } from '../../hooks/useIsCatalogRoute';
 
@@ -34,6 +35,7 @@ const LayoutBody = () => {
         <Footer />
       </div>
       <FirstTimePatnaModal />
+      <GetOurAppStrip />
     </div>
   );
 };
