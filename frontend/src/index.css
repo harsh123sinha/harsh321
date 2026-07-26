@@ -28,6 +28,15 @@
   }
 }
 
+@keyframes htls-trust-shine {
+  0% {
+    background-position: 140% 0;
+  }
+  100% {
+    background-position: -40% 0;
+  }
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
