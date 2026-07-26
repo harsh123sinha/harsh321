@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../../utils/api';
 import BrandLoader from '../ui/BrandLoader';
 import { getImageUrl } from '../../utils/api';
+import { parseImageUrls } from '../../utils/helpers';
 
 function formatTime(value) {
   if (!value) return '';
@@ -18,6 +19,15 @@ function formatTime(value) {
   } catch {
     return '';
   }
+}
+
+function firstChatImage(imageUrl) {
+  const parsed = parseImageUrls(imageUrl);
+  if (parsed[0]) return parsed[0];
+  if (typeof imageUrl === 'string' && imageUrl.trim() && !imageUrl.trim().startsWith('[')) {
+    return imageUrl.split(',')[0].trim();
+  }
+  return '';
 }
 
 export default function StaffPropertyChatThread({ variant }) {
@@ -73,7 +83,7 @@ export default function StaffPropertyChatThread({ variant }) {
   if (loading) return <BrandLoader fullScreen />;
 
   const property = chat?.property;
-  const img = property?.imageUrl ? String(property.imageUrl).split(',')[0].trim() : '';
+  const img = firstChatImage(property?.imageUrl);
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col min-h-[60vh] border border-gray-light rounded-xl bg-white overflow-hidden">

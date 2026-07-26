@@ -3,6 +3,19 @@ import { MessageCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePropertyChatUnread } from '../../hooks/usePropertyChatUnread';
 
+function UnreadBadge({ count, className = '' }) {
+  if (!count || count < 1) return null;
+  const label = count > 99 ? '99+' : String(count);
+  return (
+    <span
+      className={`absolute -right-1.5 -top-1.5 flex h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-navy ${className}`}
+      aria-hidden
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function PropertyChatNavLink({ compact = false, className = '', iconOnly = false }) {
   const { isAuthenticated } = useAuth();
   const count = usePropertyChatUnread();
@@ -27,12 +40,7 @@ export default function PropertyChatNavLink({ compact = false, className = '', i
         aria-label={count > 0 ? `Property chats, ${count} unread` : 'Property chats'}
       >
         <MessageCircle className={iconClass} />
-        {count > 0 ? (
-          <span
-            className="absolute top-1 right-1 h-2 w-2 rounded-full bg-gold ring-2 ring-navy"
-            aria-hidden
-          />
-        ) : null}
+        <UnreadBadge count={count} />
       </Link>
     );
   }
@@ -46,12 +54,7 @@ export default function PropertyChatNavLink({ compact = false, className = '', i
     >
       <span className="relative inline-flex">
         <MessageCircle className={iconClass} />
-        {count > 0 ? (
-          <span
-            className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-navy"
-            aria-hidden
-          />
-        ) : null}
+        <UnreadBadge count={count} className="-right-2 -top-2" />
       </span>
       <span>Chats</span>
     </Link>

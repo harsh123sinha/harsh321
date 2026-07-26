@@ -123,7 +123,9 @@ export default function MobileMenu({
                   <span className="relative shrink-0">
                     <MessageCircle className="h-4 w-4 text-gold" />
                     {chatUnread > 0 ? (
-                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-navy" aria-hidden />
+                      <span className="absolute -right-2.5 -top-2 flex h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-navy">
+                        {chatUnread > 99 ? '99+' : chatUnread}
+                      </span>
                     ) : null}
                   </span>
                   Property chats

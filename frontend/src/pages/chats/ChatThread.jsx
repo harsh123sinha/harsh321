@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import api from '../../utils/api';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { getImageUrl } from '../../utils/api';
+import { parseImageUrls } from '../../utils/helpers';
+import { refreshPropertyChatUnread } from '../../hooks/usePropertyChatUnread';
 
 function formatTime(value) {
   if (!value) return '';
@@ -18,6 +20,15 @@ function formatTime(value) {
   } catch {
     return '';
   }
+}
+
+function firstChatImage(imageUrl) {
+  const parsed = parseImageUrls(imageUrl);
+  if (parsed[0]) return parsed[0];
+  if (typeof imageUrl === 'string' && imageUrl.trim() && !imageUrl.trim().startsWith('[')) {
+    return imageUrl.split(',')[0].trim();
+  }
+  return '';
 }
 
 export default function ChatThread() {
@@ -56,6 +67,7 @@ export default function ChatThread() {
       const { data } = await api.get(`/chats/${id}`);
       setChat(data.chat);
       setMessages(data.messages || []);
+      refreshPropertyChatUnread();
     } catch (e) {
       toast.error(e.response?.data?.error || 'Chat not found');
       navigate('/chats', { replace: true });
@@ -115,7 +127,7 @@ export default function ChatThread() {
   if (loading) return <BrandLoader fullScreen />;
 
   const property = chat?.property;
-  const img = property?.imageUrl ? String(property.imageUrl).split(',')[0].trim() : '';
+  const img = firstChatImage(property?.imageUrl);
   const propertyPath =
     property?.listingKind === 'project' ? `/projects/${property.id}` : `/property/${property.id}`;
   const isStaffChannel = chat?.channel === 'staff';

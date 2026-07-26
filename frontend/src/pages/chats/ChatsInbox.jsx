@@ -4,6 +4,7 @@ import { MessageCircle } from 'lucide-react';
 import api from '../../utils/api';
 import BrandLoader from '../../components/ui/BrandLoader';
 import { getImageUrl } from '../../utils/api';
+import { parseImageUrls } from '../../utils/helpers';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -17,6 +18,15 @@ function formatWhen(value) {
   } catch {
     return '';
   }
+}
+
+function firstChatImage(imageUrl) {
+  const parsed = parseImageUrls(imageUrl);
+  if (parsed[0]) return parsed[0];
+  if (typeof imageUrl === 'string' && imageUrl.trim() && !imageUrl.trim().startsWith('[')) {
+    return imageUrl.split(',')[0].trim();
+  }
+  return '';
 }
 
 export default function ChatsInbox() {
@@ -58,8 +68,7 @@ export default function ChatsInbox() {
       ) : (
         <ul className="divide-y divide-gray-light rounded-xl border border-gray-light bg-white overflow-hidden">
           {chats.map((chat) => {
-            const img = chat.property?.imageUrl;
-            const thumb = img ? String(img).split(',')[0].trim() : '';
+            const thumb = firstChatImage(chat.property?.imageUrl);
             const title = chat.property?.title || 'Property';
             const subtitle =
               chat.viewerRole === 'recipient'

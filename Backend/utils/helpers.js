@@ -35,16 +35,43 @@ export const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Parse image_url JSON field safely
+// Parse image_url JSON field safely (JSON array, double-encoded, comma list, or single file)
 export const parseImageUrls = (imageUrl) => {
-  if (!imageUrl) return [];
-  
-  try {
-    const parsed = JSON.parse(imageUrl);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    return [];
+  if (imageUrl == null || imageUrl === '') return [];
+
+  if (Array.isArray(imageUrl)) {
+    return imageUrl.map(String).map((s) => s.trim()).filter(Boolean);
   }
+
+  if (typeof imageUrl !== 'string') return [];
+
+  const s = imageUrl.trim();
+  if (!s) return [];
+
+  try {
+    let parsed = JSON.parse(s);
+    if (typeof parsed === 'string') {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch {
+        /* keep string */
+      }
+    }
+    if (Array.isArray(parsed)) {
+      return parsed.map(String).map((x) => x.trim()).filter(Boolean);
+    }
+    if (typeof parsed === 'string' && parsed.trim()) {
+      return [parsed.trim()];
+    }
+  } catch {
+    /* fall through */
+  }
+
+  if (s.includes(',')) {
+    return s.split(',').map((x) => x.trim()).filter(Boolean);
+  }
+
+  return [s];
 };
 
 // Convert image filenames array to JSON string for DB

@@ -5,6 +5,7 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import BrandLoader from '../ui/BrandLoader';
 import { getImageUrl } from '../../utils/api';
+import { parseImageUrls } from '../../utils/helpers';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -13,6 +14,15 @@ function formatWhen(value) {
   } catch {
     return '';
   }
+}
+
+function firstChatImage(imageUrl) {
+  const parsed = parseImageUrls(imageUrl);
+  if (parsed[0]) return parsed[0];
+  if (typeof imageUrl === 'string' && imageUrl.trim() && !imageUrl.trim().startsWith('[')) {
+    return imageUrl.split(',')[0].trim();
+  }
+  return '';
 }
 
 export default function ManagePropertyChats({ variant }) {
@@ -69,9 +79,7 @@ export default function ManagePropertyChats({ variant }) {
               </tr>
             ) : (
               rows.map((row) => {
-                const thumb = row.property?.imageUrl
-                  ? String(row.property.imageUrl).split(',')[0].trim()
-                  : '';
+                const thumb = firstChatImage(row.property?.imageUrl);
                 return (
                   <tr key={row.id} className="hover:bg-gray-light/20">
                     <td className="px-4 py-3">

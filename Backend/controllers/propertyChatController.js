@@ -7,8 +7,20 @@ import {
 } from '../utils/propertyChatRouting.js';
 import { deliverNotification } from '../services/notificationService.js';
 import { notifyStaffPropertyChat } from '../services/staffAlertService.js';
+import { parseImageUrls } from '../utils/helpers.js';
 
 const MAX_MESSAGE_LEN = 2000;
+
+function firstPropertyImage(imageUrl) {
+  const parsed = parseImageUrls(imageUrl);
+  if (parsed[0]) return parsed[0];
+  if (typeof imageUrl === 'string') {
+    const s = imageUrl.trim();
+    if (!s || s.startsWith('[')) return null;
+    return s.split(',')[0].trim() || null;
+  }
+  return null;
+}
 
 function trimBody(body) {
   return String(body || '').trim();
@@ -43,7 +55,7 @@ function mapChatForUser(row, userId) {
     property: {
       id: row.property_id,
       title: row.property_title,
-      imageUrl: row.property_image_url,
+      imageUrl: firstPropertyImage(row.property_image_url),
       location: row.property_location,
       city: row.property_city,
       type: row.property_type,
@@ -97,7 +109,7 @@ function mapChatForStaff(row) {
     property: {
       id: row.property_id,
       title: row.property_title,
-      imageUrl: row.property_image_url,
+      imageUrl: firstPropertyImage(row.property_image_url),
       location: row.property_location,
       city: row.property_city,
     },
