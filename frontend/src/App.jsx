@@ -77,6 +77,7 @@ import SubAdminPropertyChatDetail from './pages/subadmin/SubAdminPropertyChatDet
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import OurPricing from './pages/OurPricing';
+import OurJourney from './pages/OurJourney';
 import ChatWidget from './chatbot/ChatWidget';
 import FcmBootstrap from './components/notifications/FcmBootstrap';
 import DismissibleToastBar from './components/ui/DismissibleToastBar';
@@ -146,6 +147,7 @@ function App() {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/our-pricing" element={<OurPricing />} />
+              <Route path="/our-journey" element={<OurJourney />} />
               <Route path="/add-property" element={<AddProperty />} />
               <Route path="/job-apply" element={<JobApply />} />
               <Route path="/our-vendors" element={<OurVendors />} />

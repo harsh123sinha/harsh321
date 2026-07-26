@@ -129,6 +129,13 @@ export const SEO_PAGES = {
     description: 'Privacy policy for Harsh To Let Services — how we handle your data on our Patna real estate platform.',
     path: '/privacy',
   },
+  journey: {
+    title: `Our Journey & Offices — ${SITE_NAME} Patna`,
+    description:
+      'Harsh To Let Services since 2011 — our story, Rajeev Nagar and Ashiyana offices in Patna with live map directions.',
+    path: '/our-journey',
+    keywords: 'Harsh To Let Services office Patna, Rajeev Nagar office, Ashiyana office, since 2011',
+  },
   patnaAreas: {
     title: `Patna Areas — Flats for Rent by Locality | ${SITE_NAME}`,
     description:
@@ -253,6 +260,7 @@ export function resolveStaticSeo(pathname, search = '') {
   if (pathname === '/job-apply') return SEO_PAGES.jobApply;
   if (pathname === '/terms') return SEO_PAGES.terms;
   if (pathname === '/privacy') return SEO_PAGES.privacy;
+  if (pathname === '/our-journey') return SEO_PAGES.journey;
   if (pathname === '/patna') return SEO_PAGES.patnaAreas;
   if (pathname === '/search') {
     const params = new URLSearchParams(search);

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, LogIn, LogOut, User, Bookmark, Briefcase, MessageCircle } from 'lucide-react';
+import { X, LogIn, LogOut, User, Bookmark, Briefcase, MessageCircle, MapPinned } from 'lucide-react';
 import NotificationBell from '../notifications/NotificationBell';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { usePropertyChatUnread } from '../../hooks/usePropertyChatUnread';
+import ReviewUsLink from '../ui/ReviewUsLink';
 
 const JOB_APPLY_COLOR = 'bg-[rgb(149,0,0)] hover:bg-[rgb(120,0,0)]';
 
@@ -154,6 +155,17 @@ export default function MobileMenu({
                 Login
               </Link>
             )}
+
+            <Link
+              to="/our-journey"
+              onClick={onClose}
+              className={`${navItemClass} flex items-center gap-2`}
+            >
+              <MapPinned className="h-4 w-4 shrink-0 text-gold" />
+              Our Journey &amp; Offices
+            </Link>
+
+            <ReviewUsLink variant="menu" onClick={onClose} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60" />
 
             <Link
               to={brokersLink.to}

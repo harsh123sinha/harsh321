@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink, Star } from 'lucide-react';
 import BrandMark from '../brand/BrandMark';
 import { FOOTER_LOGO_CLASS } from '../brand/BrandLogo';
 import { FEATURED_PATNA_AREAS } from '../../constants/areaPages';
+import { GOOGLE_REVIEWS_URL, OFFICES } from '../../constants/offices';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -90,6 +91,22 @@ const Footer = () => {
                   Find Brokers
                 </Link>
               </li>
+              <li>
+                <Link to="/our-journey" className="text-gray-light hover:text-gold transition-colors text-sm block py-1">
+                  Our Journey &amp; Offices
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={GOOGLE_REVIEWS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-light hover:text-gold transition-colors text-sm inline-flex items-center gap-1 py-1"
+                >
+                  <Star className="h-3.5 w-3.5 text-gold" aria-hidden />
+                  Review Us
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -146,10 +163,23 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gold">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-start space-x-2 text-gray-light text-sm">
-                <MapPin className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
-                <span>Patna, Bihar</span>
-              </li>
+              {OFFICES.map((office) => (
+                <li key={office.id} className="flex items-start space-x-2 text-gray-light text-sm">
+                  <MapPin className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">{office.shortName}</p>
+                    <p className="mt-0.5 leading-snug">{office.address}</p>
+                    <a
+                      href={office.mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex text-gold hover:underline"
+                    >
+                      Open in Maps
+                    </a>
+                  </div>
+                </li>
+              ))}
               <li className="flex items-start space-x-2 text-gray-light text-sm">
                 <Phone className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">

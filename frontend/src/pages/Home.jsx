@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
+import { ChevronRight, Building2, Shield, Users, Award } from 'lucide-react';
 import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Building2, Shield, Users, Award } from 'lucide-react';
 import api from '../utils/api';
 import SearchBar from '../components/search/SearchBar';
 import ServiceCategoriesMarquee from '../components/home/ServiceCategoriesMarquee';
@@ -10,8 +11,6 @@ import MissionCoDevBanner from '../components/home/MissionCoDevBanner';
 import FeaturedPropertiesCarousel from '../components/properties/FeaturedPropertiesCarousel';
 import FeaturedProjectsCarousel from '../components/properties/FeaturedProjectsCarousel';
 import BrandLoader from '../components/ui/BrandLoader';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
 
 /** One neutral surface after the hero — navy + gold accents only on hero, CTA, and highlights */
 const canvas = 'bg-stone-100';
@@ -105,9 +104,9 @@ const Home = () => {
 
       {/* Stats + partner */}
       <section className={`border-b border-stone-200/80 ${canvas} py-10 sm:py-12`}>
-        {data?.stats && (
-          <div className={sectionShell}>
-            <div className="mx-auto max-w-4xl rounded-2xl border border-stone-200/90 bg-white/90 px-4 py-6 shadow-sm sm:px-8 sm:py-8">
+        <div className={sectionShell}>
+          <div className="mx-auto max-w-4xl rounded-2xl border border-stone-200/90 bg-white/90 px-4 py-6 shadow-sm sm:px-8 sm:py-8">
+            {data?.stats ? (
               <div className="grid grid-cols-3 gap-4 sm:gap-6 sm:divide-x sm:divide-stone-200/70">
                 <div className="text-center sm:px-4">
                   <p className="mb-1 text-2xl font-bold tabular-nums text-gold sm:mb-2 sm:text-3xl md:text-4xl">
@@ -134,9 +133,22 @@ const Home = () => {
                   </p>
                 </div>
               </div>
+            ) : null}
+            <div
+              className={`text-center ${
+                data?.stats ? 'mt-5 border-t border-stone-200/80 pt-4 sm:mt-6 sm:pt-5' : ''
+              }`}
+            >
+              <Link
+                to="/our-journey"
+                className="group inline-flex items-center gap-1.5 text-base font-extrabold tracking-tight text-navy underline decoration-gold decoration-2 underline-offset-4 transition hover:text-gold sm:text-lg"
+              >
+                Our Journey and Offices
+                <ChevronRight className="h-5 w-5 text-gold transition group-hover:translate-x-0.5" aria-hidden />
+              </Link>
             </div>
           </div>
-        )}
+        </div>
 
         <MissionCoDevBanner className="mt-6 sm:mt-8" />
 
