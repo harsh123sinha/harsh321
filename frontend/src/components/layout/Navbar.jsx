@@ -223,8 +223,8 @@ const Navbar = () => {
 
   const mobileNavIcons = (
     <div
-      className={`ml-auto flex shrink-0 items-center ${
-        isHome ? '-mr-0.5 gap-0' : 'gap-0 pl-1'
+      className={`flex shrink-0 items-center ${
+        isHome ? 'ml-2 gap-1.5' : 'ml-auto gap-0.5 pl-1'
       }`}
     >
       <NotificationBell compact small />
@@ -232,12 +232,12 @@ const Navbar = () => {
       <Link
         to={isAuthenticated ? '/saved' : '/login'}
         className={`inline-flex items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 hover:text-gold ${
-          isHome ? 'h-6 w-6' : 'h-7 w-7 touch-target'
+          isHome ? 'h-7 w-7' : 'h-7 w-7 touch-target'
         }`}
         title={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
         aria-label={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
       >
-        <Bookmark className={isHome ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5'} />
+        <Bookmark className="h-4 w-4" />
       </Link>
     </div>
   );
@@ -251,7 +251,7 @@ const Navbar = () => {
       <div className={`mx-auto w-full max-w-7xl sm:px-6 xl:max-w-none xl:px-4 2xl:px-6 ${isHome ? 'px-1.5' : 'px-2'}`}>
         {/* Phone + tablet — hamburger (below 1280px) */}
         <div className="xl:hidden relative">
-          <div className={`flex min-h-16 items-center py-2 ${isHome ? 'gap-0.5' : 'gap-1'}`}>
+          <div className={`flex min-h-16 items-center py-2 ${isHome ? 'gap-1' : 'gap-1'}`}>
             <Link
               to="/"
               className={`flex items-center ${
@@ -265,17 +265,17 @@ const Navbar = () => {
             <button
               type="button"
               onClick={toggleMenu}
-              className={`relative shrink-0 rounded-lg text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 ${
-                isHome ? '-mr-1 p-1' : '-mr-1 p-1.5 touch-target'
+              className={`relative ml-auto shrink-0 rounded-lg text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 ${
+                isHome ? 'p-2' : '-mr-1 p-1.5 touch-target'
               }`}
               aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav-drawer"
             >
-              <span className={`relative block ${isHome ? 'h-5 w-5' : 'h-6 w-6'}`}>
+              <span className={`relative block ${isHome ? 'h-7 w-7' : 'h-6 w-6'}`}>
                 <Menu
                   className={`absolute inset-0 transition-all duration-300 ease-out ${
-                    isHome ? 'h-5 w-5' : 'h-6 w-6'
+                    isHome ? 'h-7 w-7' : 'h-6 w-6'
                   } ${
                     isMenuOpen ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
                   }`}
@@ -283,7 +283,7 @@ const Navbar = () => {
                 />
                 <X
                   className={`absolute inset-0 transition-all duration-300 ease-out ${
-                    isHome ? 'h-5 w-5' : 'h-6 w-6'
+                    isHome ? 'h-7 w-7' : 'h-6 w-6'
                   } ${
                     isMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0'
                   }`}
