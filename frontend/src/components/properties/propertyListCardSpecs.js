@@ -2,6 +2,7 @@ import {
   formatIndianPrice,
   getFacingLabel,
   getFurnishingLabel,
+  getPreferredTenantsLabel,
   getShopSqftRangeLabel,
 } from '../../utils/helpers';
 
@@ -77,6 +78,8 @@ export const buildListCardSpecs = (property) => {
   );
 
   if (property.garden) rows.push({ label: 'Garden', value: 'Yes' });
+  const tenantsLabel = getPreferredTenantsLabel(property.preferred_tenants);
+  if (tenantsLabel) rows.push({ label: 'Allowed', value: tenantsLabel });
   if (property.other_type && !shop) {
     rows.push({ label: 'Subtype', value: property.other_type });
   }
@@ -114,6 +117,8 @@ export const buildOlxMobileSpecLine = (property) => {
   }
   const furnish = getFurnishingLabel(property.furnishing_status);
   if (furnish) parts.push(furnish);
+  const tenants = getPreferredTenantsLabel(property.preferred_tenants);
+  if (tenants) parts.push(tenants);
   const facing = getFacingLabel(property.facing);
   if (facing) parts.push(facing);
   if (property.floor_no) parts.push(`Floor ${property.floor_no}`);

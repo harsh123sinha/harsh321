@@ -4,7 +4,7 @@ import api, { getImageUrl } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { Pencil, Trash2, Plus, X, Star } from 'lucide-react';
 import { ADD_PROPERTY_CATEGORIES, mapAddPropertyToApiType, mapPropertyRowToCategoryForm } from '../../utils/propertyListingMap';
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, LISTING_CITIES } from '../../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, PREFERRED_TENANTS_OPTIONS, LISTING_CITIES } from '../../constants/propertyForm';
 import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import BrokerDoneModal from '../brokers/BrokerDoneModal';
 import BrandLoader from '../ui/BrandLoader';
@@ -75,6 +75,7 @@ function emptyForm() {
     shopRoadDistance: '',
     shopTokenAmount: '',
     furnishing: '',
+    preferredTenants: '',
     featured: false,
     belongs_to_phone: ''
   };
@@ -226,6 +227,10 @@ export default function ManageProperties({ variant, staffFilter = null }) {
       shopTokenAmount:
         p.shop_token_amount != null && p.shop_token_amount !== '' ? String(p.shop_token_amount) : '',
       furnishing: p.furnishing_status != null && String(p.furnishing_status).trim() !== '' ? String(p.furnishing_status) : '',
+      preferredTenants:
+        p.preferred_tenants != null && String(p.preferred_tenants).trim() !== ''
+          ? String(p.preferred_tenants)
+          : '',
       featured: !!p.featured,
       belongs_to_phone: p.belongs_to_phone || p.owner_phone || ''
     });
@@ -245,6 +250,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
       showAmenities &&
       !isShop &&
       (form.category === 'homes' || form.category === 'flat' || form.category === 'apartment');
+    const showPreferredTenants = showFurnishing && form.transaction === 'rent';
 
     const { type, other_type } = mapAddPropertyToApiType({
       category: form.category,
@@ -300,6 +306,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
     }
 
     fd.append('furnishing_status', showFurnishing ? form.furnishing || '' : '');
+    fd.append('preferred_tenants', showPreferredTenants ? form.preferredTenants || '' : '');
 
     const newFiles = filesFromImageItems(newImageItems);
     newFiles.forEach((f) => fd.append('images', f));
@@ -793,6 +800,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                           next.shopRoadDistance = '';
                           next.shopTokenAmount = '';
                           next.furnishing = '';
+                          next.preferredTenants = '';
                           next.balconies = '';
                           next.bathrooms = '';
                           next.garden = false;
@@ -806,6 +814,7 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                           next.garden = false;
                           next.floor_no = '';
                           next.furnishing = '';
+                          next.preferredTenants = '';
                         } else {
                           next.otherDescription = '';
                           next.shopSqftRange = '';
@@ -843,7 +852,13 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                     <select
                       className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
                       value={form.transaction}
-                      onChange={(e) => setForm({ ...form, transaction: e.target.value })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          transaction: e.target.value,
+                          preferredTenants: e.target.value === 'rent' ? form.preferredTenants : '',
+                        })
+                      }
                     >
                       <option value="rent">Rent</option>
                       <option value="buy">Sell / Buy</option>
@@ -872,6 +887,23 @@ export default function ManageProperties({ variant, staffFilter = null }) {
                       onChange={(e) => setForm({ ...form, furnishing: e.target.value })}
                     >
                       {FURNISHING_OPTIONS.map((o) => (
+                        <option key={o.value || 'none'} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {(form.category === 'homes' || form.category === 'flat' || form.category === 'apartment') &&
+                  form.transaction === 'rent' && (
+                  <div>
+                    <label className="block text-sm font-medium text-navy mb-1">Allowed for</label>
+                    <select
+                      className="w-full border-2 border-gray-light rounded-lg px-3 py-2"
+                      value={form.preferredTenants}
+                      onChange={(e) => setForm({ ...form, preferredTenants: e.target.value })}
+                    >
+                      {PREFERRED_TENANTS_OPTIONS.map((o) => (
                         <option key={o.value || 'none'} value={o.value}>
                           {o.label}
                         </option>

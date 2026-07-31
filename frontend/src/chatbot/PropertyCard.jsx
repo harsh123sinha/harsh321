@@ -27,6 +27,9 @@ const PropertyCard = ({ property, onAfterNavigate }) => {
   if (property.bhk) highlights.push(`${property.bhk} BHK`);
   if (property.other_type) highlights.push(property.other_type);
   if (property.shop_sqft_range) highlights.push(`${property.shop_sqft_range} sq ft band`);
+  if (property.preferred_tenants === 'bachelors') highlights.push('Bachelors');
+  else if (property.preferred_tenants === 'family') highlights.push('Family');
+  else if (property.preferred_tenants === 'both') highlights.push('Bachelors & Family');
 
   return (
     <article className="w-[220px] flex-shrink-0 snap-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

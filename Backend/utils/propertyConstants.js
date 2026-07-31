@@ -13,6 +13,9 @@ export const PRICE_UNIT_VALUES = ['total', 'per_sqft'];
 /** Stored in `properties.furnishing_status` for home / flat / apartment (rent & buy) */
 export const FURNISHING_STATUS_VALUES = ['furnished', 'semi_furnished', 'unfurnished'];
 
+/** Stored in `properties.preferred_tenants` for residential rent listings */
+export const PREFERRED_TENANTS_VALUES = ['bachelors', 'family', 'both'];
+
 /** Shop-like commercial listings (no BHK; use shop size + optional per-sq-ft price) */
 export function isShopLikeOtherType(otherType) {
   const ot = String(otherType ?? '').trim().toLowerCase();
@@ -37,5 +40,15 @@ export function parseFurnishingForDb(type, other_type, raw) {
   if (!eligible) return null;
   const v = String(raw ?? '').trim();
   if (!v || !FURNISHING_STATUS_VALUES.includes(v)) return null;
+  return v;
+}
+
+/** @returns {string|null} DB value or null if not applicable / invalid */
+export function parsePreferredTenantsForDb(type, other_type, raw) {
+  const otherTrim = String(other_type ?? '').trim();
+  const eligible = type === 'rent' && ['', 'Flat', 'Apartment'].includes(otherTrim);
+  if (!eligible) return null;
+  const v = String(raw ?? '').trim().toLowerCase();
+  if (!v || !PREFERRED_TENANTS_VALUES.includes(v)) return null;
   return v;
 }

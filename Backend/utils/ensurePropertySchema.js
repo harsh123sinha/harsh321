@@ -121,9 +121,15 @@ export async function ensurePropertySchema() {
     );
     console.log(`✅ DB: added ${t}.furnishing_status`);
   }
+  if (!(await hasColumn(t, 'preferred_tenants'))) {
+    await db.execute(
+      `ALTER TABLE \`${t}\` ADD COLUMN preferred_tenants ENUM('bachelors','family','both') NULL DEFAULT NULL AFTER furnishing_status`
+    );
+    console.log(`✅ DB: added ${t}.preferred_tenants`);
+  }
   if (!(await hasColumn(t, 'facing'))) {
     await db.execute(
-      `ALTER TABLE \`${t}\` ADD COLUMN facing VARCHAR(8) NULL DEFAULT NULL AFTER furnishing_status`
+      `ALTER TABLE \`${t}\` ADD COLUMN facing VARCHAR(8) NULL DEFAULT NULL AFTER preferred_tenants`
     );
     console.log(`✅ DB: added ${t}.facing`);
   }

@@ -12,6 +12,7 @@ import {
   DEFAULT_SITE_INQUIRY_PHONE,
   getShopSqftRangeLabel,
   getFurnishingLabel,
+  getPreferredTenantsLabel,
   isProjectListing,
   formatBhkOptions,
   formatSqftRange,
@@ -108,6 +109,7 @@ const PropertyDetail = () => {
   const isProject = isProjectListing(property);
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
+  const preferredTenantsLabel = getPreferredTenantsLabel(property.preferred_tenants);
 
   const specParts = [];
   if (isProject) {
@@ -119,6 +121,7 @@ const PropertyDetail = () => {
     if (property.marketed_by) specParts.push(`Marketed by ${property.marketed_by}`);
   } else if (!isShop && property.bhk) specParts.push(`${property.bhk} BHK`);
   if (!isProject && !isShop && furnishingLabel) specParts.push(furnishingLabel);
+  if (!isProject && !isShop && preferredTenantsLabel) specParts.push(preferredTenantsLabel);
   if (!isProject && isShop && shopSqftLabel) specParts.push(shopSqftLabel);
   if (!isProject && property.katha) specParts.push(String(property.katha));
   if (!isProject && property.other_type) specParts.push(String(property.other_type));
@@ -297,6 +300,7 @@ const PropertyDetail = () => {
 
               {(property.bhk ||
                 property.furnishing_status ||
+                property.preferred_tenants ||
                 property.shop_sqft_range ||
                 property.shop_road_distance ||
                 (property.shop_token_amount != null && Number(property.shop_token_amount) > 0) ||
@@ -321,6 +325,12 @@ const PropertyDetail = () => {
                       <div>
                         <p className="text-sm text-gray mb-1">Furnishing</p>
                         <p className="text-lg font-semibold text-navy">{furnishingLabel}</p>
+                      </div>
+                    )}
+                    {!isShop && preferredTenantsLabel && (
+                      <div>
+                        <p className="text-sm text-gray mb-1">Allowed for</p>
+                        <p className="text-lg font-semibold text-navy">{preferredTenantsLabel}</p>
                       </div>
                     )}
                     {isShop && shopSqftLabel && (

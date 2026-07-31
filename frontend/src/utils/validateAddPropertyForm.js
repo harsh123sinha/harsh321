@@ -13,6 +13,7 @@ export function validateAddPropertyForm({
   isShop,
   showBhkAndAmenities,
   showFurnishing,
+  showPreferredTenants,
 }) {
   const errors = {};
 
@@ -80,6 +81,9 @@ export function validateAddPropertyForm({
     }
     if (showFurnishing && !String(formData.furnishing || '').trim()) {
       errors.furnishing = 'Furnishing status is required.';
+    }
+    if (showPreferredTenants && !String(formData.preferredTenants || '').trim()) {
+      errors.preferredTenants = 'Select whether bachelors, family, or both are allowed.';
     }
     const parkingOk =
       formData.no_parking || formData.car_parking || formData.bike_parking;

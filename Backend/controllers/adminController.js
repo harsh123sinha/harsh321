@@ -6,7 +6,7 @@ import { subAdminModel } from '../models/subAdminModel.js';
 import { verifyAdminCredentials } from '../middleware/auth.js';
 import { adminModel } from '../models/adminModel.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields, isValidIndianMobile, normalizeIndianMobile } from '../utils/helpers.js';
-import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES, isShopLikeOtherType, parsePriceUnitForDb } from '../utils/propertyConstants.js';
+import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, parsePreferredTenantsForDb, PLOT_TYPES, isShopLikeOtherType, parsePriceUnitForDb } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
 import {
   parseOptionalInt,
@@ -18,6 +18,7 @@ import {
   mergeShopRoadDistance,
   mergeShopTokenAmount,
   mergeFurnishingStatus,
+  mergePreferredTenants,
   mergeRoadNo,
   parseRoadNo
 } from '../utils/propertyAmenities.js';
@@ -380,7 +381,7 @@ export const adminCreateProperty = async (req, res) => {
       title, description, price, price_unit, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured, belongs_to_phone,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, road_no
     } = req.body;
 
     const belongsToPhoneDb = normalizeIndianMobile(belongs_to_phone);
@@ -469,6 +470,7 @@ export const adminCreateProperty = async (req, res) => {
     const floorNoFinal = isShopListing ? null : floorNo;
 
     const furnishDb = parseFurnishingForDb(type, otherTrim, furnishing_status);
+    const preferredTenantsDb = parsePreferredTenantsForDb(type, otherTrim, preferred_tenants);
 
     const propertyId = await propertyModel.create({
       title,
@@ -488,6 +490,7 @@ export const adminCreateProperty = async (req, res) => {
       shop_road_distance: shopRoadDb,
       shop_token_amount: shopTokenDb,
       furnishing_status: furnishDb,
+      preferred_tenants: preferredTenantsDb,
       location,
       road_no: roadNoDb,
       city,
@@ -574,7 +577,7 @@ export const adminUpdateProperty = async (req, res) => {
       district, state, pincode, other_type, featured, belongs_to_phone,
       removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, road_no
     } = req.body;
 
     const property = await propertyModel.findById(id);
@@ -704,6 +707,8 @@ export const adminUpdateProperty = async (req, res) => {
 
     const mergedFurnish = mergeFurnishingStatus(furnishing_status, property.furnishing_status);
     const nextFurnishing = parseFurnishingForDb(nextType, effectiveOther, mergedFurnish);
+    const mergedPreferred = mergePreferredTenants(preferred_tenants, property.preferred_tenants);
+    const nextPreferredTenants = parsePreferredTenantsForDb(nextType, effectiveOther, mergedPreferred);
 
     const nextRoadNo = mergeRoadNo(road_no, property.road_no);
     if (road_no !== undefined && parseRoadNo(road_no) == null && String(road_no).trim() !== '') {
@@ -731,6 +736,7 @@ export const adminUpdateProperty = async (req, res) => {
       shop_road_distance: nextShopRoad,
       shop_token_amount: nextShopToken,
       furnishing_status: nextFurnishing,
+      preferred_tenants: nextPreferredTenants,
       location: location || property.location,
       road_no: nextRoadNo,
       city: city || property.city,

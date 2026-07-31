@@ -30,6 +30,14 @@ export const FURNISHING_OPTIONS = [
   { value: 'unfurnished', label: 'Unfurnished' },
 ];
 
+/** Stored as `preferred_tenants` for residential rent listings */
+export const PREFERRED_TENANTS_OPTIONS = [
+  { value: '', label: 'Select who is allowed' },
+  { value: 'bachelors', label: 'Bachelors' },
+  { value: 'family', label: 'Family' },
+  { value: 'both', label: 'Bachelors & Family' },
+];
+
 /** Stored as `facing` on properties */
 export const FACING_OPTIONS = [
   { value: '', label: 'Select facing (optional)' },

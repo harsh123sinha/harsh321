@@ -1,4 +1,4 @@
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS } from '../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, PREFERRED_TENANTS_OPTIONS } from '../constants/propertyForm';
 import { getImageUrl, getAbsoluteImageUrl } from './api.js';
 
 // Indian price formatting
@@ -158,6 +158,14 @@ export const getFurnishingLabel = (value) => {
   const v = String(value ?? '').trim();
   if (!v) return '';
   const row = FURNISHING_OPTIONS.find((r) => r.value === v);
+  return row ? row.label : v;
+};
+
+/** Human label for `properties.preferred_tenants` (bachelors / family / both). */
+export const getPreferredTenantsLabel = (value) => {
+  const v = String(value ?? '').trim().toLowerCase();
+  if (!v) return '';
+  const row = PREFERRED_TENANTS_OPTIONS.find((r) => r.value === v);
   return row ? row.label : v;
 };
 

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS properties (
   shop_road_distance VARCHAR(191) NULL DEFAULT NULL,
   shop_token_amount DECIMAL(15, 2) NULL DEFAULT NULL,
   furnishing_status VARCHAR(32) NULL DEFAULT NULL,
+  preferred_tenants ENUM('bachelors', 'family', 'both') NULL DEFAULT NULL,
   location VARCHAR(255) NOT NULL,
   city VARCHAR(100) NOT NULL,
   district VARCHAR(100) NULL,

@@ -59,7 +59,7 @@ export const propertyModel = {
     const {
       title, description, price, price_unit, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured,
       listing_status, listing_review_reason, listed_by_staff,
       listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to,
@@ -70,11 +70,11 @@ export const propertyModel = {
       INSERT INTO properties
       (title, description, price, price_unit, type, bhk, katha,
        balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-       shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
+       shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, facing, built_up_area_sqft,
        location, road_no, city, district, state, pincode, image_url, other_type, owner_id, belongs_to_phone, featured, listing_status,
        listing_review_reason, listed_by_staff,
        listing_kind, project_type, developer_name, marketed_by, bhk_options, sqft_from, sqft_to, enclave_pdf_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -92,6 +92,7 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
+      preferred_tenants || null,
       facing || null,
       built_up_area_sqft != null && built_up_area_sqft !== '' && Number.isFinite(Number(built_up_area_sqft))
         ? Number(built_up_area_sqft)
@@ -629,7 +630,7 @@ export const propertyModel = {
     const {
       title, description, price, price_unit, type, bhk, katha,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, facing, built_up_area_sqft,
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, facing, built_up_area_sqft,
       location, road_no, city, district, state, pincode, image_url, other_type, featured, owner_id,
       belongs_to_phone,
       listing_status, listing_review_reason,
@@ -642,7 +643,7 @@ export const propertyModel = {
       SET title = ?, description = ?, price = ?, price_unit = ?, type = ?, bhk = ?, katha = ?,
           balconies = ?, bathrooms = ?, garden = ?, car_parking = ?, floor_no = ?,
           bike_parking = ?, shop_sqft_range = ?,
-          shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, facing = ?,
+          shop_road_distance = ?, shop_token_amount = ?, furnishing_status = ?, preferred_tenants = ?, facing = ?,
           built_up_area_sqft = ?,
           location = ?, road_no = ?, city = ?, district = ?, state = ?, pincode = ?,
           image_url = ?, other_type = ?, featured = ?, owner_id = ?, belongs_to_phone = ?,
@@ -666,6 +667,7 @@ export const propertyModel = {
         ? Number(shop_token_amount)
         : null,
       furnishing_status || null,
+      preferred_tenants || null,
       facing || null,
       built_up_area_sqft != null && built_up_area_sqft !== '' && Number.isFinite(Number(built_up_area_sqft))
         ? Number(built_up_area_sqft)

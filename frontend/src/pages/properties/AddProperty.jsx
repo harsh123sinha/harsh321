@@ -13,7 +13,7 @@ import {
   ADD_PROPERTY_CATEGORIES,
   mapAddPropertyToApiType,
 } from '../../utils/propertyListingMap';
-import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, FACING_OPTIONS, ROAD_NO_SUGGESTIONS, LISTING_CITIES } from '../../constants/propertyForm';
+import { SHOP_SQFT_RANGES, FURNISHING_OPTIONS, PREFERRED_TENANTS_OPTIONS, FACING_OPTIONS, ROAD_NO_SUGGESTIONS, LISTING_CITIES } from '../../constants/propertyForm';
 import { digitsOnly, blockNonDigitKeyDown } from '../../utils/numericInput';
 import {
   CONTACT_VALIDATED_FIELDS,
@@ -73,6 +73,7 @@ const AddProperty = () => {
     shopRoadDistance: '',
     shopTokenAmount: '',
     furnishing: '',
+    preferredTenants: '',
     facing: '',
     featured: false,
   });
@@ -165,6 +166,7 @@ const AddProperty = () => {
     showBhkAndAmenities &&
     !isShop &&
     (formData.category === 'homes' || formData.category === 'flat' || formData.category === 'apartment');
+  const showPreferredTenants = showFurnishing && formData.transaction === 'rent';
 
   const clearFieldError = (...keys) => {
     setFieldErrors((prev) => {
@@ -246,6 +248,7 @@ const AddProperty = () => {
             shopRoadDistance: '',
             shopTokenAmount: '',
             furnishing: '',
+            preferredTenants: '',
           });
         } else if (v === 'other') {
           Object.assign(next, {
@@ -255,6 +258,7 @@ const AddProperty = () => {
             shopRoadDistance: '',
             shopTokenAmount: '',
             furnishing: '',
+            preferredTenants: '',
             balconies: '',
             bathrooms: '',
             garden: false,
@@ -272,6 +276,7 @@ const AddProperty = () => {
             garden: false,
             floor_no: '',
             furnishing: '',
+            preferredTenants: '',
           });
         } else {
           next.otherDescription = '';
@@ -279,6 +284,10 @@ const AddProperty = () => {
           next.shopRoadDistance = '';
           next.shopTokenAmount = '';
         }
+      }
+
+      if (name === 'transaction' && v !== 'rent') {
+        next.preferredTenants = '';
       }
 
       if (name === 'title' || name === 'description') {
@@ -362,6 +371,7 @@ const AddProperty = () => {
           isShop,
           showBhkAndAmenities,
           showFurnishing,
+          showPreferredTenants,
         });
 
     if (Object.keys(errors).length > 0) {
@@ -510,6 +520,7 @@ const AddProperty = () => {
     }
 
     data.append('furnishing_status', showFurnishing ? formData.furnishing : '');
+    data.append('preferred_tenants', showPreferredTenants ? formData.preferredTenants : '');
     data.append('facing', formData.facing || '');
     uploadImages.forEach((img) => data.append('images', img));
 
@@ -843,6 +854,27 @@ const AddProperty = () => {
                   ))}
                 </select>
                 <FieldHint error={fieldErrors.furnishing} />
+              </div>
+            )}
+
+            {showPreferredTenants && (
+              <div>
+                <label className="block text-sm font-medium text-navy mb-2">Allowed for *</label>
+                <select
+                  name="preferredTenants"
+                  value={formData.preferredTenants}
+                  onChange={handleChange}
+                  required
+                  className={inputClass(fieldErrors.preferredTenants)}
+                >
+                  <option value="">Select who is allowed</option>
+                  {PREFERRED_TENANTS_OPTIONS.filter((o) => o.value).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <FieldHint error={fieldErrors.preferredTenants} />
               </div>
             )}
 

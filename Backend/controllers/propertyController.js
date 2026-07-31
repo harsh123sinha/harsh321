@@ -1,7 +1,7 @@
 import { propertyModel } from '../models/propertyModel.js';
 import { normEmail } from '../middleware/auth.js';
 import { parseImageUrls, stringifyImageUrls, validatePropertyFields } from '../utils/helpers.js';
-import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, PLOT_TYPES, isShopLikeOtherType, parsePriceUnitForDb } from '../utils/propertyConstants.js';
+import { VALID_PROPERTY_TYPES, SHOP_SQFT_RANGE_VALUES, parseFurnishingForDb, parsePreferredTenantsForDb, PLOT_TYPES, isShopLikeOtherType, parsePriceUnitForDb } from '../utils/propertyConstants.js';
 import { normalizeListingLocation } from '../utils/listingLocation.js';
 import { getRecommendations, parseRecommendationQuery } from '../services/recommendationService.js';
 import {
@@ -14,6 +14,7 @@ import {
   mergeShopRoadDistance,
   mergeShopTokenAmount,
   mergeFurnishingStatus,
+  mergePreferredTenants,
   mergeRoadNo,
   parseRoadNo
 } from '../utils/propertyAmenities.js';
@@ -340,7 +341,7 @@ export const addProperty = async (req, res) => {
       title, description, price, price_unit, type, bhk, katha, location, city,
       district: districtBody, state: stateBody, pincode, other_type, featured,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, road_no, facing, built_up_area_sqft
     } = req.body;
 
     // Validation (district / state / pincode optional — filled from city for search compatibility)
@@ -429,6 +430,7 @@ export const addProperty = async (req, res) => {
     const floorNoFinal = isShopListing ? null : floorNo;
 
     const furnishDb = parseFurnishingForDb(type, otherTrim, furnishing_status);
+    const preferredTenantsDb = parsePreferredTenantsForDb(type, otherTrim, preferred_tenants);
     const facingDb =
       facing != null && String(facing).trim() !== '' ? String(facing).trim().toUpperCase() : null;
 
@@ -451,6 +453,7 @@ export const addProperty = async (req, res) => {
       shop_road_distance: shopRoadDb,
       shop_token_amount: shopTokenDb,
       furnishing_status: furnishDb,
+      preferred_tenants: preferredTenantsDb,
       facing: facingDb,
       built_up_area_sqft: built_up_area_sqft,
       location,
@@ -504,7 +507,7 @@ export const updateProperty = async (req, res) => {
       title, description, price, price_unit, type, bhk, katha, location, city,
       district, state, pincode, other_type, featured, removeAllImages, removeImages,
       balconies, bathrooms, garden, car_parking, floor_no, bike_parking, shop_sqft_range,
-      shop_road_distance, shop_token_amount, furnishing_status, road_no, facing, built_up_area_sqft
+      shop_road_distance, shop_token_amount, furnishing_status, preferred_tenants, road_no, facing, built_up_area_sqft
     } = req.body;
 
     // Check if property exists and user owns it
@@ -634,6 +637,8 @@ export const updateProperty = async (req, res) => {
 
     const mergedFurnish = mergeFurnishingStatus(furnishing_status, property.furnishing_status);
     const nextFurnishing = parseFurnishingForDb(nextType, effectiveOther, mergedFurnish);
+    const mergedPreferred = mergePreferredTenants(preferred_tenants, property.preferred_tenants);
+    const nextPreferredTenants = parsePreferredTenantsForDb(nextType, effectiveOther, mergedPreferred);
     const nextFacing =
       facing !== undefined
         ? String(facing).trim() === ''
@@ -690,6 +695,7 @@ export const updateProperty = async (req, res) => {
       shop_road_distance: nextShopRoad,
       shop_token_amount: nextShopToken,
       furnishing_status: nextFurnishing,
+      preferred_tenants: nextPreferredTenants,
       facing: nextFacing,
       built_up_area_sqft: nextBuiltUpArea,
       location: location || property.location,

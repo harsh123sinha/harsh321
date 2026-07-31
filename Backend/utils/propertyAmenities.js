@@ -55,6 +55,12 @@ export function mergeFurnishingStatus(incoming, existing) {
   return s === '' ? null : s;
 }
 
+export function mergePreferredTenants(incoming, existing) {
+  if (incoming === undefined) return existing ?? null;
+  const s = String(incoming ?? '').trim().toLowerCase();
+  return s === '' ? null : s;
+}
+
 /** Road number 1–999; undefined = keep existing on update */
 export function parseRoadNo(value) {
   if (value === undefined || value === null || String(value).trim() === '') return null;

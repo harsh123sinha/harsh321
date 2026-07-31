@@ -10,6 +10,7 @@ import {
   getListingParty,
   getShopSqftRangeLabel,
   getFurnishingLabel,
+  getPreferredTenantsLabel,
   isShopLikeListing,
 } from '../../utils/helpers';
 import { getImageUrl } from '../../utils/api';
@@ -35,6 +36,7 @@ const PropertyCard = ({ property }) => {
   const isShop = isShopLikeListing(property);
   const shopSqftLabel = getShopSqftRangeLabel(property.shop_sqft_range);
   const furnishingLabel = getFurnishingLabel(property.furnishing_status);
+  const preferredTenantsLabel = getPreferredTenantsLabel(property.preferred_tenants);
 
   const ownerRole = (property.owner_role || '').toLowerCase();
   const partyBadge =
@@ -121,6 +123,11 @@ const PropertyCard = ({ property }) => {
             {!isShop && furnishingLabel && (
               <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
                 {furnishingLabel}
+              </span>
+            )}
+            {!isShop && preferredTenantsLabel && (
+              <span className="rounded-full bg-navy/5 px-1.5 py-0.5 text-[9px] font-medium text-navy sm:px-3 sm:py-1 sm:text-xs">
+                {preferredTenantsLabel}
               </span>
             )}
             {property.katha && (
