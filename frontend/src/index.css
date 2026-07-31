@@ -1325,6 +1325,10 @@
   animation: htls-brand-name-shimmer 2.8s ease-in-out infinite;
 }
 
+.htls-brand-name--compact {
+  letter-spacing: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .htls-brand-name {
     animation: none;

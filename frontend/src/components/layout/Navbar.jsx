@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, LogIn, LogOut, User, Bookmark, Briefcase } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationBell from '../notifications/NotificationBell';
@@ -82,6 +82,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -220,16 +222,22 @@ const Navbar = () => {
   );
 
   const mobileNavIcons = (
-    <div className="flex shrink-0 items-center h-8 gap-0.5">
+    <div
+      className={`ml-auto flex shrink-0 items-center ${
+        isHome ? '-mr-0.5 gap-0' : 'gap-0 pl-1'
+      }`}
+    >
       <NotificationBell compact small />
       <PropertyChatNavLink iconOnly />
       <Link
         to={isAuthenticated ? '/saved' : '/login'}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 hover:text-gold touch-target"
+        className={`inline-flex items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 hover:text-gold ${
+          isHome ? 'h-6 w-6' : 'h-7 w-7 touch-target'
+        }`}
         title={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
         aria-label={isAuthenticated ? 'Saved properties' : 'Login to view saved properties'}
       >
-        <Bookmark className="h-4 w-4" />
+        <Bookmark className={isHome ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5'} />
       </Link>
     </div>
   );
@@ -240,35 +248,43 @@ const Navbar = () => {
 
   return (
     <nav className="bg-navy sticky top-0 z-50 shadow-lg">
-      <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 xl:max-w-none xl:px-4 2xl:px-6">
+      <div className={`mx-auto w-full max-w-7xl sm:px-6 xl:max-w-none xl:px-4 2xl:px-6 ${isHome ? 'px-1.5' : 'px-2'}`}>
         {/* Phone + tablet — hamburger (below 1280px) */}
         <div className="xl:hidden relative">
-          <div className="flex min-h-16 items-center justify-between gap-2 py-2">
+          <div className={`flex min-h-16 items-center py-2 ${isHome ? 'gap-0.5' : 'gap-1'}`}>
             <Link
               to="/"
-              className="flex min-w-0 flex-1 items-center touch-target"
+              className={`flex items-center ${
+                isHome ? 'shrink-0 pr-0.5' : 'min-w-0 flex-1 touch-target pr-1'
+              }`}
               aria-label="Harsh To Let Services home"
             >
-              <BrandMark compact />
+              <BrandMark compact shortName={!isHome} />
             </Link>
             {mobileNavIcons}
             <button
               type="button"
               onClick={toggleMenu}
-              className="relative shrink-0 rounded-lg p-2 text-white touch-target transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              className={`relative shrink-0 rounded-lg text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 ${
+                isHome ? '-mr-1 p-1' : '-mr-1 p-1.5 touch-target'
+              }`}
               aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav-drawer"
             >
-              <span className="relative block h-6 w-6">
+              <span className={`relative block ${isHome ? 'h-5 w-5' : 'h-6 w-6'}`}>
                 <Menu
-                  className={`absolute inset-0 h-6 w-6 transition-all duration-300 ease-out ${
+                  className={`absolute inset-0 transition-all duration-300 ease-out ${
+                    isHome ? 'h-5 w-5' : 'h-6 w-6'
+                  } ${
                     isMenuOpen ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100'
                   }`}
                   aria-hidden
                 />
                 <X
-                  className={`absolute inset-0 h-6 w-6 transition-all duration-300 ease-out ${
+                  className={`absolute inset-0 transition-all duration-300 ease-out ${
+                    isHome ? 'h-5 w-5' : 'h-6 w-6'
+                  } ${
                     isMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0'
                   }`}
                   aria-hidden

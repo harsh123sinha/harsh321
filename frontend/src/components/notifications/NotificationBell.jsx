@@ -166,14 +166,14 @@ const NotificationBell = ({ compact = false, small = false }) => {
           ref={triggerRef}
           type="button"
           onClick={handleBellClick}
-          className={`relative inline-flex items-center justify-center text-white hover:text-gold transition-colors touch-target ${
-            compact ? 'h-8 w-8' : 'h-10 w-10'
-          } ${compact ? '' : 'p-2'}`}
+          className={`relative inline-flex items-center justify-center text-white hover:text-gold transition-colors ${
+            small ? 'h-6 w-6' : compact ? 'h-8 w-8 touch-target' : 'h-10 w-10 touch-target p-2'
+          }`}
           aria-label="Notifications"
         >
           <Bell
             className={
-              small ? 'h-4 w-4' : compact ? 'h-4 w-4 2xl:h-5 2xl:w-5' : 'h-5 w-5'
+              small ? 'h-3.5 w-3.5' : compact ? 'h-4 w-4 2xl:h-5 2xl:w-5' : 'h-5 w-5'
             }
           />
           {unread > 0 && (

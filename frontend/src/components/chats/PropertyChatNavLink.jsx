@@ -35,11 +35,11 @@ export default function PropertyChatNavLink({ compact = false, className = '', i
     return (
       <Link
         to="/chats"
-        className={`relative inline-flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/10 hover:text-gold touch-target ${className}`}
+        className={`relative inline-flex h-6 w-6 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 hover:text-gold ${className}`}
         title="Property chats"
         aria-label={count > 0 ? `Property chats, ${count} unread` : 'Property chats'}
       >
-        <MessageCircle className={iconClass} />
+        <MessageCircle className="h-3.5 w-3.5" />
         <UnreadBadge count={count} />
       </Link>
     );
